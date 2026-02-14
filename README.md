@@ -71,7 +71,7 @@ lineai_aoi_profiles/
 
 | 項目 | 内容 |
 |------|------|
-| サービス名 | YAMAP |
+| サービス名 | Swarm API |
 | 役割 | ユーザーの行動履歴（チェックイン履歴）を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://help.perforce.com/helix-core/helix-swarm/swarm/2024.1/Content/Swarm/swarm-apidoc.html |
 | MCP サーバー | https://github.com/alexpriest/swarm-mcp (非公式) |

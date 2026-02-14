@@ -44,4 +44,5 @@
 
 ## 入力トリガー
 - `daily message (暁): YYYY-MM-DD` -> 【暁】モードを実行
+- `daily message (望): YYYY-MM-DD` -> 【望】モードを実行
 - `daily message (小夜): YYYY-MM-DD` -> 【小夜】モードを実行

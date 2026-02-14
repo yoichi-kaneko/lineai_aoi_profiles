@@ -22,8 +22,68 @@ lineai_aoi_profiles/
 
 ## 4. 連携しているサービスについて
 
-- **LINE Messaging API** - メッセージの送受信
-- （その他、連携サービスは随時追記予定）
+### LINE Messaging API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | LINE Messaging API |
+| 役割 | 碧衣からユーザーへのメッセージ送信を担うメッセージング基盤 |
+| サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
+| MCP サーバー | https://github.com/line/line-bot-mcp-server |
+
+### Google Calendar API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Google Calendar API |
+| 役割 | ユーザーのスケジュールを読み込み、メッセージ構築のための情報収集の中核を担う |
+| サービスURL | https://developers.google.com/workspace/calendar/api/guides/overview?hl=ja/ |
+| MCP サーバー | https://www.npmjs.com/package/@cocal/google-calendar-mcp （非公式） |
+
+### Todoist API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Todoist API |
+| 役割 | ユーザーのTODOタスクを読み込み、メッセージ構築のための情報収集を担う |
+| サービスURL | https://developer.todoist.com/api/v1/ |
+| MCP サーバー | https://github.com/Doist/todoist-mcp |
+
+### Google Maps API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Google Maps API |
+| 役割 | 後述するOpenWeatherAPIを呼び出すため、情報内にある住所を座標に変換する処理を担う |
+| サービスURL | https://developers.google.com/maps?hl=ja |
+| MCP サーバー | https://www.npmjs.com/package/@modelcontextprotocol/server-google-maps |
+
+### OpenWeatherAPI
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | OpenWeatherAPI |
+| 役割 | 座標情報を元に天気予報を読み込み、メッセージ構築のための情報収集を担う |
+| サービスURL | https://openweathermap.org/api |
+| MCP サーバー | https://github.com/yoichi-kaneko/mountain_forecast_mcp (非公式・kanekoの自作) |
+
+### Swarm API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | YAMAP |
+| 役割 | ユーザーの行動履歴（チェックイン履歴）を読み込み、メッセージ構築のための情報収集を担う |
+| サービスURL | https://help.perforce.com/helix-core/helix-swarm/swarm/2024.1/Content/Swarm/swarm-apidoc.html |
+| MCP サーバー | https://github.com/alexpriest/swarm-mcp (非公式) |
+
+### YAMAP
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | YAMAP |
+| 役割 | ユーザーの登山情報を読み込み、メッセージ構築のための情報収集を担う |
+| サービスURL | https://yamap.com/ |
+| MCP サーバー | MCPサーバーはないが、プロファイル内に本サービスとの結合度の高い記述が含まれている |
 
 ## 5. ライセンスについて
 

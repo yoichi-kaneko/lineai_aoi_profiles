@@ -30,6 +30,7 @@ lineai_aoi_profiles/
 | 役割 | 碧衣からユーザーへのメッセージ送信を担うメッセージング基盤 |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
 | MCP サーバー | https://github.com/line/line-bot-mcp-server |
+| 備考 | デフォルトではMCPサーバーに要する処理が重いため、メッセージ送信のため最低限のツールを残して他は削除した |
 
 ### Google Calendar API
 
@@ -47,7 +48,7 @@ lineai_aoi_profiles/
 | サービス名 | Todoist API |
 | 役割 | ユーザーのTODOタスクを読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://developer.todoist.com/api/v1/ |
-| MCP サーバー | https://github.com/Doist/todoist-mcp |
+| MCP サーバー | https://github.com/greirson/mcp-todoist |
 
 ### Google Maps API
 

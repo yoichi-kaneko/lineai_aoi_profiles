@@ -48,7 +48,7 @@ lineai_aoi_profiles/
 | サービス名 | Todoist API |
 | 役割 | ユーザーのTODOタスクを読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://developer.todoist.com/api/v1/ |
-| MCP サーバー | https://github.com/greirson/mcp-todoist |
+| MCP サーバー | https://github.com/yoichi-kaneko/todoist_mcp_for_lineai (非公式・kanekoの自作) |
 
 ### Google Maps API
 

@@ -97,6 +97,14 @@ lineai_aoi_profiles/
 | サービスURL | https://yamap.com/ |
 | スキル | `fetch_yamap_plan`（自作スキル、APIでなく登山計画書のwebページをスクレイピングする）→ [SKILL.md](.claude/skills/fetch_yamap_plan/SKILL.md) |
 
+### Fetch MCP Server
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Fetch MCP Server |
+| 役割 | Webページを取得してくるMCPツール。Claude標準のfetchよりも性能が高いため導入 |
+| MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
+
 ## 5. ライセンスについて
 
 本プロジェクトは MIT License のもとで公開されています。

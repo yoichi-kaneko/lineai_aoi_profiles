@@ -24,7 +24,7 @@ ALLOWED_TOOLS=(
   "get_checkins_by_date_range"
   "get_recent_checkins"
   "WebSearch"
-  "WebFetch"
+  "fetch"
 )
 
 # ==========================================

@@ -84,7 +84,7 @@ lineai_aoi_profiles/
 | サービス名 | YAMAP |
 | 役割 | ユーザーの登山情報を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://yamap.com/ |
-| MCP サーバー | MCPサーバーはないが、プロファイル内に本サービスとの結合度の高い記述が含まれている |
+| MCP サーバー | https://github.com/yoichi-kaneko/yamap_mcp_for_lineai (kanekoの自作、APIでなく登山計画書のwebページをスクレイピングする) |
 
 ## 5. ライセンスについて
 

@@ -25,6 +25,7 @@ ALLOWED_TOOLS=(
   "get_recent_checkins"
   "WebSearch"
   "fetch"
+  "fetch_yamap_plan_page"
 )
 
 # ==========================================

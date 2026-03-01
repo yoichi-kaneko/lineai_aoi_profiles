@@ -5,6 +5,7 @@
 1. **Google Calendarの確認**: `search_events` で `YYYY-MM-DD` の予定を取得してください。
 2. **Todoistタスクの取得**: `todoist_get_all_tasks` を 実行してください。
    - 取得結果から、期限なし、または今後7日以内のタスクを抽出してください。
+   - また、類似するタスクについては集計、統合を行ってください（登山レポート作成予定がn件、など）
 3. **URLからの詳細情報取得 (`fetch`)**: 
    カレンダーの予定内にURLが含まれる場合、以下の優先順位に従って情報を補完してください。
    - **最優先（登山計画）**: URLが `https://yamap.com/plans/code/${CODE}/printing` の形式である場合、そのURLをそのまま **`fetch_yamap_plan_page` ツール**に渡し、登山計画の詳細を取得してください。

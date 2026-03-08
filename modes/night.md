@@ -5,7 +5,7 @@
 2. **Swarmで行動記録取得**: `get_checkins_by_date_range` を使用し、`start_date`, `end_date` ともに本日の日付を指定して、施設や場所へのチェックイン履歴を取得してください。
 3. **URLからの詳細情報取得 (`fetch`)**: 
    カレンダーの予定内にURLが含まれる場合、以下の優先順位に従って情報を補完してください。
-   - **最優先（登山計画）**: URLが `https://yamap.com/plans/code/${CODE}/printing` の形式である場合、そのURLをそのまま **`fetch_yamap_plan_page` ツール**に渡して登山計画の詳細（山名、標高、コース、予定歩行時間など）を取得してください。
+   - **最優先（登山計画）**: URLが `https://yamap.com/plans/code/${CODE}/printing` の形式である場合、そのURLをそのまま **`fetch_yamap_plan` スキル**に渡して登山計画の詳細（山名、標高、コース、予定歩行時間など）を取得してください。
    - **優先（その他）**: 予定に付随するURLから、その日の体験をより深く振り返るために役立つ情報があれば、適宜 `fetch` してください。
 4. **Todoist完了タスクの取得**: 
    - `todoist_get_completed_tasks_by_date` を使用し、本日完了したタスクをすべて取得してください。

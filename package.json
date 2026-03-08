@@ -1,0 +1,7 @@
+{
+    "name": "lineai_aoi_profiles",
+    "private": true,
+    "workspaces": [
+      ".claude/skills/*"
+    ]
+  }

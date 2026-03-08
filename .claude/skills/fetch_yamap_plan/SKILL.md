@@ -1,3 +1,8 @@
+---
+name: fetch_yamap_plan
+description: YAMAPの山行計画ページから計画情報を取得する。yamap.com/plans/code/で始まるURLが渡されたときに使用する。計画タイトル・山域・距離・標高差・移動計画などを抽出して返す。
+---
+
 # fetch_yamap_plan
 
 YAMAPの山行計画ページから計画情報を取得するスタンドアロンCLIスクリプトです。
@@ -31,13 +36,13 @@ npx playwright install chromium
 
 ```bash
 cd {Base directory for this skill の絶対パス}
-npx tsx index.ts "https://yamap.com/plans/code/XXXX"
+npx tsx scripts/fetch.ts "https://yamap.com/plans/code/XXXX"
 ```
 
 `/printing` 付きURLも使用可能です：
 
 ```bash
-npx tsx index.ts "https://yamap.com/plans/code/XXXX/printing"
+npx tsx scripts/fetch.ts "https://yamap.com/plans/code/XXXX/printing"
 ```
 
 ## 注意事項
@@ -53,7 +58,7 @@ npx tsx index.ts "https://yamap.com/plans/code/XXXX/printing"
 
 ```bash
 cd {Base directory for this skill の絶対パス}
-npx tsx index.ts "{ARGUMENTS として渡された URL}"
+npx tsx scripts/fetch.ts "{ARGUMENTS として渡された URL}"
 ```
 
 ARGUMENTSとして渡されたURLをそのまま引数に使用してください。

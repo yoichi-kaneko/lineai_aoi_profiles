@@ -47,7 +47,7 @@ else
 fi
 
 # 4. claude を実行
-/usr/bin/claude \
+/home/ec2-user/.local/bin/claude \
   -p "$TRIGGER_PROMPT" \
   --allowed-tools "$ALLOWED_TOOLS_STR" \
   --permission-mode bypassPermissions

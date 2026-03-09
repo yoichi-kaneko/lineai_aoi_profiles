@@ -28,7 +28,18 @@ GOOGLE_CALENDAR_ID="primary"
 GOOGLE_CALENDAR_TIMEZONE="Asia/Tokyo"
 ```
 
-また、`google-calendar-mcp` での認証が完了している必要があります（トークンファイルを共有）。
+### 初回認証
+
+初回または再認証が必要な場合は以下を実行してください。
+
+```bash
+cd {Base directory for this skill の絶対パス}
+npx tsx scripts/auth.ts
+```
+
+表示された URL をブラウザで開いて Google アカウントを認証すると、
+`~/.config/google-skills/tokens.json` に Calendar + Drive 両スコープの
+トークンが保存されます。`GOOGLE_SKILLS_TOKEN_PATH` 環境変数でパスを変更できます。
 
 ## 実行方法
 

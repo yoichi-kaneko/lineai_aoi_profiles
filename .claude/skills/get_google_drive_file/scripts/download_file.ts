@@ -1,14 +1,14 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
+import { readFileSync, createWriteStream, mkdirSync } from "fs";
 import { homedir } from "os";
 import path from "path";
 import { OAuth2Client } from "google-auth-library";
-import { google, calendar_v3 } from "googleapis";
+import { google } from "googleapis";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> get_google_calendar_events/ -> skills/ -> .claude/ -> project root
+// scripts/ -> get_google_drive_file/ -> skills/ -> .claude/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../../../.env") });
 
@@ -66,78 +66,15 @@ function loadTokens(): Record<string, any> {
   }
 }
 
-/**
- * 指定タイムゾーンにおける、与えられた日付のUTCオフセット文字列を返す
- * 例: "Asia/Tokyo" -> "+09:00", "America/New_York" (EST) -> "-05:00"
- */
-function getTimezoneOffsetString(timezone: string, dateStr: string): string {
-  const [year, month, day] = dateStr.split("T")[0].split("-").map(Number);
-  // その日の正午UTC を基準にオフセットを取得 (DST境界の誤検知を防ぐため)
-  const refDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    timeZoneName: "shortOffset",
-  }).format(refDate);
-
-  const match = formatted.match(/GMT([+-])(\d+)(?::(\d+))?/);
-  if (!match) return "Z";
-
-  const sign = match[1];
-  const hours = match[2].padStart(2, "0");
-  const minutes = (match[3] || "0").padStart(2, "0");
-  return `${sign}${hours}:${minutes}`;
-}
-
-/** ISO datetime 文字列 (例: "2026-03-08T00:00:00") にタイムゾーンオフセットを付加して RFC3339 に変換 */
-function toRFC3339(datetime: string, timezone: string): string {
-  const offset = getTimezoneOffsetString(timezone, datetime);
-  return `${datetime}${offset}`;
-}
-
-function formatEvent(event: calendar_v3.Schema$Event): object {
-  return {
-    id: event.id,
-    summary: event.summary,
-    description: event.description,
-    location: event.location,
-    start: event.start,
-    end: event.end,
-    status: event.status,
-    htmlLink: event.htmlLink,
-    created: event.created,
-    updated: event.updated,
-    creator: event.creator,
-    organizer: event.organizer,
-    attendees: event.attendees,
-    recurrence: event.recurrence,
-    recurringEventId: event.recurringEventId,
-    conferenceData: event.conferenceData,
-    extendedProperties: event.extendedProperties,
-    reminders: event.reminders,
-    eventType: event.eventType,
-    attachments: event.attachments?.map((a) => ({
-      fileUrl: a.fileUrl,
-      title: a.title,
-      mimeType: a.mimeType,
-      iconLink: a.iconLink,
-      fileId: a.fileId,
-    })),
-  };
-}
-
 async function main() {
-  const timeMinArg = process.argv[2];
-  const timeMaxArg = process.argv[3];
+  const fileId = process.argv[2];
 
-  if (!timeMinArg || !timeMaxArg) {
-    console.error("使用方法: npx tsx scripts/get_events.ts <timeMin> <timeMax>");
-    console.error("例: npx tsx scripts/get_events.ts 2026-03-08T00:00:00 2026-03-08T23:59:59");
+  if (!fileId) {
+    console.error("使用方法: npx tsx scripts/download_file.ts <fileId>");
+    console.error("例: npx tsx scripts/download_file.ts 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms");
     process.exit(1);
   }
 
-  const calendarId = getEnvOrExit("GOOGLE_CALENDAR_ID");
-  const timezone = getEnvOrExit("GOOGLE_CALENDAR_TIMEZONE");
   const accountMode = process.env.GOOGLE_ACCOUNT_MODE || "normal";
 
   const credentials = loadCredentials();
@@ -168,26 +105,46 @@ async function main() {
     oauth2Client.setCredentials(newCreds);
   }
 
-  const timeMin = toRFC3339(timeMinArg, timezone);
-  const timeMax = toRFC3339(timeMaxArg, timezone);
+  const drive = google.drive({ version: "v3", auth: oauth2Client });
 
-  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-  const response = await calendar.events.list({
-    calendarId,
-    timeMin,
-    timeMax,
-    singleEvents: true,
-    orderBy: "startTime",
-    timeZone: timezone,
+  // ファイルメタデータを取得してファイル名を決定
+  const metaResponse = await drive.files.get({
+    fileId,
+    fields: "id,name,mimeType",
+  });
+  const { name: fileName, mimeType } = metaResponse.data;
+
+  if (!fileName) {
+    console.error("ファイル名を取得できませんでした");
+    process.exit(1);
+  }
+
+  // tmp ディレクトリを作成
+  const tmpDir = resolve(__dirname, "../../../../tmp");
+  mkdirSync(tmpDir, { recursive: true });
+
+  const outputPath = path.join(tmpDir, fileName);
+
+  // ファイルをストリームでダウンロード
+  const downloadResponse = await drive.files.get(
+    { fileId, alt: "media" },
+    { responseType: "stream" }
+  );
+
+  await new Promise<void>((resolvePromise, reject) => {
+    const dest = createWriteStream(outputPath);
+    (downloadResponse.data as NodeJS.ReadableStream)
+      .on("error", reject)
+      .pipe(dest)
+      .on("error", reject)
+      .on("finish", resolvePromise);
   });
 
-  const events = response.data.items || [];
   const result = {
-    calendarId,
-    timeRange: { start: timeMin, end: timeMax },
-    timezone,
-    totalCount: events.length,
-    events: events.map(formatEvent),
+    fileId,
+    fileName,
+    mimeType,
+    savedPath: outputPath,
   };
 
   console.log(JSON.stringify(result, null, 2));

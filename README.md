@@ -42,7 +42,16 @@ lineai_aoi_profiles/
 | サービス名 | Google Calendar API |
 | 役割 | ユーザーのスケジュールを読み込み、メッセージ構築のための情報収集の中核を担う |
 | サービスURL | https://developers.google.com/workspace/calendar/api/guides/overview?hl=ja/ |
-| MCP サーバー | https://www.npmjs.com/package/@cocal/google-calendar-mcp （非公式） |
+| スキル | `get_google_calendar_events`（自作スキル）→ [SKILL.md](.claude/skills/get_google_calendar_events/SKILL.md) |
+
+### Google Drive API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Google Drive API |
+| 役割 | Google Calendarの予定に添付されたファイルを取得する |
+| サービスURL | https://developers.google.com/workspace/drive/api/guides/overview?hl=ja |
+| スキル | `get_google_drive_file`（自作スキル）→ [SKILL.md](.claude/skills/get_google_drive_file/SKILL.md) |
 
 ### Todoist API
 

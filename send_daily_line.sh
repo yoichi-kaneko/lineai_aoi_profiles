@@ -13,8 +13,6 @@ MODE=${1:-"morning"}
 # 許可するツールのリスト
 ALLOWED_TOOLS=(
   "push_text_message"
-  "list-calendars"
-  "search-events"
   "todoist_get_all_tasks"
   "todoist_get_completed_tasks_by_date"
   "todoist_get_comments_by_task_id"

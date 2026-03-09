@@ -17,7 +17,10 @@ lineai_aoi_profiles/
 ├── README.md          # 本ファイル
 ├── aoi.md             # 碧衣のプロファイル定義
 ├── send_daily_line.sh # 碧衣の送信処理を実行するスクリプト
-└── modes/             # モード別設定
+├── modes/             # モード別設定（morning / noon / night）
+├── assets/            # 画像素材
+└── .claude/
+    └── skills/        # Claude スキル（各種情報取得処理）
 ```
 
 ## 4. 連携しているサービスについて
@@ -66,7 +69,7 @@ lineai_aoi_profiles/
 | サービス名 | OpenWeatherAPI |
 | 役割 | 座標情報を元に天気予報を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://openweathermap.org/api |
-| MCP サーバー | https://github.com/yoichi-kaneko/mountain_forecast_mcp (非公式・kanekoの自作) |
+| スキル | `mountain_forecast`（自作スキル）→ [SKILL.md](.claude/skills/mountain_forecast/SKILL.md) |
 
 ### Swarm API
 

@@ -1,3 +1,4 @@
+import * as cheerio from "cheerio";
 import { chromium } from "playwright";
 
 // URLの検証処理
@@ -42,11 +43,45 @@ async function main() {
 
   await browser.close();
 
+  const $ = cheerio.load(html);
+  const lines: string[] = [];
+
+  // 概要
+  lines.push("概要");
+
+  const title = $(".ActivityDetailTabLayout__Title").text().trim();
+  lines.push(`タイトル: ${title}`);
+
+  const date = $(".ActivityDetailTabLayout__Middle__Date").text().trim();
+  const days = $(".ActivityDetailTabLayout__Middle__Days").text().trim();
+  lines.push(`日付: ${date} (${days})`);
+
+  const headerImgUrl = $(".ActivityDetailTabLayout__PrintImage").attr("src");
+  lines.push(`ヘッダー画像: ${headerImgUrl}`);
+
+  // 活動データやコース定数などからデータを取得
+  lines.push("--------");
+  lines.push("活動データ");
+
+  $(".ActivityRecord__Item").each((_, item) => {
+    const label = $(item).find(".ActivityRecord__Label").text().trim();
+    const score = $(item).find(".ActivityRecord__Score").text().trim();
+    if (label) {
+      lines.push(`${label}: ${score}`);
+    }
+  });
+
+  const courseHeading = $(".CourseConstant__Heading").text().trim();
+  const courseDifficulty = $(".CourseConstant__DifficultyLevel").text().trim();
+  const courseValue = $(".CourseConstant__Value").text().trim();
+  if (courseHeading) {
+    lines.push(`${courseHeading}: ${courseValue} (${courseDifficulty})`);
+  }
+
+  console.log(lines.join("\n"));
+
   // TODO: ここから先は今後実装
-  // html変数にレンダリング済みのHTMLが格納されています。
-  // cheerio等を使用してデータを抽出する処理を実装してください。
-  console.log("HTMLの取得が完了しました（データ抽出処理は未実装です）。");
-  console.log(`取得したHTMLのサイズ: ${html.length} 文字`);
+  console.log("（データ抽出処理は未実装の項目があります）");
 }
 
 main().catch((error) => {

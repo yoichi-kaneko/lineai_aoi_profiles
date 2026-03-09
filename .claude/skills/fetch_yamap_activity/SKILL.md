@@ -49,4 +49,5 @@ npx tsx scripts/fetch.ts "https://yamap.com/activities/XXXX"
 ## Claudeへの指示
 
 **このスキルは未実装のため、実行しないでください。**
-ユーザーに「fetch_yamap_activity スキルは現在実装中のため、使用できません」と伝えてください。
+fetch_yamap_activity スキルを使って欲しいという明示的な指示があるのでない限り、実装が終わるまで `fetch` で代替してください。
+明示的な指示があった場合、ユーザーに「fetch_yamap_activity スキルは現在実装中のため、使用できません」と伝えてください。

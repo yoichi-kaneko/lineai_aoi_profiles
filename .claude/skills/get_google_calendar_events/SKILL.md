@@ -45,16 +45,23 @@ npx tsx scripts/auth.ts
 
 ```bash
 cd {Base directory for this skill の絶対パス}
-npx tsx scripts/get_events.ts <timeMin> <timeMax>
+npx tsx scripts/get_events.ts <dateFrom> <dateTo>
 ```
 
 例（2026年3月8日の予定を取得）:
 
 ```bash
-npx tsx scripts/get_events.ts 2026-03-08T00:00:00 2026-03-08T23:59:59
+npx tsx scripts/get_events.ts 2026-03-08 2026-03-08
 ```
 
-- `timeMin` / `timeMax`: `YYYY-MM-DDTHH:MM:SS` 形式（タイムゾーンなし）
+例（2026年3月8日〜3月13日の予定を取得）:
+
+```bash
+npx tsx scripts/get_events.ts 2026-03-08 2026-03-13
+```
+
+- `dateFrom` / `dateTo`: `YYYY-MM-DD` 形式
+- 時刻は自動的に付与されます（`dateFrom` は `T00:00:00`、`dateTo` は `T23:59:59`）
 - タイムゾーンは環境変数 `GOOGLE_CALENDAR_TIMEZONE` が自動適用されます
 - カレンダーIDは環境変数 `GOOGLE_CALENDAR_ID` が使用されます
 
@@ -65,8 +72,8 @@ npx tsx scripts/get_events.ts 2026-03-08T00:00:00 2026-03-08T23:59:59
 
 ```bash
 cd {Base directory for this skill の絶対パス}
-npx tsx scripts/get_events.ts {timeMin} {timeMax}
+npx tsx scripts/get_events.ts {dateFrom} {dateTo}
 ```
 
-ARGUMENTS として渡された timeMin・timeMax をそのまま引数に使用してください。
+ARGUMENTS として渡された dateFrom・dateTo をそのまま引数に使用してください。
 コマンドの実行結果（JSON）を解析してユーザーに分かりやすく提示してください。

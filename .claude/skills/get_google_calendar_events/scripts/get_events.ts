@@ -127,12 +127,12 @@ function formatEvent(event: calendar_v3.Schema$Event): object {
 }
 
 async function main() {
-  const timeMinArg = process.argv[2];
-  const timeMaxArg = process.argv[3];
+  const dateFromArg = process.argv[2];
+  const dateToArg = process.argv[3];
 
-  if (!timeMinArg || !timeMaxArg) {
-    console.error("使用方法: npx tsx scripts/get_events.ts <timeMin> <timeMax>");
-    console.error("例: npx tsx scripts/get_events.ts 2026-03-08T00:00:00 2026-03-08T23:59:59");
+  if (!dateFromArg || !dateToArg) {
+    console.error("使用方法: npx tsx scripts/get_events.ts <dateFrom> <dateTo>");
+    console.error("例: npx tsx scripts/get_events.ts 2026-03-08 2026-03-08");
     process.exit(1);
   }
 
@@ -168,8 +168,8 @@ async function main() {
     oauth2Client.setCredentials(newCreds);
   }
 
-  const timeMin = toRFC3339(timeMinArg, timezone);
-  const timeMax = toRFC3339(timeMaxArg, timezone);
+  const timeMin = toRFC3339(`${dateFromArg}T00:00:00`, timezone);
+  const timeMax = toRFC3339(`${dateToArg}T23:59:59`, timezone);
 
   const calendar = google.calendar({ version: "v3", auth: oauth2Client });
   const response = await calendar.events.list({

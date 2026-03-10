@@ -117,6 +117,12 @@ async function main() {
     });
   });
 
+  // 活動詳細（本文）
+  lines.push("--------");
+  lines.push("活動詳細（本文）");
+  const activityDetail = $(".ActivitiesId__Description__Body").text().trim();
+  lines.push(activityDetail);
+
   console.log(lines.join("\n"));
 }
 

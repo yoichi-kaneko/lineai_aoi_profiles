@@ -1,18 +1,20 @@
 ---
 name: fetch_yamap_activity
-description: 【未実装・実行不可】YAMAPの活動記録ページから情報を取得するスキル。yamap.com/activities/で始まるURLが渡されても、現時点では実装が完了していないため実行しないこと。
+description: YAMAPの活動記録ページから情報を取得する。yamap.com/activities/で始まるURLが渡されたときに使用する。タイトル・日付・活動データ・チェックポイント通過時間などを抽出して返す。
 ---
 
 # fetch_yamap_activity
 
 YAMAPの活動記録ページから情報を取得するスタンドアロンCLIスクリプトです。
 
-> **注意: このスキルは現在実装途中です。HTMLの取得までは実装済みですが、データ抽出処理は未実装です。実行しないでください。**
-
 ## 概要
 
 指定したYAMAP活動記録ページのURLに対して Playwright（Chromium）でアクセスし、
-レンダリング済みのHTMLを取得します（データ抽出処理は今後実装予定）。
+レンダリング済みのHTMLから以下の情報を抽出して返します。
+
+- 概要（タイトル・日付・ヘッダー画像）
+- 活動データ（タイム・距離・のぼり・くだり・コース定数）
+- チェックポイント通過時間（日別・行動開始〜行動終了）
 
 ## 対応URLフォーマット
 
@@ -48,6 +50,4 @@ npx tsx scripts/fetch.ts "https://yamap.com/activities/XXXX"
 
 ## Claudeへの指示
 
-**このスキルは未実装のため、実行しないでください。**
-fetch_yamap_activity スキルを使って欲しいという明示的な指示があるのでない限り、実装が終わるまで `fetch` で代替してください。
-明示的な指示があった場合、ユーザーに「fetch_yamap_activity スキルは現在実装中のため、使用できません」と伝えてください。
+`yamap.com/activities/` で始まるURLが渡されたとき、このスキルを使用してください。

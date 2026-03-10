@@ -78,10 +78,46 @@ async function main() {
     lines.push(`${courseHeading}: ${courseValue} (${courseDifficulty})`);
   }
 
-  console.log(lines.join("\n"));
+  // チェックポイント通過時間
+  lines.push("--------");
+  lines.push("チェックポイント通過時間");
 
-  // TODO: ここから先は今後実装
-  console.log("（データ抽出処理は未実装の項目があります）");
+  const allDays = $(".ActivitiesId__CourseTime .CourseTime__Item");
+  const totalPoints = $(".ActivitiesId__CourseTime .CourseTimeItem__PassedPoint").length;
+  let globalPointIndex = 0;
+  let isFirst = true;
+
+  allDays.each((_, dayItem) => {
+    const dayNumber = $(dayItem).find(".CourseTimeItem__Title__Number").text().trim();
+    lines.push(`${dayNumber}日目`);
+
+    $(dayItem).find(".CourseTimeItem__PassedPoints > .CourseTimeItem__PassedPoint").each((_, point) => {
+      globalPointIndex++;
+      const isLast = globalPointIndex === totalPoints;
+
+      const times = $(point)
+        .find("time.CourseTimeItem__PassedPoint__Time")
+        .map((_, t) => $(t).text().trim())
+        .get();
+      const timeStr = times.length >= 2 ? `${times[0]} - ${times[1]}` : (times[0] ?? "");
+
+      const name = $(point).find(".CourseTimeItem__PassedPoint__Name").text().trim().replace(/\s+/g, " ");
+
+      let label: string;
+      if (isFirst) {
+        label = "行動開始";
+        isFirst = false;
+      } else if (isLast) {
+        label = "行動終了";
+      } else {
+        label = name;
+      }
+
+      lines.push(`${timeStr}: ${label}`);
+    });
+  });
+
+  console.log(lines.join("\n"));
 }
 
 main().catch((error) => {

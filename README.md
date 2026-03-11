@@ -32,8 +32,7 @@ lineai_aoi_profiles/
 | サービス名 | LINE Messaging API |
 | 役割 | 碧衣からユーザーへのメッセージ送信を担うメッセージング基盤 |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
-| MCP サーバー | https://github.com/line/line-bot-mcp-server |
-| 備考 | デフォルトではMCPサーバーに要する処理が重いため、メッセージ送信のため最低限のツールを残して他は削除した |
+| スキル | `send_line_message`（自作スキル）→ [SKILL.md](.claude/skills/send_line_message/SKILL.md) |
 
 ### Google Calendar API
 

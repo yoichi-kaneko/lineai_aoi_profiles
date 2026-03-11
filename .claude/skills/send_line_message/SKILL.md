@@ -1,0 +1,80 @@
+---
+name: send_line_message
+description: LINEにテキストメッセージを送信する。環境変数で設定されたアクセストークンと送信先ユーザーIDを使用し、指定したメッセージをプッシュ通知で送る。
+---
+
+# send_line_message
+
+環境変数で指定された LINE アクセストークンと送信先ユーザーID を使って、テキストメッセージをプッシュ送信するスタンドアロン CLI スクリプトです。
+
+## 概要
+
+- **送信先**: 環境変数 `LINE_DESTINATION_USER_ID` に固定（変更不可）
+- **認証**: 環境変数 `LINE_ACCESS_TOKEN` を使用
+- **引数**: 送信したいメッセージのみ
+
+## 事前準備
+
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+npm install
+```
+
+プロジェクトルートの `.env` に以下の環境変数が必要です。
+
+```
+LINE_ACCESS_TOKEN="your_access_token"
+LINE_DESTINATION_USER_ID="your_user_id"
+```
+
+## 実行方法
+
+```bash
+cd {Base directory for this skill の絶対パス}
+npx tsx scripts/send_message.ts "送信したいメッセージ"
+```
+
+例:
+
+```bash
+npx tsx scripts/send_message.ts "こんにちは！"
+```
+
+> **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
+>
+> 改行を含むメッセージをそのままコマンドに渡すと、シェルが途中で行を分割してコマンドが正常に動作しません。
+> **複数行のメッセージは `\n` に置換して、コマンドを必ず1行に収めてください。**
+>
+> スクリプト内部で `\n`（リテラル2文字）を自動的に実際の改行文字に変換するため、
+> コマンド引数として `\n` を渡すだけで LINE 上で改行されます。
+>
+> 悪い例（動作しない可能性あり）:
+> ```bash
+> npx tsx scripts/send_message.ts "1行目
+> 2行目"
+> ```
+>
+> 良い例:
+> ```bash
+> npx tsx scripts/send_message.ts "1行目\n2行目"
+> ```
+
+## Claudeへの指示
+
+スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
+以下のコマンドを実行してください。
+
+```bash
+cd {Base directory for this skill の絶対パス}
+npx tsx scripts/send_message.ts "{message}"
+```
+
+ARGUMENTS として渡された message をそのまま引数に使用してください。
+
+**複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**
+これを行わないと正常に動作しない恐れがあります。
+
+コマンドが成功したら、メッセージを送信した旨をユーザーに報告してください。

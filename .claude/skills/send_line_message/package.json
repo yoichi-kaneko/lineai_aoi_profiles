@@ -1,0 +1,13 @@
+{
+  "name": "send_line_message",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
+}

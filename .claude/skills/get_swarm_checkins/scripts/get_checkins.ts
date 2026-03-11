@@ -10,6 +10,7 @@ dotenv.config({ path: resolve(__dirname, "../../../../.env") });
 const API_BASE = "https://api.foursquare.com/v2";
 const API_VERSION = "20231010";
 const LIMIT = 250;
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000; // UTC+9
 
 function getToken(): string {
   const token = process.env.SWARM_OAUTH_TOKEN;
@@ -158,12 +159,13 @@ async function main() {
     process.exit(1);
   }
 
-  const afterTimestamp = Math.floor(startDate.getTime() / 1000);
+  // YYYY-MM-DD はUTC 00:00:00として解釈されるため、JSTオフセット分を引いてJST 00:00:00に補正する
+  const afterTimestamp = Math.floor((startDate.getTime() - JST_OFFSET_MS) / 1000);
 
-  // end_date の翌日0時をbeforeTimestampとすることで当日終わりまで含める
+  // end_date の翌日JST 00:00:00をbeforeTimestampとすることで当日終わりまで含める
   const endDatePlusOne = new Date(endDate);
   endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
-  const beforeTimestamp = Math.floor(endDatePlusOne.getTime() / 1000);
+  const beforeTimestamp = Math.floor((endDatePlusOne.getTime() - JST_OFFSET_MS) / 1000);
 
   const data = await makeRequest("/users/self/checkins", {
     limit: LIMIT,

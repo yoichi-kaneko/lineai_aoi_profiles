@@ -96,14 +96,9 @@ async function main() {
     contents: [{ role: "user", parts }],
     config: {
       responseModalities: ["TEXT", "IMAGE"],
-      generationConfig: {
-        imageGenerationConfig: {
-          aspectRatio: ASPECT_RATIO,
-          numberOfImages: 1,
-          outputOptions: {
-            imageOutputResolution: RESOLUTION,
-          },
-        },
+      imageConfig: {
+        aspectRatio: ASPECT_RATIO,
+        imageSize: RESOLUTION,
       },
     },
   });

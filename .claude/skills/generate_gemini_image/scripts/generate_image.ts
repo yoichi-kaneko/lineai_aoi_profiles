@@ -69,8 +69,7 @@ function loadReferenceImages(): InlineData[] {
 }
 
 async function main() {
-  // argv[2] 以降をすべて結合し、改行・連続スペースを正規化する
-  const prompt = process.argv.slice(2).join(" ").replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim();
+  const prompt = process.argv[2];
 
   if (!prompt) {
     console.error("使用方法: npx tsx scripts/generate_image.ts <プロンプト>");

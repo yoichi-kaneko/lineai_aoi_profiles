@@ -74,6 +74,15 @@ cd {Base directory for this skill の絶対パス}
 npx tsx scripts/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
 ```
 
+   **注意:** 用意したプロンプトが複数行に渡る場合、そのまま実行すると文字列が正しく渡されません。必ずクオート処理を行い、コマンドとして成立するようにしてください。
+
+   例（複数行プロンプトの場合）:
+
+   ```bash
+   # 改行を \n に置き換えて1行の文字列として渡す
+   npx tsx scripts/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
+   ```
+
 2. コマンドの出力から `savedPaths` を取得してください。
 
 3. `savedPaths` の各ファイルをReadツールで読み取り、生成された画像をユーザーに提示してください。

@@ -18,8 +18,6 @@ ALLOWED_TOOLS=(
   "todoist_get_comments_by_task_id"
   "todoist_create_task_to_inbox"
   "maps_geocode"
-  "get_checkins_by_date_range"
-  "get_recent_checkins"
   "WebSearch"
   "fetch"
   "Bash"

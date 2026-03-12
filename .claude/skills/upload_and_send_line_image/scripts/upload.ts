@@ -67,7 +67,9 @@ async function main() {
   });
 
   // アップロード（レスポンスにオリジナルのwidthとheightが含まれる）
-  const uploadResult = await cloudinary.uploader.upload(absoluteFilePath);
+  const assetFolder = process.env.CLOUDINAY_ASSET_FOLDER;
+  const uploadOptions = assetFolder ? { asset_folder: assetFolder } : {};
+  const uploadResult = await cloudinary.uploader.upload(absoluteFilePath, uploadOptions);
 
   const originalWidth: number = uploadResult.width;
   const originalHeight: number = uploadResult.height;

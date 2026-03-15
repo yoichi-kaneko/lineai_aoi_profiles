@@ -18,8 +18,8 @@ description: 音声ファイル（mp3）をCloudinaryにアップロードし、
 
 - **送信先**: 環境変数 `LINE_DESTINATION_USER_ID` に固定
 - **認証 (LINE)**: 環境変数 `LINE_ACCESS_TOKEN` を使用
-- **認証 (Cloudinary)**: 環境変数 `CLOUDINAY_CLOUD_NAME` / `CLOUDINAY_API_KEY` / `CLOUDINAY_API_SECRET` を使用
-- **保存先フォルダ**: 環境変数 `CLOUDINAY_SONG_ASSET_FOLDER` を使用（未設定時はデフォルトフォルダ）
+- **認証 (Cloudinary)**: 環境変数 `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` を使用
+- **保存先フォルダ**: 環境変数 `CLOUDINARY_SONG_ASSET_FOLDER` を使用（未設定時はデフォルトフォルダ）
 
 ## 事前準備
 
@@ -34,10 +34,10 @@ npm install
 プロジェクトルートの `.env` に以下の環境変数が必要です。
 
 ```
-CLOUDINAY_CLOUD_NAME="your_cloud_name"
-CLOUDINAY_API_KEY="your_api_key"
-CLOUDINAY_API_SECRET="your_api_secret"
-CLOUDINAY_SONG_ASSET_FOLDER="your_asset_folder"
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
+CLOUDINARY_SONG_ASSET_FOLDER="your_asset_folder"
 LINE_ACCESS_TOKEN="your_access_token"
 LINE_DESTINATION_USER_ID="your_user_id"
 ```

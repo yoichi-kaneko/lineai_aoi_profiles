@@ -10,20 +10,20 @@ const PROJECT_ROOT = resolve(__dirname, "../../../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 function getCloudinaryConfig(): { cloudName: string; apiKey: string; apiSecret: string } {
-  const cloudName = process.env.CLOUDINAY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINAY_API_KEY;
-  const apiSecret = process.env.CLOUDINAY_API_SECRET;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName) {
-    console.error("環境変数 CLOUDINAY_CLOUD_NAME が設定されていません");
+    console.error("環境変数 CLOUDINARY_CLOUD_NAME が設定されていません");
     process.exit(1);
   }
   if (!apiKey) {
-    console.error("環境変数 CLOUDINAY_API_KEY が設定されていません");
+    console.error("環境変数 CLOUDINARY_API_KEY が設定されていません");
     process.exit(1);
   }
   if (!apiSecret) {
-    console.error("環境変数 CLOUDINAY_API_SECRET が設定されていません");
+    console.error("環境変数 CLOUDINARY_API_SECRET が設定されていません");
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ async function main() {
   });
 
   // アップロード（レスポンスにオリジナルのwidthとheightが含まれる）
-  const assetFolder = process.env.CLOUDINAY_IMAGE_ASSET_FOLDER;
+  const assetFolder = process.env.CLOUDINARY_IMAGE_ASSET_FOLDER;
   const uploadOptions = assetFolder ? { asset_folder: assetFolder } : {};
   const uploadResult = await cloudinary.uploader.upload(absoluteFilePath, uploadOptions);
 

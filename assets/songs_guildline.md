@@ -177,3 +177,51 @@ upbeat, danceable, energetic, romantic, nightclub, party, love song, catchy, fee
 
 #### description
 This is a high-energy J-Pop track with a strong dance-pop foundation. The song's identity is defined by its central, memorable piano riff that opens the piece and serves as a recurring motif. The arrangement is built on a powerful four-on-the-floor electronic drum beat and a driving synth bassline, creating an irresistible groove for dancing. The female lead vocal is clear, bright, and exceptionally expressive, delivering the melody with a sense of joyous abandon. The chorus sections are particularly impactful, featuring layered backing vocals that create a full, anthemic sound. A key feature is the instrumental drop, which showcases a bright, catchy synth lead melody over lush synth pads and strings, providing a dynamic contrast to the more rhythm-focused verses. The production is polished and modern, utilizing risers and sweeps effectively to build tension and release it into the energetic choruses, making it a quintessential feel-good club anthem.
+
+---
+
+### サンプル10
+
+#### instrument
+Lead Vocal (Female, Clear, Expressive, Ethereal), Backing Vocals (Choir, Layered, Harmonious), Traditional Japanese Instruments (Shakuhachi, Koto, Taiko Drums), Orchestral Strings (Violas, Cellos, Violins), Piano, Synth Pad
+
+#### genres
+Anime Soundtrack, Orchestral, Fantasy, Celtic Folk
+
+#### tags
+Epic, Mystical, Atmospheric, Dramatic, Emotional, Enchanting, Dynamic, Soaring, Mythical, Haunting
+
+#### description
+This is an epic and atmospheric orchestral piece that masterfully blends traditional Japanese instrumentation with a grand symphonic scale. The track opens with a haunting and ethereal female lead vocal in a made-up language, soon joined by lush, layered choir harmonies that establish a mystical and ancient tone. The arrangement is built upon a foundation of powerful taiko drums, which provide a driving, martial rhythm alongside the delicate plucking of the koto and the soaring melodies of the shakuhachi. A full orchestra, including rich string sections and piano, enters to create immense emotional weight and drama. The song's structure is highly dynamic, moving from introspective verses to explosive, soaring choruses where all instrumental layers converge. The most memorable feature is this powerful choral and orchestral climax, creating a feeling of both awe and profound emotion. The interplay between the ancient-sounding traditional instruments and the modern, sweeping orchestration is the core of its unique and captivating sound.
+
+---
+
+### サンプル11
+
+#### instrument
+Synth Lead (Bright, Plucky), Synth Pad (Warm, Atmospheric), Electronic Drum Kit (Lo-fi, Punchy), Synth Bass (Sub-bass), Electric Piano (Jazzy Chords)
+
+#### genres
+Electronic, Lo-fi Hip Hop, Instrumental Hip Hop, Chillhop
+
+#### tags
+Relaxing, Dreamy, Nostalgic, Melancholic, Atmospheric, Jazzy, Chill, Introspective, Hypnotic, Urban
+
+#### description
+This track is built around a highly memorable and catchy synth lead melody that opens the piece with its bright, plucky timbre. The arrangement masterfully builds from this simple hook into a full-bodied soundscape. A warm, atmospheric synth pad provides a constant harmonic bed, while a deep sub-bass anchors the low end with a subtle pulse. The rhythm section is defined by a classic lo-fi hip hop beat, featuring a punchy kick and a crisp snare, complemented by a jazzy, syncopated electric piano chord progression that adds a sophisticated layer of complexity. The production has a distinct lo-fi quality, which enhances its nostalgic and introspective mood. The song's structure is cyclical and hypnotic, focusing on the interplay between the main synth melody and the evolving textures rather than dramatic shifts, creating a consistently dreamy and melancholic atmosphere.
+
+---
+
+### サンプル12
+
+#### instrument
+Lead Vocal (Female, Powerful, Operatic, with a wide dynamic range), Backing Vocals (Layered, Harmonized), Electronic Drum Kit (Four-on-the-floor kick, sharp snare, hi-hats), Synth Bass (Driving, pulsating), Synth Brass (Staccato, punchy), Synth Strings (Epic, cinematic), Synth Pad (Atmospheric, sustained), Sound Effects (Risers, sweeps)
+
+#### genres
+J-Pop, Dance-Pop, Electro-Pop, Anime
+
+#### tags
+High Energy, Driving, Anthemic, Cinematic, Theatrical, Confident, Dark, Intense, Polished Production
+
+#### description
+This is a high-octane J-Pop track with a strong dance-pop foundation, characterized by its dramatic and theatrical production. The song's identity is forged by a powerful female lead vocal that shifts from a confident, rhythmic delivery in the verses to soaring, operatic belting in the explosive choruses. The arrangement is built on a relentless four-on-the-floor beat and a driving synth bassline, creating an insistent forward momentum. The track's most memorable feature is its iconic, staccato synth brass riff, which serves as the main hook and opens the piece. The production is dense and polished, layering punchy synth strings for a cinematic, epic feel, while atmospheric pads fill out the background. The structure masterfully builds tension, moving from relatively sparse verses into massive, anthemic choruses where all instrumental layers converge, creating a powerful wall of sound. The overall mood is dark, intense, and defiant, perfectly capturing a sense of a grand, stylized performance.

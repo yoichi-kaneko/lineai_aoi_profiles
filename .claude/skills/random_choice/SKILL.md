@@ -25,14 +25,14 @@ npm install
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/choose.ts <選択肢1> <選択肢2> [選択肢3 ...]
+cd {プロジェクトルートの絶対パス}
+npx tsx src/util/random_choice.ts <選択肢1> <選択肢2> [選択肢3 ...]
 ```
 
 例:
 
 ```bash
-npx tsx scripts/choose.ts ラーメン カレー うどん
+npx tsx src/util/random_choice.ts ラーメン カレー うどん
 ```
 
 ## 出力
@@ -58,8 +58,8 @@ npx tsx scripts/choose.ts ラーメン カレー うどん
    選択肢にスペースが含まれる場合はクォートで囲んでください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/choose.ts {選択肢1} {選択肢2} [選択肢3 ...]
+cd {プロジェクトルートの絶対パス}
+npx tsx src/util/random_choice.ts {選択肢1} {選択肢2} [選択肢3 ...]
 ```
 
 2. コマンドの出力から `selected` の値を取得してください。

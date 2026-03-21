@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { writeFileSync, mkdirSync } from "fs";
 import path from "path";
 
-// scripts/ -> download_image/ -> skills/ -> .claude/ -> project root
+// src/util/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -43,8 +43,8 @@ async function main() {
   const url = process.argv[2];
 
   if (!url) {
-    console.error("使用方法: npx tsx scripts/fetch.ts <URL>");
-    console.error("例: npx tsx scripts/fetch.ts \"https://example.com/photo.jpg\"");
+    console.error("使用方法: npx tsx src/util/download_image.ts <URL>");
+    console.error("例: npx tsx src/util/download_image.ts \"https://example.com/photo.jpg\"");
     process.exit(1);
   }
 
@@ -83,7 +83,7 @@ async function main() {
   }
 
   // tmp/ ディレクトリに保存
-  const tmpDir = resolve(__dirname, "../../../../tmp");
+  const tmpDir = resolve(__dirname, "../../tmp");
   mkdirSync(tmpDir, { recursive: true });
 
   const filename = getFilenameFromResponse(response, url);

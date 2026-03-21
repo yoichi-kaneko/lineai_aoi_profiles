@@ -2,8 +2,8 @@ async function main() {
   const choices = process.argv.slice(2);
 
   if (choices.length < 2) {
-    console.error("使用方法: npx tsx scripts/choose.ts <選択肢1> <選択肢2> [選択肢3 ...]");
-    console.error("例: npx tsx scripts/choose.ts ラーメン カレー うどん");
+    console.error("使用方法: npx tsx src/util/random_choice.ts <選択肢1> <選択肢2> [選択肢3 ...]");
+    console.error("例: npx tsx src/util/random_choice.ts ラーメン カレー うどん");
     process.exit(1);
   }
 

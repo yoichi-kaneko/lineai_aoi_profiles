@@ -29,8 +29,8 @@ npm install
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/fetch.ts "{画像のURL}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/util/download_image.ts "{画像のURL}"
 ```
 
 ## 出力
@@ -62,8 +62,8 @@ npx tsx scripts/fetch.ts "{画像のURL}"
 1. スキルを起動し、以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/fetch.ts "{ARGUMENTSとして渡されたURL}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/util/download_image.ts "{ARGUMENTSとして渡されたURL}"
 ```
 
 2. コマンドの出力から `savedPath` を取得してください。

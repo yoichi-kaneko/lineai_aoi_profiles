@@ -38,8 +38,8 @@ npx playwright install chromium
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/fetch.ts "https://yamap.com/activities/XXXX"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/yamap/fetch_activity.ts "https://yamap.com/activities/XXXX"
 ```
 
 ## 注意事項

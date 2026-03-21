@@ -21,8 +21,8 @@ function validateYamapActivityUrl(url: string): void {
 async function main() {
   const url = process.argv[2];
   if (!url) {
-    console.error("使用方法: npx tsx scripts/fetch.ts <URL>");
-    console.error("例: npx tsx scripts/fetch.ts \"https://yamap.com/activities/12345\"");
+    console.error("使用方法: npx tsx src/yamap/fetch_activity.ts <URL>");
+    console.error("例: npx tsx src/yamap/fetch_activity.ts \"https://yamap.com/activities/12345\"");
     process.exit(1);
   }
 

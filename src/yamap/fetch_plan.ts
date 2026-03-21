@@ -32,8 +32,8 @@ function normalizeYamapUrl(url: string): string {
 async function main() {
   const url = process.argv[2];
   if (!url) {
-    console.error("使用方法: npx tsx scripts/fetch.ts <URL>");
-    console.error("例: npx tsx scripts/fetch.ts \"https://yamap.com/plans/code/XXXX\"");
+    console.error("使用方法: npx tsx src/yamap/fetch_plan.ts <URL>");
+    console.error("例: npx tsx src/yamap/fetch_plan.ts \"https://yamap.com/plans/code/XXXX\"");
     process.exit(1);
   }
 

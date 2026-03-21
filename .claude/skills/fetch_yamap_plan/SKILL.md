@@ -27,7 +27,11 @@ https://yamap.com/plans/code/{CODE}/printing  # 末尾の /printing は自動的
 
 ## 事前準備
 
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
 ```bash
+cd {プロジェクトルートの絶対パス}
 npm install
 npx playwright install chromium
 ```
@@ -35,14 +39,14 @@ npx playwright install chromium
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/fetch.ts "https://yamap.com/plans/code/XXXX"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX"
 ```
 
 `/printing` 付きURLも使用可能です：
 
 ```bash
-npx tsx scripts/fetch.ts "https://yamap.com/plans/code/XXXX/printing"
+npx tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX/printing"
 ```
 
 ## 注意事項
@@ -53,12 +57,12 @@ npx tsx scripts/fetch.ts "https://yamap.com/plans/code/XXXX/printing"
 
 ## Claudeへの指示
 
-スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
-以下のコマンドを実行してください。
+`yamap.com/plans/code/` で始まるURLが渡されたとき、このスキルを使用してください。
+以下のコマンドをプロジェクトルートから実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/fetch.ts "{ARGUMENTS として渡された URL}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/yamap/fetch_plan.ts "{ARGUMENTS として渡された URL}"
 ```
 
 ARGUMENTSとして渡されたURLをそのまま引数に使用してください。

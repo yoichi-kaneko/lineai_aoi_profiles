@@ -1,9 +1,9 @@
 ---
-name: read_firestore_note_doc_by_date
+name: get_firestore_doc
 description: 指定した日付（YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得し、isRead=trueに更新して返す。
 ---
 
-# read_firestore_note_doc_by_date
+# get_firestore_doc
 
 環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションから指定日付のドキュメントを取得するスタンドアロン CLI スクリプトです。
 
@@ -19,7 +19,7 @@ description: 指定した日付（YYYY-MM-DD）に一致するFirestoreのnotes�
 | フィールド   | 型        | 内容                         |
 |------------|-----------|------------------------------|
 | date       | Timestamp | ドキュメントの日付             |
-| description | string    | 説明文                       |
+| descript   | string    | 説明文                       |
 | type       | string    | ドキュメントの種別             |
 | isRead     | boolean   | 既読フラグ（取得後 `true` に更新）|
 | createdAt  | Timestamp | 登録日時                      |
@@ -43,18 +43,17 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/read_note_doc_by_date.ts "2026-03-21"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/firebase/get_doc.ts "2026-03-21"
 ```
 
 ## Claudeへの指示
 
-スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
-以下のコマンドを実行してください。
+以下のコマンドをプロジェクトルートから実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/read_note_doc_by_date.ts "{date}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/firebase/get_doc.ts "{date}"
 ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）をそのまま引数に使用してください。

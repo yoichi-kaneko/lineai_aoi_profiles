@@ -1,9 +1,9 @@
 ---
-name: add_firestore_note_doc
+name: put_firestore_doc
 description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文。type=from_aoi、isRead=false固定。
 ---
 
-# add_firestore_note_doc
+# put_firestore_doc
 
 環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションにドキュメントを追加するスタンドアロン CLI スクリプトです。
 
@@ -18,7 +18,7 @@ description: 特定の要件に基づいてFirestoreのnotesコレクション�
 | フィールド  | 型        | 内容                         |
 |-----------|-----------|------------------------------|
 | date      | Timestamp | 引数の日付（Date型）           |
-| description  | string    | 引数の説明文                  |
+| descript  | string    | 引数の説明文                  |
 | type      | string    | `"from_aoi"` 固定            |
 | isRead    | boolean   | `false` 固定（作成時）        |
 | createdAt | Timestamp | 登録日時（秒まで）             |
@@ -42,18 +42,17 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/add_note_doc.ts "2026-03-21" "今日のメモ"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 ```
 
 ## Claudeへの指示
 
-スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
-以下のコマンドを実行してください。
+以下のコマンドをプロジェクトルートから実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/add_note_doc.ts "{date}" "{description}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/firebase/put_doc.ts "{date}" "{description}"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -66,13 +65,13 @@ npx tsx scripts/add_note_doc.ts "{date}" "{description}"
 >
 > 悪い例（動作しない可能性あり）:
 > ```bash
-> npx tsx scripts/add_note_doc.ts "{date}" "1行目
+> npx tsx src/firebase/put_doc.ts "{date}" "1行目
 > 2行目"
 > ```
 >
 > 良い例:
 > ```bash
-> npx tsx scripts/add_note_doc.ts "{date}" "1行目\n2行目"
+> npx tsx src/firebase/put_doc.ts "{date}" "1行目\n2行目"
 > ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）、 `description` をそのまま引数に使用してください。

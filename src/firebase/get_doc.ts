@@ -3,9 +3,9 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> read_firestore_note_doc_by_date/ -> skills/ -> .claude/ -> project root
+// src/firebase/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
@@ -24,8 +24,8 @@ async function main() {
   const date = process.argv[2];
 
   if (!date) {
-    console.error("使用方法: npx tsx scripts/read_note_doc_by_date.ts <date(YYYY-MM-DD)>");
-    console.error('例: npx tsx scripts/read_note_doc_by_date.ts "2026-03-21"');
+    console.error("使用方法: npx tsx src/firebase/get_doc.ts <date(YYYY-MM-DD)>");
+    console.error('例: npx tsx src/firebase/get_doc.ts "2026-03-21"');
     process.exit(1);
   }
 

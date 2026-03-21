@@ -1,6 +1,6 @@
 ---
 name: add_firestore_note_doc
-descriptionion: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文。type=from_aoi、isRead=false固定。
+description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文。type=from_aoi、isRead=false固定。
 ---
 
 # add_firestore_note_doc

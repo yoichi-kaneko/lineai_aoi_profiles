@@ -1,9 +1,9 @@
 ---
-name: fetch_image
+name: download_image
 description: 公開URLから画像をダウンロードし、tmp/ディレクトリに保存する。保存後、画像ファイルをReadツールで読み取り、内容を解析して返す。
 ---
 
-# fetch_image
+# download_image
 
 公開URLから画像ファイルをダウンロードし、`tmp/` ディレクトリに保存するスタンドアロンCLIスクリプトです。
 

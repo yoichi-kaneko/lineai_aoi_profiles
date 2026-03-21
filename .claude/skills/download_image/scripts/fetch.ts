@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { writeFileSync, mkdirSync } from "fs";
 import path from "path";
 
-// scripts/ -> fetch_image/ -> skills/ -> .claude/ -> project root
+// scripts/ -> download_image/ -> skills/ -> .claude/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const MIME_TO_EXT: Record<string, string> = {

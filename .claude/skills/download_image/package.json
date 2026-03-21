@@ -1,5 +1,5 @@
 {
-  "name": "fetch_image",
+  "name": "download_image",
   "version": "1.0.0",
   "type": "module",
   "devDependencies": {

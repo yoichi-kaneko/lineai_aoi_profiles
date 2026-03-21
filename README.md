@@ -50,7 +50,7 @@ lineai_aoi_profiles/
 | サービス名 | Google Drive API |
 | 役割 | Google Calendarの予定に添付されたファイルを取得する |
 | サービスURL | https://developers.google.com/workspace/drive/api/guides/overview?hl=ja |
-| スキル | `get_google_drive_file`（自作スキル）→ [SKILL.md](.claude/skills/get_google_drive_file/SKILL.md) |
+| スキル | `download_google_drive_file`（自作スキル）→ [SKILL.md](.claude/skills/download_google_drive_file/SKILL.md) |
 
 ### Todoist API
 

@@ -1,9 +1,9 @@
 ---
-name: get_google_drive_file
+name: download_google_drive_file
 description: Google DriveのファイルをfileIdを指定してダウンロードし、tmp/ディレクトリに保存する。
 ---
 
-# get_google_drive_file
+# download_google_drive_file
 
 指定した fileId の Google Drive ファイルをダウンロードし、プロジェクトルートの `tmp/` ディレクトリに保存するスタンドアロン CLI スクリプトです。
 

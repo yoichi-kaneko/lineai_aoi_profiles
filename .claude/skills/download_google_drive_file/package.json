@@ -1,5 +1,5 @@
 {
-  "name": "get_google_drive_file",
+  "name": "download_google_drive_file",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {

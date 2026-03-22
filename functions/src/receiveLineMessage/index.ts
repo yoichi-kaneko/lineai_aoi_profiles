@@ -1,10 +1,22 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
-import { webhook } from "@line/bot-sdk";
+import { validateSignature, webhook } from "@line/bot-sdk";
 
 const firestore = new Firestore();
 
 functions.http("receiveLineMessage", async (req, res) => {
+  const channelSecret = process.env.LINE_CHANNEL_SECRET ?? "";
+  const signature = req.headers["x-line-signature"] as string | undefined;
+  const rawBody = (req as unknown as { rawBody: Buffer }).rawBody;
+
+  if (
+    !signature ||
+    !validateSignature(rawBody, channelSecret, signature)
+  ) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
   const body = req.body as webhook.CallbackRequest;
   const events = body.events ?? [];
 

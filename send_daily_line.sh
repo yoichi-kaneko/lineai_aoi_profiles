@@ -16,7 +16,6 @@ ALLOWED_TOOLS=(
   "todoist_get_completed_tasks_by_date"
   "todoist_get_comments_by_task_id"
   "todoist_create_task_to_inbox"
-  "maps_geocode"
   "WebSearch"
   "fetch"
   "Bash"

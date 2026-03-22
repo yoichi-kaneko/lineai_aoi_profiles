@@ -14,6 +14,9 @@ Mureka APIを使って歌詞を生成するスタンドアロン CLI スクリ�
 
 ## 事前準備
 
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
 ```bash
 cd {プロジェクトルートの絶対パス}
 npm install
@@ -28,14 +31,14 @@ MUREKA_API_KEY="your_api_key"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_lyrics.ts "{プロンプト}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/generate_lyrics.ts "{プロンプト}"
 ```
 
 例:
 
 ```bash
-npx tsx scripts/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"
+npx tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"
 ```
 
 ## 出力
@@ -58,8 +61,8 @@ npx tsx scripts/generate_lyrics.ts "夏の海と青空をテーマにした明�
 1. 以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_lyrics.ts "{プロンプト}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/generate_lyrics.ts "{プロンプト}"
 ```
 
    **注意:** プロンプトが複数行に渡る場合、改行を `\n` に置き換えて1行の文字列として渡してください。
@@ -67,7 +70,7 @@ npx tsx scripts/generate_lyrics.ts "{プロンプト}"
    例:
 
    ```bash
-   npx tsx scripts/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
+   npx tsx src/mureka/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
    ```
 
 2. コマンドの出力から `lyrics` を取得してください。

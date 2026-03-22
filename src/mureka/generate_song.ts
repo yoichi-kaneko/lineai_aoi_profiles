@@ -3,9 +3,9 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> generate_mureka_song/ -> skills/ -> .claude/ -> project root
+// src/mureka/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "../../../../");
+const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 function getApiKey(): string {
@@ -22,8 +22,8 @@ async function main() {
   const rawPrompt = process.argv[3];
 
   if (!rawLyrics || !rawPrompt) {
-    console.error("使用方法: npx tsx scripts/generate_song.ts <歌詞> <プロンプト>");
-    console.error('例: npx tsx scripts/generate_song.ts "[Verse]\\n歌詞テキスト" "明るいポップス調"');
+    console.error("使用方法: npx tsx src/mureka/generate_song.ts <歌詞> <プロンプト>");
+    console.error('例: npx tsx src/mureka/generate_song.ts "[Verse]\\n歌詞テキスト" "明るいポップス調"');
     process.exit(1);
   }
 

@@ -18,6 +18,9 @@ Mureka APIを使って楽曲を生成するスタンドアロン CLI スクリ�
 
 ## 事前準備
 
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
 ```bash
 cd {プロジェクトルートの絶対パス}
 npm install
@@ -36,14 +39,14 @@ MUREKA_VOCAL_ID="vocal_id"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_song.ts "{歌詞}" "{プロンプト}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
 ```
 
 例:
 
 ```bash
-npx tsx scripts/generate_song.ts "[Verse]\nここに歌詞が入ります\n[Chorus]\nサビの歌詞" "明るいポップス調、女性ボーカル"
+npx tsx src/mureka/generate_song.ts "[Verse]\nここに歌詞が入ります\n[Chorus]\nサビの歌詞" "明るいポップス調、女性ボーカル"
 ```
 
 ## 出力
@@ -66,8 +69,8 @@ npx tsx scripts/generate_song.ts "[Verse]\nここに歌詞が入ります\n[Chor
 1. 以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_song.ts "{歌詞}" "{プロンプト}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
 ```
 
    **注意:** 歌詞やプロンプトが複数行に渡る場合、改行を `\n` に置き換えて1行の文字列として渡してください。
@@ -75,7 +78,7 @@ npx tsx scripts/generate_song.ts "{歌詞}" "{プロンプト}"
    例:
 
    ```bash
-   npx tsx scripts/generate_song.ts "[Verse]\n歌詞1行目\n歌詞2行目\n[Chorus]\nサビ" "明るいポップス調"
+   npx tsx src/mureka/generate_song.ts "[Verse]\n歌詞1行目\n歌詞2行目\n[Chorus]\nサビ" "明るいポップス調"
    ```
 
 2. コマンドの出力から `task_id` を取得してください。

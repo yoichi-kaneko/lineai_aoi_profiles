@@ -1,9 +1,9 @@
 ---
-name: get_firestore_doc
+name: get_firestore_docs
 description: 指定した日付（YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得し、isRead=trueに更新して返す。
 ---
 
-# get_firestore_doc
+# get_firestore_docs
 
 環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションから指定日付のドキュメントを取得するスタンドアロン CLI スクリプトです。
 
@@ -44,7 +44,7 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/get_doc.ts "2026-03-21"
+npx tsx src/firebase/get_docs.ts "2026-03-21"
 ```
 
 ## Claudeへの指示
@@ -53,7 +53,7 @@ npx tsx src/firebase/get_doc.ts "2026-03-21"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/get_doc.ts "{date}"
+npx tsx src/firebase/get_docs.ts "{date}"
 ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）をそのまま引数に使用してください。

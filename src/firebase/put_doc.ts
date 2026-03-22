@@ -22,10 +22,10 @@ function getFirebaseConfigPath(): string {
 
 async function main() {
   const date = process.argv[2];
-  const descript = process.argv[3];
+  const description = process.argv[3];
 
-  if (!date || !descript) {
-    console.error("使用方法: npx tsx src/firebase/put_doc.ts <date(YYYY-MM-DD)> <descript>");
+  if (!date || !description) {
+    console.error("使用方法: npx tsx src/firebase/put_doc.ts <date(YYYY-MM-DD)> <description>");
     console.error('例: npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"');
     process.exit(1);
   }
@@ -49,7 +49,7 @@ async function main() {
 
   const docData = {
     date: Timestamp.fromDate(dateValue),
-    descript,
+    description,
     type: "from_aoi",
     isRead: false,
     createdAt: Timestamp.fromDate(new Date()),

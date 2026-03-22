@@ -15,13 +15,13 @@ description: 特定の要件に基づいてFirestoreのnotesコレクション�
 
 ## ドキュメント構造
 
-| フィールド  | 型        | 内容                         |
-|-----------|-----------|------------------------------|
-| date      | Timestamp | 引数の日付（Date型）           |
-| descript  | string    | 引数の説明文                  |
-| type      | string    | `"from_aoi"` 固定            |
-| isRead    | boolean   | `false` 固定（作成時）        |
-| createdAt | Timestamp | 登録日時（秒まで）             |
+| フィールド    | 型        | 内容                         |
+|-------------|-----------|------------------------------|
+| date        | Timestamp | 引数の日付（Date型）           |
+| description | string    | 引数の説明文                  |
+| type        | string    | `"from_aoi"` 固定            |
+| isRead      | boolean   | `false` 固定（作成時）        |
+| createdAt   | Timestamp | 登録日時（秒まで）             |
 
 ## 事前準備
 

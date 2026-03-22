@@ -16,13 +16,13 @@ description: 指定した日付（YYYY-MM-DD）に一致するFirestoreのnotes�
 
 ## ドキュメント構造
 
-| フィールド   | 型        | 内容                         |
-|------------|-----------|------------------------------|
-| date       | Timestamp | ドキュメントの日付             |
-| descript   | string    | 説明文                       |
-| type       | string    | ドキュメントの種別             |
-| isRead     | boolean   | 既読フラグ（取得後 `true` に更新）|
-| createdAt  | Timestamp | 登録日時                      |
+| フィールド    | 型        | 内容                         |
+|-------------|-----------|------------------------------|
+| date        | Timestamp | ドキュメントの日付             |
+| description | string    | 説明文                       |
+| type        | string    | ドキュメントの種別             |
+| isRead      | boolean   | 既読フラグ（取得後 `true` に更新）|
+| createdAt   | Timestamp | 登録日時                      |
 
 ## 事前準備
 

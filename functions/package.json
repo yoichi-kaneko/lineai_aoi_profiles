@@ -1,0 +1,17 @@
+{
+  "name": "aoi-functions",
+  "version": "1.0.0",
+  "main": "dist/receiveLineMessage/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "functions-framework --target=receiveLineMessage"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.0.0",
+    "@google-cloud/functions-framework": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

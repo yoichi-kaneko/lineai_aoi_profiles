@@ -2,7 +2,8 @@
     "name": "lineai_aoi_profiles",
     "private": true,
     "workspaces": [
-        ".claude/skills/*"
+        ".claude/skills/*",
+        "functions"
     ],
     "dependencies": {
         "cheerio": "^1.2.0",

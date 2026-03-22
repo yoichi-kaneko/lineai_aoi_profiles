@@ -21,6 +21,8 @@ gcloud functions deploy receiveLineMessage \
   --runtime nodejs22 \
   --trigger-http \
   --allow-unauthenticated \
+  --region asia-northeast1 \
+  --gen2 \
   --set-secrets LINE_CHANNEL_SECRET=LINE_CHANNEL_SECRET:latest \
   --source .
 ```

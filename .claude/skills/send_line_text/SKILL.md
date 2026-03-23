@@ -1,14 +1,15 @@
 ---
-name: send_line_message
+name: send_line_text
 description: LINEにテキストメッセージを送信する。環境変数で設定されたアクセストークンと送信先ユーザーIDを使用し、指定したメッセージをプッシュ通知で送る。
 ---
 
-# send_line_message
+# send_line_text
 
 環境変数で指定された LINE アクセストークンと送信先ユーザーID を使って、テキストメッセージをプッシュ送信するスタンドアロン CLI スクリプトです。
 
 ## 概要
 
+- **SDK**: `@line/bot-sdk` の `MessagingApiClient.pushMessage` を使用
 - **送信先**: 環境変数 `LINE_DESTINATION_USER_ID` に固定（変更不可）
 - **認証**: 環境変数 `LINE_ACCESS_TOKEN` を使用
 - **引数**: 送信したいメッセージのみ
@@ -33,14 +34,14 @@ LINE_DESTINATION_USER_ID="your_user_id"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/send_message.ts "送信したいメッセージ"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/line/send_text.ts "送信したいメッセージ"
 ```
 
 例:
 
 ```bash
-npx tsx scripts/send_message.ts "こんにちは！"
+npx tsx src/line/send_text.ts "こんにちは！"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -53,23 +54,22 @@ npx tsx scripts/send_message.ts "こんにちは！"
 >
 > 悪い例（動作しない可能性あり）:
 > ```bash
-> npx tsx scripts/send_message.ts "1行目
+> npx tsx src/line/send_text.ts "1行目
 > 2行目"
 > ```
 >
 > 良い例:
 > ```bash
-> npx tsx scripts/send_message.ts "1行目\n2行目"
+> npx tsx src/line/send_text.ts "1行目\n2行目"
 > ```
 
 ## Claudeへの指示
 
-スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
 以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/send_message.ts "{message}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/line/send_text.ts "{message}"
 ```
 
 ARGUMENTS として渡された message をそのまま引数に使用してください。

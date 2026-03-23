@@ -3,31 +3,17 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { v2 as cloudinary } from "cloudinary";
 
-// プロジェクトルートの .env を読み込む
-// scripts/ -> upload_and_send_line_image/ -> skills/ -> .claude/ -> project root
+// src/cloudinary/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "../../../../");
-dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
-function getCloudinaryConfig(): { cloudName: string; apiKey: string; apiSecret: string } {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-
-  if (!cloudName) {
-    console.error("環境変数 CLOUDINARY_CLOUD_NAME が設定されていません");
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    console.error(`環境変数 ${name} が設定されていません`);
     process.exit(1);
   }
-  if (!apiKey) {
-    console.error("環境変数 CLOUDINARY_API_KEY が設定されていません");
-    process.exit(1);
-  }
-  if (!apiSecret) {
-    console.error("環境変数 CLOUDINARY_API_SECRET が設定されていません");
-    process.exit(1);
-  }
-
-  return { cloudName, apiKey, apiSecret };
+  return value;
 }
 
 function calcPreviewSize(
@@ -52,35 +38,28 @@ async function main() {
   const relativeFilePath = process.argv[2];
 
   if (!relativeFilePath) {
-    console.error("使用方法: npx tsx scripts/upload.ts <相対ファイルパス>");
-    console.error('例: npx tsx scripts/upload.ts "tmp/image.png"');
+    console.error("使用方法: npx tsx src/cloudinary/upload_image.ts <相対ファイルパス>");
+    console.error('例: npx tsx src/cloudinary/upload_image.ts "tmp/image.png"');
     process.exit(1);
   }
 
-  const absoluteFilePath = resolve(PROJECT_ROOT, relativeFilePath);
+  const projectRoot = resolve(__dirname, "../../");
+  const absoluteFilePath = resolve(projectRoot, relativeFilePath);
 
-  const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
   cloudinary.config({
-    cloud_name: cloudName,
-    api_key: apiKey,
-    api_secret: apiSecret,
+    cloud_name: requireEnv("CLOUDINARY_CLOUD_NAME"),
+    api_key: requireEnv("CLOUDINARY_API_KEY"),
+    api_secret: requireEnv("CLOUDINARY_API_SECRET"),
   });
 
-  // アップロード（レスポンスにオリジナルのwidthとheightが含まれる）
   const assetFolder = process.env.CLOUDINARY_IMAGE_ASSET_FOLDER;
   const uploadOptions = assetFolder ? { asset_folder: assetFolder } : {};
   const uploadResult = await cloudinary.uploader.upload(absoluteFilePath, uploadOptions);
 
   const originalWidth: number = uploadResult.width;
   const originalHeight: number = uploadResult.height;
-
-  // プレビューサイズを計算
   const previewSize = calcPreviewSize(originalWidth, originalHeight);
-
-  // オリジナル画像URL
   const originalUrl: string = uploadResult.secure_url;
-
-  // プレビューサイズにリサイズしたURL
   const previewUrl: string = cloudinary.url(uploadResult.public_id, {
     transformation: [
       {

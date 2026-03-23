@@ -3,9 +3,9 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> mountain_forecast/ -> skills/ -> .claude/ -> project root
+// src/openweather/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 const WEATHER_API_BASE = "https://api.openweathermap.org/data/3.0/onecall";
 
@@ -156,8 +156,8 @@ async function main() {
   const lonArg = process.argv[3];
 
   if (!latArg || !lonArg) {
-    console.error("使用方法: npx tsx scripts/forecast.ts <緯度> <経度>");
-    console.error("例: npx tsx scripts/forecast.ts 35.6762 139.6503");
+    console.error("使用方法: npx tsx src/openweather/forecast.ts <緯度> <経度>");
+    console.error("例: npx tsx src/openweather/forecast.ts 35.6762 139.6503");
     process.exit(1);
   }
 

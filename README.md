@@ -66,18 +66,17 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Google Maps API |
-| 役割 | 後述するOpenWeatherAPIを呼び出すため、情報内にある住所を座標に変換する処理を担う |
+| 役割 | 情報内にある住所・地点名を座標に変換する処理を担う。`get_openweather_forecast` スキル内で内部的に使用される |
 | サービスURL | https://developers.google.com/maps?hl=ja |
-| MCP サーバー | https://www.npmjs.com/package/@modelcontextprotocol/server-google-maps |
 
 ### OpenWeatherAPI
 
 | 項目 | 内容 |
 |------|------|
 | サービス名 | OpenWeatherAPI |
-| 役割 | 座標情報を元に天気予報を読み込み、メッセージ構築のための情報収集を担う |
+| 役割 | 地点名・住所からジオロケーションを行い、天気予報を読み込む。メッセージ構築のための情報収集を担う |
 | サービスURL | https://openweathermap.org/api |
-| スキル | `mountain_forecast`（自作スキル）→ [SKILL.md](.claude/skills/mountain_forecast/SKILL.md) |
+| スキル | `get_openweather_forecast`（自作スキル）→ [SKILL.md](.claude/skills/get_openweather_forecast/SKILL.md) |
 
 ### Swarm API
 

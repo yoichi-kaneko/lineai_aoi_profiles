@@ -11,7 +11,7 @@ Mureka APIを使って楽曲を生成するスタンドアロン CLI スクリ�
 
 - 歌詞（lyrics）とスタイルプロンプト（prompt）を受け取り、Mureka の曲生成APIで作曲を開始します
 - 生成はバックグラウンドで行われるため、task_idを返して終了します
-- 実際の楽曲ダウンロードは `download_mureka_song` スキルで行います
+- 実際の楽曲ダウンロードは `download_mureka_audio` スキルで行います
 - n は 1 固定です
 - モデルは環境変数 `MUREKA_MODEL` を使用します
 - `MUREKA_VOCAL_ID` が設定されている場合、そのボーカルIDを使用します
@@ -83,4 +83,4 @@ npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
 
 2. コマンドの出力から `task_id` を取得してください。
 
-3. `task_id` をユーザーに伝え、楽曲のダウンロードには `download_mureka_song` スキルを使用するよう案内してください。
+3. `task_id` をユーザーに伝え、楽曲のダウンロードには `download_mureka_audio` スキルを使用するよう案内してください。

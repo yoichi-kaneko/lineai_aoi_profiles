@@ -4,9 +4,9 @@ import { fileURLToPath } from "url";
 import { writeFileSync, mkdirSync } from "fs";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> download_mureka_song/ -> skills/ -> .claude/ -> project root
+// src/mureka/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "../../../../");
+const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 function getApiKey(): string {
@@ -35,8 +35,8 @@ async function main() {
   const taskId = process.argv[2];
 
   if (!taskId) {
-    console.error("使用方法: npx tsx scripts/download_song.ts <task_id>");
-    console.error('例: npx tsx scripts/download_song.ts "task_abc123"');
+    console.error("使用方法: npx tsx src/mureka/download_audio.ts <task_id>");
+    console.error('例: npx tsx src/mureka/download_audio.ts "task_abc123"');
     process.exit(1);
   }
 

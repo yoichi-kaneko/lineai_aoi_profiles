@@ -1,9 +1,9 @@
 ---
-name: download_mureka_song
+name: download_mureka_audio
 description: Murekaのtask_idを使って生成済み楽曲をクエリし、choicesの1件目をtmp/ディレクトリにダウンロードしてパスを返す。
 ---
 
-# download_mureka_song
+# download_mureka_audio
 
 Mureka APIでタスクをクエリし、楽曲ファイルをダウンロードするスタンドアロン CLI スクリプトです。
 
@@ -16,6 +16,9 @@ Mureka APIでタスクをクエリし、楽曲ファイルをダウンロード�
 - `choices` がまだない場合（生成中）は状態を返して終了します
 
 ## 事前準備
+
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
@@ -31,14 +34,14 @@ MUREKA_API_KEY="your_api_key"
 ## 実行方法
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/download_song.ts "<task_id>"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/download_audio.ts "<task_id>"
 ```
 
 例:
 
 ```bash
-npx tsx scripts/download_song.ts "task_abc123"
+npx tsx src/mureka/download_audio.ts "task_abc123"
 ```
 
 ## 出力
@@ -74,8 +77,8 @@ npx tsx scripts/download_song.ts "task_abc123"
 1. 以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/download_song.ts "{task_id}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/mureka/download_audio.ts "{task_id}"
 ```
 
 2. `savedPath` が返された場合、ダウンロード完了です。パスをユーザーに伝えてください。

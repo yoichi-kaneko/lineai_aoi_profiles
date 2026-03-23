@@ -51,7 +51,7 @@ lineai_aoi_profiles/
 | サービス名 | LINE Messaging API |
 | 役割 | 碧衣からユーザーへのメッセージ・画像・音声送信、およびユーザーから受信した画像のダウンロードを担う |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
-| スキル | `send_line_text` / `send_line_image` / `upload_and_send_line_audio` / `download_line_image` |
+| スキル | `send_line_text` / `send_line_image` / `send_line_audio` / `download_line_image` |
 
 ### Google Calendar API
 
@@ -142,7 +142,7 @@ lineai_aoi_profiles/
 | サービス名 | Cloudinary |
 | 役割 | LINE への画像・音声メッセージ送信に際し、ファイルを公開URLとしてホスティングするために使用される |
 | サービスURL | https://cloudinary.com/ |
-| 利用スキル | `send_line_image` / `upload_and_send_line_audio`（内部で使用） |
+| 利用スキル | `send_line_image` / `send_line_audio`（内部で使用） |
 
 ### Mureka API
 

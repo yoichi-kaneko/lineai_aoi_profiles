@@ -22,11 +22,16 @@ lineai_aoi_profiles/
 ├── modes/                 # モード別設定（morning / noon / night）
 ├── assets/                # 画像素材・ガイドライン
 ├── src/                   # 各スキルの処理実装
+│   ├── cloudinary/        # Cloudinary 画像・音声アップロード
 │   ├── firebase/          # Firebase / Firestore アクセス
+│   ├── gemini/            # Google Gemini 画像生成
+│   ├── google_calendar/   # Google Calendar 予定取得・OAuth認証
+│   ├── google_drive/      # Google Drive ファイルダウンロード・OAuth認証
 │   ├── google_map/        # Google Maps API（ジオコーディング）
-│   ├── line/              # LINE 画像ダウンロード
+│   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── mureka/            # Mureka 楽曲・歌詞生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
+│   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
 │   └── yamap/             # YAMAP 登山情報スクレイピング
@@ -35,10 +40,8 @@ lineai_aoi_profiles/
 │   └── src/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存
 └── .claude/
-    └── skills/            # Claude スキル定義（指示のみ、処理実装は src/ 配下）
+    └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
-
-> **注記**: スキル定義（`.claude/skills/`）は指示のみを記述し、処理の実装は `src/` 配下に集約しています。一部スキルはまだ移行途中です。
 
 ## 4. 連携しているサービスについて
 

@@ -6,9 +6,9 @@ import path from "path";
 import { GoogleGenAI } from "@google/genai";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> generate_gemini_image/ -> skills/ -> .claude/ -> project root
+// src/gemini/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "../../../../");
+const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 const ASPECT_RATIO = "1:1";
@@ -72,8 +72,8 @@ async function main() {
   const prompt = process.argv[2];
 
   if (!prompt) {
-    console.error("使用方法: npx tsx scripts/generate_image.ts <プロンプト>");
-    console.error('例: npx tsx scripts/generate_image.ts "青い空と白い雲"');
+    console.error("使用方法: npx tsx src/gemini/generate_image.ts <プロンプト>");
+    console.error('例: npx tsx src/gemini/generate_image.ts "青い空と白い雲"');
     process.exit(1);
   }
 

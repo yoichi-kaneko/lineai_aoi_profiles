@@ -17,6 +17,9 @@ Google Gemini APIを使って画像を生成するスタンドアロン CLI ス�
 
 ## 事前準備
 
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
 ```bash
 cd {プロジェクトルートの絶対パス}
 npm install
@@ -32,35 +35,6 @@ GOOGLE_GEMINI_GENERATE_IMAGEMODEL="gemini-3.1-flash-image-preview"
 GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR="assets/images"
 ```
 
-## 実行方法
-
-```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_image.ts "{プロンプト}"
-```
-
-例:
-
-```bash
-npx tsx scripts/generate_image.ts "青い空と白い雲が広がる山の風景"
-```
-
-## 出力
-
-成功時はJSON形式で以下を出力します。
-
-```json
-{
-  "prompt": "入力したプロンプト",
-  "model": "使用したモデル名",
-  "aspectRatio": "1:1",
-  "resolution": "1K",
-  "referenceImagesCount": 2,
-  "savedPaths": ["/absolute/path/to/tmp/gemini_image_1234567890.png"],
-  "texts": []
-}
-```
-
 ## Claudeへの指示
 
 画像生成が依頼されたとき、このスキルを使用してください。
@@ -70,8 +44,8 @@ npx tsx scripts/generate_image.ts "青い空と白い雲が広がる山の風景
 1. 以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
+cd {プロジェクトルートの絶対パス}
+npx tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
 ```
 
    **注意:** 用意したプロンプトが複数行に渡る場合、そのまま実行すると文字列が正しく渡されません。必ずクオート処理を行い、コマンドとして成立するようにしてください。
@@ -80,7 +54,7 @@ npx tsx scripts/generate_image.ts "{ARGUMENTSとして渡されたプロンプ�
 
    ```bash
    # 改行を \n に置き換えて1行の文字列として渡す
-   npx tsx scripts/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
+   npx tsx src/gemini/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
    ```
 
 2. コマンドの出力から `savedPaths` を取得してください。

@@ -2,7 +2,6 @@
     "name": "lineai_aoi_profiles",
     "private": true,
     "workspaces": [
-        ".claude/skills/*",
         "functions"
     ],
     "dependencies": {
@@ -12,6 +11,7 @@
         "cloudinary": "^2.9.0",
         "dotenv": "^16.4.7",
         "firebase-admin": "^13.7.0",
+        "@google/genai": "^1.0.1",
         "google-auth-library": "^10.5.0",
         "googleapis": "^171.4.0",
         "playwright": "^1.58.2"

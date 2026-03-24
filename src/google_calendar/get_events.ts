@@ -8,9 +8,9 @@ import { OAuth2Client } from "google-auth-library";
 import { google, calendar_v3 } from "googleapis";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> get_google_calendar_events/ -> skills/ -> .claude/ -> project root
+// src/google_calendar/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 function getEnvOrExit(name: string): string {
   const value = process.env[name];
@@ -61,7 +61,7 @@ function loadTokens(): Record<string, any> {
     return JSON.parse(content);
   } catch (error) {
     console.error(`トークンファイルを読み込めませんでした: ${tokenPath}`);
-    console.error("認証を完了してください: npx tsx scripts/auth.ts");
+    console.error("認証を完了してください: npx tsx src/google_calendar/auth.ts");
     process.exit(1);
   }
 }
@@ -131,8 +131,8 @@ async function main() {
   const dateToArg = process.argv[3];
 
   if (!dateFromArg || !dateToArg) {
-    console.error("使用方法: npx tsx scripts/get_events.ts <dateFrom> <dateTo>");
-    console.error("例: npx tsx scripts/get_events.ts 2026-03-08 2026-03-08");
+    console.error("使用方法: npx tsx src/google_calendar/get_events.ts <dateFrom> <dateTo>");
+    console.error("例: npx tsx src/google_calendar/get_events.ts 2026-03-08 2026-03-08");
     process.exit(1);
   }
 
@@ -146,7 +146,7 @@ async function main() {
 
   if (!tokens || (!tokens.access_token && !tokens.refresh_token)) {
     console.error(`アカウント "${accountMode}" のトークンが見つかりません。`);
-    console.error("google-calendar-mcp で認証を完了してください: npm run auth");
+    console.error("認証を完了してください: npx tsx src/google_calendar/auth.ts");
     process.exit(1);
   }
 

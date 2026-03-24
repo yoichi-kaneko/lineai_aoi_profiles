@@ -5,7 +5,7 @@
  * google-skills と共有の tokens.json に保存します。
  *
  * 使用方法:
- *   npx tsx scripts/auth.ts
+ *   npx tsx src/google_calendar/auth.ts
  */
 
 import dotenv from "dotenv";
@@ -18,8 +18,9 @@ import http from "http";
 import { OAuth2Client } from "google-auth-library";
 
 // プロジェクトルートの .env を読み込む
+// src/google_calendar/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 const SCOPES = [
   "https://www.googleapis.com/auth/calendar",

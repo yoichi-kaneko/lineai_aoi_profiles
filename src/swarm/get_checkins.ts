@@ -3,9 +3,9 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 
 // プロジェクトルートの .env を読み込む
-// scripts/ -> get_swarm_checkins/ -> skills/ -> .claude/ -> project root
+// src/swarm/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 const API_BASE = "https://api.foursquare.com/v2";
 const API_VERSION = "20231010";
@@ -146,8 +146,8 @@ async function main() {
   const endDateArg = process.argv[3];
 
   if (!startDateArg || !endDateArg) {
-    console.error("使用方法: npx tsx scripts/get_checkins.ts <start_date> <end_date>");
-    console.error("例: npx tsx scripts/get_checkins.ts 2024-01-01 2024-01-31");
+    console.error("使用方法: npx tsx src/swarm/get_checkins.ts <start_date> <end_date>");
+    console.error("例: npx tsx src/swarm/get_checkins.ts 2024-01-01 2024-01-31");
     process.exit(1);
   }
 

@@ -16,7 +16,11 @@ description: 指定した日付範囲のGoogleカレンダー予定を取得す�
 
 ## 事前準備
 
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
 ```bash
+cd {プロジェクトルートの絶対パス}
 npm install
 ```
 
@@ -33,47 +37,27 @@ GOOGLE_CALENDAR_TIMEZONE="Asia/Tokyo"
 初回または再認証が必要な場合は以下を実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/auth.ts
+cd {プロジェクトルートの絶対パス}
+npx tsx src/google_calendar/auth.ts
 ```
 
 表示された URL をブラウザで開いて Google アカウントを認証すると、
 `~/.config/google-skills/tokens.json` に Calendar + Drive 両スコープの
 トークンが保存されます。`GOOGLE_SKILLS_TOKEN_PATH` 環境変数でパスを変更できます。
 
-## 実行方法
+## Claudeへの指示
+
+以下のコマンドを実行してください。
 
 ```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/get_events.ts <dateFrom> <dateTo>
-```
-
-例（2026年3月8日の予定を取得）:
-
-```bash
-npx tsx scripts/get_events.ts 2026-03-08 2026-03-08
-```
-
-例（2026年3月8日〜3月13日の予定を取得）:
-
-```bash
-npx tsx scripts/get_events.ts 2026-03-08 2026-03-13
+cd {プロジェクトルートの絶対パス}
+npx tsx src/google_calendar/get_events.ts {dateFrom} {dateTo}
 ```
 
 - `dateFrom` / `dateTo`: `YYYY-MM-DD` 形式
 - 時刻は自動的に付与されます（`dateFrom` は `T00:00:00`、`dateTo` は `T23:59:59`）
 - タイムゾーンは環境変数 `GOOGLE_CALENDAR_TIMEZONE` が自動適用されます
 - カレンダーIDは環境変数 `GOOGLE_CALENDAR_ID` が使用されます
-
-## Claudeへの指示
-
-スキル起動時に提示される `Base directory for this skill` の絶対パスに `cd` した上で、
-以下のコマンドを実行してください。
-
-```bash
-cd {Base directory for this skill の絶対パス}
-npx tsx scripts/get_events.ts {dateFrom} {dateTo}
-```
 
 ARGUMENTS として渡された dateFrom・dateTo をそのまま引数に使用してください。
 コマンドの実行結果（JSON）を解析してユーザーに分かりやすく提示してください。

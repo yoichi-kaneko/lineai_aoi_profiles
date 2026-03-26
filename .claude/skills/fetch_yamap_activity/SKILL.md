@@ -1,6 +1,6 @@
 ---
 name: fetch_yamap_activity
-description: YAMAPの活動記録ページから情報を取得する。yamap.com/activities/で始まるURLが渡されたときに使用する。タイトル・日付・活動データ・チェックポイント通過時間などを抽出して返す。
+description: 【完了記録URL用】YAMAPの活動記録ページから情報を取得する。yamap.com/activities/で始まるURLが渡されたときに使用する。タイトル・日付・活動データ・チェックポイント通過時間などを抽出して返す。
 ---
 
 # fetch_yamap_activity

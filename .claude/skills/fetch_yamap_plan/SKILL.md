@@ -1,6 +1,6 @@
 ---
 name: fetch_yamap_plan
-description: YAMAPの山行計画ページから計画情報を取得する。yamap.com/plans/code/で始まるURLが渡されたときに使用する。計画タイトル・山域・距離・標高差・移動計画などを抽出して返す。
+description: 【計画書URL用】YAMAPの山行計画ページから計画情報を取得する。yamap.com/plans/code/で始まるURLが渡されたときに使用する。計画タイトル・山域・距離・標高差・移動計画などを抽出して返す。
 ---
 
 # fetch_yamap_plan

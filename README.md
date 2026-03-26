@@ -40,6 +40,10 @@ lineai_aoi_profiles/
 │   └── src/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存
 └── .claude/
+    ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
+    │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
+    │   ├── aoi_user_profile.md # ユーザーに関する基本情報
+    │   └── aoi_constraints.md  # 注意事項（口調・Log分離など）
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 

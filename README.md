@@ -85,7 +85,7 @@ lineai_aoi_profiles/
 | サービス名 | Todoist API |
 | 役割 | ユーザーの TODO タスクの読み込み・作成・コメント取得を担う |
 | サービスURL | https://developer.todoist.com/api/v1/ |
-| スキル | `get_todoist_tasks` / `get_todoist_completed_tasks` / `get_todoist_comments` / `put_todoist_task` |
+| スキル | `get_todoist_tasks` / `get_todoist_completed_tasks` / `get_todoist_comments` / `put_todoist_task` / `download_todoist_attachment` |
 
 ### Google Maps API
 

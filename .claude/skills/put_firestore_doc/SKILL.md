@@ -1,17 +1,17 @@
 ---
 name: put_firestore_doc
-description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文。type=from_aoi、isRead=false固定。
+description: 特定の要件に基づいてFirestoreにdocを追加する。引数は日付(YYYY-MM-DD)と説明文、末尾に collection（notes/records、省略時 notes）。type=from_aoi、isRead=false固定。
 ---
 
 # put_firestore_doc
 
-環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションにドキュメントを追加するスタンドアロン CLI スクリプトです。
+環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの指定コレクション（`notes` または `records`）にドキュメントを追加するスタンドアロン CLI スクリプトです。
 
 ## 概要
 
-- **コレクション**: `notes`
+- **コレクション**: `notes` / `records`（省略時 `notes`）
 - **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用
-- **引数**: 日付（YYYY-MM-DD）と説明文
+- **引数**: 日付（YYYY-MM-DD）、説明文、任意の collection（`notes` / `records`）
 
 ## ドキュメント構造
 
@@ -46,13 +46,20 @@ cd {プロジェクトルートの絶対パス}
 npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 ```
 
+`records` に追加したい場合は、末尾に `records` を追加してください。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ" "records"
+```
+
 ## Claudeへの指示
 
 以下のコマンドをプロジェクトルートから実行してください。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/put_doc.ts "{date}" "{description}"
+npx tsx src/firebase/put_doc.ts "{date}" "{description}" "{collection?}"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -75,6 +82,9 @@ npx tsx src/firebase/put_doc.ts "{date}" "{description}"
 > ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）、 `description` をそのまま引数に使用してください。
+
+`collection` が指定された場合は末尾引数に `notes` または `records` を設定してください（省略時は `notes`）。
+**明示的に `records` が指定された場合のみ**追加先を `records` に切り替えてください。
 
 **複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**
 これを行わないと正常に動作しない恐れがあります。

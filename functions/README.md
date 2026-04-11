@@ -12,22 +12,26 @@ LINE Webhook からのリクエストを受け取る HTTP 関数。
 - テキストメッセージ（`line_text`）と画像メッセージ（`line_image`）を Firestore の `notes` コレクションに保存する
 - 未対応のメッセージタイプはエラーをスローする
 
-## デプロイ
+#### Secret Manager 設定（`src/receiveLineMessage/.secrets`）
 
-以下は `gcloud` を使ったデプロイコマンドのサンプルです。
-
-```bash
-gcloud functions deploy receiveLineMessage \
-  --runtime nodejs22 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --region asia-northeast1 \
-  --gen2 \
-  --set-secrets LINE_CHANNEL_SECRET=LINE_CHANNEL_SECRET:latest \
-  --source .
+```txt
+LINE_CHANNEL_SECRET=LINE_CHANNEL_SECRET:latest
 ```
 
-> `--set-secrets` オプションにより、Google Secret Manager に登録済みの `LINE_CHANNEL_SECRET` が環境変数として関数に渡されます。
+## デプロイ
+
+`deploy.sh` を使ってデプロイします。実行方法は従来どおりで、引数には関数名のみを指定します。
+
+```bash
+./deploy.sh <function_name>
+```
+
+`deploy.sh` は関数ディレクトリ内の設定ファイルを自動的に読み取ります。
+
+- `src/<function_name>/.env.yaml` があれば `--env-vars-file` を付与
+- `src/<function_name>/.secrets` があれば `--set-secrets` を付与
+
+`.secrets` は1行ごとに `環境変数名=Secret名:version` 形式で記述します。
 
 ---
 
@@ -46,11 +50,11 @@ Bearer トークン認証付きの HTTP 関数。指定した日付に一致す�
 ./deploy.sh getFireStoreDocs
 ```
 
-#### 環境変数（`src/getFireStoreDocs/.env.yaml`）
+#### Secret Manager 設定（`src/getFireStoreDocs/.secrets`）
 
-| 変数名 | 概要 |
-|---|---|
-| `BEARER_TOKEN` | HTTP リクエストの認証に使用する Bearer トークン |
+```txt
+BEARER_TOKEN=BEARER_TOKEN:latest
+```
 
 ---
 
@@ -80,11 +84,11 @@ Bearer トークン認証付きの HTTP 関数。Firestore の `records` コレ�
 ./deploy.sh putFireStoreDoc
 ```
 
-#### 環境変数（`src/putFireStoreDoc/.env.yaml`）
+#### Secret Manager 設定（`src/putFireStoreDoc/.secrets`）
 
-| 変数名 | 概要 |
-|---|---|
-| `BEARER_TOKEN` | HTTP リクエストの認証に使用する Bearer トークン |
+```txt
+BEARER_TOKEN=BEARER_TOKEN:latest
+```
 
 ---
 
@@ -98,19 +102,24 @@ Bearer トークン認証付きの HTTP 関数。AWS Systems Manager (SSM) を�
 
 ## デプロイ（`execEc2Command`）
 
-`deploy.sh` を使ってデプロイします。`src/execEc2Command/.env.yaml` が存在する場合、自動的に環境変数として読み込まれます。
+`deploy.sh` を使ってデプロイします。`src/execEc2Command/.env.yaml` と `src/execEc2Command/.secrets` は両方とも自動的に読み込まれます。
 
 ```bash
 ./deploy.sh execEc2Command
 ```
 
-## 環境変数（`src/execEc2Command/.env.yaml`）
+## 通常環境変数（`src/execEc2Command/.env.yaml`）
 
 | 変数名 | 概要 |
 |---|---|
 | `AWS_REGION` | SSM クライアントが接続する AWS リージョン |
 | `EC2_INSTANCE_ID` | コマンドを送信する対象の EC2 インスタンス ID |
 | `EC2_COMMAND` | EC2 インスタンス上で実行するシェルコマンド |
-| `AWS_ACCESS_KEY` | AWS 認証に使用するアクセスキー ID |
-| `AWS_SECRET_KEY` | AWS 認証に使用するシークレットアクセスキー |
-| `BEARER_TOKEN` | HTTP リクエストの認証に使用する Bearer トークン |
+
+## Secret Manager 設定（`src/execEc2Command/.secrets`）
+
+```txt
+BEARER_TOKEN=BEARER_TOKEN:latest
+AWS_ACCESS_KEY=AWS_ACCESS_KEY:latest
+AWS_SECRET_KEY=AWS_SECRET_KEY:latest
+```

@@ -30,6 +30,15 @@ function resolveParam<T>(
 }
 
 functions.http("putFireStoreDoc", async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
   try {
     const authHeader = req.headers["authorization"];
     const expectedToken = process.env.BEARER_TOKEN ?? "";

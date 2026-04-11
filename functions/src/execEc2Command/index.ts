@@ -2,6 +2,15 @@ import { SSMClient, SendCommandCommand } from "@aws-sdk/client-ssm";
 import * as functions from "@google-cloud/functions-framework";
 
 functions.http("execEc2Command", async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
   const authHeader = req.headers["authorization"];
   const expectedToken = process.env.BEARER_TOKEN ?? "";
   if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {

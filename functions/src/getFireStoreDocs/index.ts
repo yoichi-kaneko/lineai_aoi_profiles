@@ -29,6 +29,15 @@ function resolveDateParam(req: { query?: unknown; body?: unknown }): string | un
 }
 
 functions.http("getFireStoreDocs", async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
   try {
     const authHeader = req.headers["authorization"];
     const expectedToken = process.env.BEARER_TOKEN ?? "";

@@ -12,10 +12,27 @@ function isValidDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
-function parseDate(input: RecordStartInput): string {
+/** 実行環境のローカル時刻ではなく、Asia/Tokyo（JST）の「今日」を YYYY-MM-DD で返す */
+function getTodayYmdInJst(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  if (!year || !month || !day) {
+    throw new Error("Failed to resolve today's date in JST.");
+  }
+  return `${year}-${month}-${day}`;
+}
+
+function resolveDate(input: RecordStartInput): string {
   const date = input.date?.trim();
   if (!date) {
-    throw new Error("`date` is required (YYYY-MM-DD).");
+    return getTodayYmdInJst();
   }
   if (!isValidDate(date)) {
     throw new Error("`date` must be YYYY-MM-DD format.");
@@ -79,7 +96,7 @@ async function run(data: string, secret?: string): Promise<string> {
     }
 
     const parsed = (data ? JSON.parse(data) : {}) as RecordStartInput;
-    const date = parseDate(parsed);
+    const date = resolveDate(parsed);
     const result = await fetchGetFireStoreDocs(date, token);
 
     if (LOCAL_STORAGE_KEY) {

@@ -8,6 +8,8 @@ type RecordStartResult = {
   source: string;
 };
 
+declare const __FUNCTION_URL__: string;
+
 function isValidDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
@@ -27,10 +29,21 @@ function normalizeInput(input: RecordStartInput): RecordStartResult {
   return { date, source };
 }
 
+function getFunctionUrl(): string {
+  const functionUrl = __FUNCTION_URL__?.trim();
+  if (!functionUrl) {
+    throw new Error("FUNCTION_URL is not configured.");
+  }
+  return functionUrl;
+}
+
 async function run(data: string): Promise<string> {
   try {
     const parsed = (data ? JSON.parse(data) : {}) as RecordStartInput;
     const normalized = normalizeInput(parsed);
+    const functionUrl = getFunctionUrl();
+
+    console.log("[record-start] FUNCTION_URL:", functionUrl);
 
     return JSON.stringify({
       result: `record-start accepted for ${normalized.date} (${normalized.source})`,

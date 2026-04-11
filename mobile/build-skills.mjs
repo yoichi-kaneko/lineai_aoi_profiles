@@ -2,12 +2,40 @@ import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const skillsDir = resolve(__dirname, "skills");
 const tsconfigPath = resolve(__dirname, "tsconfig.json");
+const mobileEnvPath = resolve(__dirname, ".env");
+const mobileEnv = dotenv.config({ path: mobileEnvPath }).parsed ?? {};
+const functionUrl = (mobileEnv.FUNCTION_URL ?? "").trim();
+const localStorageKey = (mobileEnv.LOCAL_STORAGE_KEY ?? "").trim();
+
+function assertRequiredEnv() {
+  const errors = [];
+  if (!functionUrl) {
+    errors.push("FUNCTION_URL is missing or empty in mobile/.env");
+  }
+  if (!localStorageKey) {
+    errors.push("LOCAL_STORAGE_KEY is missing or empty in mobile/.env");
+  }
+  if (errors.length > 0) {
+    console.error("[build:mobile:skills] Build failed:");
+    for (const msg of errors) {
+      console.error(`  - ${msg}`);
+    }
+    process.exit(1);
+  }
+}
+
+const functionUrlDefineValue = JSON.stringify(functionUrl).replace(/"/g, '\\"');
+const localStorageKeyDefineValue = JSON.stringify(localStorageKey).replace(
+  /"/g,
+  '\\"'
+);
 
 function listSkillDirectories(baseDir) {
   if (!existsSync(baseDir)) return [];
@@ -34,6 +62,8 @@ function buildSkill(skillDir) {
     "--format=iife",
     "--target=es2020",
     `--tsconfig=${tsconfigPath}`,
+    `--define:__FUNCTION_URL__="${functionUrlDefineValue}"`,
+    `--define:__LOCAL_STORAGE_KEY__="${localStorageKeyDefineValue}"`,
     `--outfile=${outFile}`,
   ];
 
@@ -46,6 +76,8 @@ function buildSkill(skillDir) {
 }
 
 function main() {
+  assertRequiredEnv();
+
   const skillDirs = listSkillDirectories(skillsDir);
   if (skillDirs.length === 0) {
     console.log("[build:mobile:skills] No skills found under mobile/skills");

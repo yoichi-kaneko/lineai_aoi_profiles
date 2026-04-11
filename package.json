@@ -1,6 +1,9 @@
 {
     "name": "lineai_aoi_profiles",
     "private": true,
+    "scripts": {
+        "build:mobile:skills": "node mobile/build-skills.mjs"
+    },
     "workspaces": [
         "functions"
     ],

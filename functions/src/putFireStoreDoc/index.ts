@@ -74,7 +74,7 @@ functions.http("putFireStoreDoc", async (req, res) => {
     const docData = {
       date: dateTimestamp,
       description: description.replace(/\\n/g, "\n"),
-      type: "from_aoi",
+      type: "lantern_note",
       isRead: false,
       createdAt: now,
     };

@@ -21,15 +21,16 @@ function getFirebaseConfigPath(): string {
 }
 
 async function main() {
-  const date = process.argv[2];
+  const dateFrom = process.argv[2];
+  const dateTo = process.argv[3];
 
-  if (!date) {
-    console.error("使用方法: npx tsx src/firebase/get_docs.ts <date(YYYY-MM-DD)>");
-    console.error('例: npx tsx src/firebase/get_docs.ts "2026-03-21"');
+  if (!dateFrom || !dateTo) {
+    console.error("使用方法: npx tsx src/firebase/get_docs.ts <dateFrom(YYYY-MM-DD)> <dateTo(YYYY-MM-DD)>");
+    console.error('例: npx tsx src/firebase/get_docs.ts "2026-03-21" "2026-03-21"');
     process.exit(1);
   }
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateFrom) || !/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) {
     console.error("日付は YYYY-MM-DD 形式で指定してください");
     process.exit(1);
   }
@@ -43,9 +44,10 @@ async function main() {
 
   const db = getFirestore();
 
-  const [year, month, day] = date.split("-").map(Number);
-  const startDate = new Date(year, month - 1, day, 0, 0, 0, 0);
-  const endDate = new Date(year, month - 1, day, 23, 59, 59, 999);
+  const [fromYear, fromMonth, fromDay] = dateFrom.split("-").map(Number);
+  const [toYear, toMonth, toDay] = dateTo.split("-").map(Number);
+  const startDate = new Date(fromYear, fromMonth - 1, fromDay, 0, 0, 0, 0);
+  const endDate = new Date(toYear, toMonth - 1, toDay, 23, 59, 59, 999);
 
   const snapshot = await db
     .collection("notes")
@@ -54,7 +56,7 @@ async function main() {
     .get();
 
   if (snapshot.empty) {
-    console.log(`date=${date} に一致するドキュメントはありませんでした。`);
+    console.log(`dateFrom=${dateFrom}, dateTo=${dateTo} に一致するドキュメントはありませんでした。`);
     return;
   }
 

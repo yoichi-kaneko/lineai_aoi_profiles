@@ -33,7 +33,7 @@ if [ "$MODE" = "night" ]; then
 elif [ "$MODE" = "noon" ]; then
   TRIGGER_PROMPT="daily message (望): ${TARGET_DATE}"
 elif [ "$MODE" = "off_mountain" ]; then
-  TRIGGER_PROMPT="daily message (帰燕): ${TARGET_DATE}"
+  TRIGGER_PROMPT="daily message (帰灯): ${TARGET_DATE}"
 else
   TRIGGER_PROMPT="daily message (暁): ${TARGET_DATE}"
 fi

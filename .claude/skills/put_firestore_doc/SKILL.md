@@ -1,6 +1,6 @@
 ---
 name: put_firestore_doc
-description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文。type=from_aoi、isRead=false固定。
+description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文、任意でtype（省略時はfrom_aoi）。isRead=false固定。
 ---
 
 # put_firestore_doc
@@ -19,7 +19,7 @@ description: 特定の要件に基づいてFirestoreのnotesコレクション�
 |-------------|-----------|------------------------------|
 | date        | Timestamp | 引数の日付（Date型）           |
 | description | string    | 引数の説明文                  |
-| type        | string    | `"from_aoi"` 固定            |
+| type        | string    | 第3引数から取得（省略時は `"from_aoi"`）|
 | isRead      | boolean   | `false` 固定（作成時）        |
 | createdAt   | Timestamp | 登録日時（秒まで）             |
 
@@ -42,8 +42,13 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ## 実行方法
 
 ```bash
+# typeを省略（デフォルト: from_aoi）
 cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
+
+# typeを指定
+cd {プロジェクトルートの絶対パス}
+pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "下山報告" "off_mountain"
 ```
 
 ## Claudeへの指示
@@ -52,8 +57,10 @@ pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}"
+pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}" "{type}"
 ```
+
+`{type}` は省略可能です。省略した場合は `from_aoi` が使用されます。
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
 >

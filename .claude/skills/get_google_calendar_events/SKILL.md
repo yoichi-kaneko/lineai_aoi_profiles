@@ -21,7 +21,7 @@ description: 指定した日付範囲のGoogleカレンダー予定を取得す�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -38,7 +38,7 @@ GOOGLE_CALENDAR_TIMEZONE="Asia/Tokyo"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/google_calendar/auth.ts
+pnpm exec tsx src/google_calendar/auth.ts
 ```
 
 表示された URL をブラウザで開いて Google アカウントを認証すると、
@@ -51,7 +51,7 @@ npx tsx src/google_calendar/auth.ts
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/google_calendar/get_events.ts {dateFrom} {dateTo}
+pnpm exec tsx src/google_calendar/get_events.ts {dateFrom} {dateTo}
 ```
 
 - `dateFrom` / `dateTo`: `YYYY-MM-DD` 形式

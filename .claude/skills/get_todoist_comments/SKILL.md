@@ -14,7 +14,7 @@ description: 指定したタスクIDのTodoistコメントを全件取得する�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -29,7 +29,7 @@ TODOIST_API_TOKEN="your_api_token"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/todoist/get_comments.ts "{task_id}"
+pnpm exec tsx src/todoist/get_comments.ts "{task_id}"
 ```
 
 ARGUMENTS として渡された `task_id` をそのまま引数に使用してください。

@@ -23,7 +23,7 @@ Mureka APIを使って楽曲を生成するスタンドアロン CLI スクリ�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -40,13 +40,13 @@ MUREKA_VOCAL_ID="vocal_id"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
+pnpm exec tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
 ```
 
 例:
 
 ```bash
-npx tsx src/mureka/generate_song.ts "[Verse]\nここに歌詞が入ります\n[Chorus]\nサビの歌詞" "明るいポップス調、女性ボーカル"
+pnpm exec tsx src/mureka/generate_song.ts "[Verse]\nここに歌詞が入ります\n[Chorus]\nサビの歌詞" "明るいポップス調、女性ボーカル"
 ```
 
 ## 出力
@@ -70,7 +70,7 @@ npx tsx src/mureka/generate_song.ts "[Verse]\nここに歌詞が入ります\n[C
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
+pnpm exec tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
 ```
 
    **注意:** 歌詞やプロンプトが複数行に渡る場合、改行を `\n` に置き換えて1行の文字列として渡してください。
@@ -78,7 +78,7 @@ npx tsx src/mureka/generate_song.ts "{歌詞}" "{プロンプト}"
    例:
 
    ```bash
-   npx tsx src/mureka/generate_song.ts "[Verse]\n歌詞1行目\n歌詞2行目\n[Chorus]\nサビ" "明るいポップス調"
+   pnpm exec tsx src/mureka/generate_song.ts "[Verse]\n歌詞1行目\n歌詞2行目\n[Chorus]\nサビ" "明るいポップス調"
    ```
 
 2. コマンドの出力から `task_id` を取得してください。

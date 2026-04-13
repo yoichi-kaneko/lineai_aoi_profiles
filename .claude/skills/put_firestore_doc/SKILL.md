@@ -30,7 +30,7 @@ description: 特定の要件に基づいてFirestoreのnotesコレクション�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -43,7 +43,7 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
+pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 ```
 
 ## Claudeへの指示
@@ -52,7 +52,7 @@ npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/put_doc.ts "{date}" "{description}"
+pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -65,13 +65,13 @@ npx tsx src/firebase/put_doc.ts "{date}" "{description}"
 >
 > 悪い例（動作しない可能性あり）:
 > ```bash
-> npx tsx src/firebase/put_doc.ts "{date}" "1行目
+> pnpm exec tsx src/firebase/put_doc.ts "{date}" "1行目
 > 2行目"
 > ```
 >
 > 良い例:
 > ```bash
-> npx tsx src/firebase/put_doc.ts "{date}" "1行目\n2行目"
+> pnpm exec tsx src/firebase/put_doc.ts "{date}" "1行目\n2行目"
 > ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）、 `description` をそのまま引数に使用してください。

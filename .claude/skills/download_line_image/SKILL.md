@@ -22,7 +22,7 @@ LINE Messaging API からメッセージの画像コンテンツをダウンロ�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -35,13 +35,13 @@ LINE_ACCESS_TOKEN="your_access_token"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/line/download_image.ts "{messageId}"
+pnpm exec tsx src/line/download_image.ts "{messageId}"
 ```
 
 例:
 
 ```bash
-npx tsx src/line/download_image.ts "123456789012345678"
+pnpm exec tsx src/line/download_image.ts "123456789012345678"
 ```
 
 ## 出力
@@ -65,7 +65,7 @@ LINE のメッセージIDが渡されたとき、このスキルを使用して�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/line/download_image.ts "{ARGUMENTS として渡された messageId}"
+pnpm exec tsx src/line/download_image.ts "{ARGUMENTS として渡された messageId}"
 ```
 
 2. コマンドの出力から `savedPath` を取得してください。

@@ -22,7 +22,7 @@ Mureka APIでタスクをクエリし、楽曲ファイルをダウンロード�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -35,13 +35,13 @@ MUREKA_API_KEY="your_api_key"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/download_audio.ts "<task_id>"
+pnpm exec tsx src/mureka/download_audio.ts "<task_id>"
 ```
 
 例:
 
 ```bash
-npx tsx src/mureka/download_audio.ts "task_abc123"
+pnpm exec tsx src/mureka/download_audio.ts "task_abc123"
 ```
 
 ## 出力
@@ -78,7 +78,7 @@ npx tsx src/mureka/download_audio.ts "task_abc123"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/download_audio.ts "{task_id}"
+pnpm exec tsx src/mureka/download_audio.ts "{task_id}"
 ```
 
 2. `savedPath` が返された場合、ダウンロード完了です。パスをユーザーに伝えてください。

@@ -15,7 +15,7 @@ TodoistコメントのfileAttachment.fileUrlは認証が必要なため、通常
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -30,7 +30,7 @@ TODOIST_API_TOKEN="your_api_token"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/todoist/download_attachment.ts "{file_url}" ["{filename}"]
+pnpm exec tsx src/todoist/download_attachment.ts "{file_url}" ["{filename}"]
 ```
 
 - `file_url`: コメントの `fileAttachment.fileUrl` の値（必須）
@@ -42,7 +42,7 @@ npx tsx src/todoist/download_attachment.ts "{file_url}" ["{filename}"]
 `get_todoist_comments` の結果から `fileAttachment.fileUrl` と `fileAttachment.fileName` を取り出して渡す:
 
 ```bash
-npx tsx src/todoist/download_attachment.ts "https://files.todoist.com/user_upload/v2/.../file.JPG" "P3080841.JPG"
+pnpm exec tsx src/todoist/download_attachment.ts "https://files.todoist.com/user_upload/v2/.../file.JPG" "P3080841.JPG"
 ```
 
 コマンドの実行結果（保存先パスなどのJSON）をそのままユーザーに提示してください。

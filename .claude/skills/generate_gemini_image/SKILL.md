@@ -22,7 +22,7 @@ Google Gemini APIを使って画像を生成するスタンドアロン CLI ス�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -45,7 +45,7 @@ GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR="assets/images"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
+pnpm exec tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
 ```
 
    **注意:** 用意したプロンプトが複数行に渡る場合、そのまま実行すると文字列が正しく渡されません。必ずクオート処理を行い、コマンドとして成立するようにしてください。
@@ -54,7 +54,7 @@ npx tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプロン�
 
    ```bash
    # 改行を \n に置き換えて1行の文字列として渡す
-   npx tsx src/gemini/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
+   pnpm exec tsx src/gemini/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
    ```
 
 2. コマンドの出力から `savedPaths` を取得してください。

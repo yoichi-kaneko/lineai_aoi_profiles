@@ -21,7 +21,7 @@ description: 画像をCloudinaryにアップロードし、そのURLを使って
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -44,7 +44,7 @@ LINE_DESTINATION_USER_ID="your_user_id"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/cloudinary/upload_image.ts "{ARGUMENTSとして渡されたファイルパス}"
+pnpm exec tsx src/cloudinary/upload_image.ts "{ARGUMENTSとして渡されたファイルパス}"
 ```
 
 2. 出力JSONから `originalUrl` と `previewUrl` を取得してください。
@@ -53,7 +53,7 @@ npx tsx src/cloudinary/upload_image.ts "{ARGUMENTSとして渡されたファイ
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/line/send_image.ts "{originalUrl}" "{previewUrl}"
+pnpm exec tsx src/line/send_image.ts "{originalUrl}" "{previewUrl}"
 ```
 
 4. コマンドが成功したら、画像を送信した旨をユーザーに報告してください。

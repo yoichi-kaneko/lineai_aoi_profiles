@@ -4,7 +4,7 @@
 ### ステップ1：並列収集フェーズ
 以下のスキルは互いに独立しているため、**すべて並列で**呼び出してください：
 
-- **`get_firestore_docs`**: 本日の日付（YYYY-MM-DD）を指定して、暁モードから引き継いだ情報を取得する
+- **`get_firestore_docs`**: `dateFrom`・`dateTo` ともに本日の日付（YYYY-MM-DD）を指定して、暁モードから引き継いだ情報を取得する
 - **`get_google_calendar_events`**: `dateFrom` に本日の `YYYY-MM-DD`、`dateTo` に5日後の `YYYY-MM-DD` を指定して取得する
 
 取得した引き継ぎ情報の中に報告内容に組み込めるものがあれば、ステップ4「報告内容の作成」に反映してください。なお、Firestoreの取得結果の中に `type: line_text` または `type: line_image` のドキュメントが含まれる場合、それはユーザーがLINEから送ったメッセージです。テキストであればその内容を、画像であれば **`download_image` スキル**を使用して画像を取得・解析した上で、メッセージ生成に組み込んでください。

@@ -5,7 +5,7 @@
 #### 1-1. 並列収集フェーズ
 以下のスキルは互いに独立しているため、**すべて並列で**呼び出してください：
 
-- **`get_firestore_docs`**: 本日の日付（YYYY-MM-DD）を指定して、暁・望モードから引き継いだ情報を取得する
+- **`get_firestore_docs`**: `dateFrom`・`dateTo` ともに本日の日付（YYYY-MM-DD）を指定して、暁・望モードから引き継いだ情報を取得する
 - **`get_google_calendar_events`**: `dateFrom` に本日の `YYYY-MM-DD`、`dateTo` に翌日の `YYYY-MM-DD` を指定して取得する（本日の予定は振り返りに、翌日の予定は「明日の予告」のために使用）
 - **`get_swarm_checkins`**: `start_date`, `end_date` ともに本日の日付を指定して、施設や場所へのチェックイン履歴を取得する
 - **`get_todoist_completed_tasks`**: 本日の日付を指定して、本日完了したタスクをすべて取得する

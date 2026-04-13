@@ -1,6 +1,10 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { validateSignature, webhook } from "@line/bot-sdk";
+import { execEc2Command } from "./execEc2Command";
+
+// EC2コマンドのトリガーキーワード（前方一致）
+const EC2_TRIGGER_KEYWORDS = ["下山", "無事下山"];
 
 const firestore = new Firestore();
 
@@ -36,6 +40,10 @@ functions.http("receiveLineMessage", async (req, res) => {
         isRead: false,
         createdAt: Timestamp.fromDate(new Date()),
       });
+
+      if (EC2_TRIGGER_KEYWORDS.some((kw) => message.text.startsWith(kw))) {
+        await execEc2Command();
+      }
     } else if (
       event.type === "message" &&
       event.message.type === "image" &&

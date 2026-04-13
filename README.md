@@ -189,7 +189,34 @@ lineai_aoi_profiles/
 | ツールがエラーを返す（APIエラー、認証失敗など） | Claudeルールに基づきスキップして続行 |
 | 一時的な障害（API瞬断など） | シェルリトライ + Claudeルールによるスキップ |
 
-## 6. ライセンスについて
+## 6. PR #4 で反映された差分
+
+対象PR: [Add off_mountain mode and improve LINE flow #4](https://github.com/yoichi-kaneko/lineai_aoi_profiles/pull/4)
+
+### 追加・更新された主な内容
+
+- **モード仕様の拡張**
+  - `modes/off_mountain.md` が「帰灯（きとう）モード」として実運用手順を持つ内容に拡張
+  - `modes/noon.md` / `modes/night.md` で、帰灯モード実行後の分岐（Firestore記録を優先する判断）を追加
+
+- **Firestore取得仕様の更新（日付範囲対応）**
+  - `src/firebase/get_docs.ts` が単一日付引数から `dateFrom` / `dateTo` の2引数へ変更
+  - `.claude/skills/get_firestore_docs/SKILL.md` の説明と実行例を日付範囲取得前提に更新
+  - 暁/望/小夜/帰灯モードからの `get_firestore_docs` 呼び出し指示が範囲指定前提に更新
+
+- **Cloud Functions（LINE受信）の機能拡張**
+  - `functions/src/receiveLineMessage/index.ts` に、特定キーワード（`下山` / `無事下山`）受信時のEC2コマンド実行フローを追加
+  - `functions/src/receiveLineMessage/execEc2Command.ts` を新規追加（AWS SSM経由でEC2コマンドを送信）
+  - `functions/src/receiveLineMessage/.secrets` と `functions/.gitignore` を追加・更新し、Secrets/環境変数の管理手順を整理
+  - `functions/README.md` を更新し、トリガー条件・必要環境変数・デプロイ手順を明文化
+  - `functions/deploy.sh` を新規追加し、`.env.yaml` と `.secrets` を自動解決してデプロイ可能に変更
+
+- **依存関係・ワークスペース設定の更新**
+  - `functions/package.json` に `@aws-sdk/client-ssm` を追加
+  - `pnpm-lock.yaml` を更新（AWS SDK関連依存を反映）
+  - `pnpm-workspace.yaml` に `allowBuilds` 設定を追加（`@firebase/util`, `esbuild`, `protobufjs`）
+
+## 7. ライセンスについて
 
 本プロジェクトは MIT License のもとで公開されています。
 

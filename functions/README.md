@@ -36,6 +36,7 @@ cd functions
 
 | 変数名 | 用途 |
 |---|---|
+| `LINE_USER_ID` | LINEのユーザーID |
 | `AWS_REGION` | AWS リージョン |
 | `EC2_INSTANCE_ID` | SSM コマンドの送信先 EC2 インスタンス ID |
 | `EC2_COMMAND` | EC2 上で実行するシェルコマンド |

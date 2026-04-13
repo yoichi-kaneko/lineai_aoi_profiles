@@ -21,7 +21,7 @@ description: LINEにテキストメッセージを送信する。環境変数で
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -35,13 +35,13 @@ LINE_DESTINATION_USER_ID="your_user_id"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/line/send_text.ts "送信したいメッセージ"
+pnpm exec tsx src/line/send_text.ts "送信したいメッセージ"
 ```
 
 例:
 
 ```bash
-npx tsx src/line/send_text.ts "こんにちは！"
+pnpm exec tsx src/line/send_text.ts "こんにちは！"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -54,13 +54,13 @@ npx tsx src/line/send_text.ts "こんにちは！"
 >
 > 悪い例（動作しない可能性あり）:
 > ```bash
-> npx tsx src/line/send_text.ts "1行目
+> pnpm exec tsx src/line/send_text.ts "1行目
 > 2行目"
 > ```
 >
 > 良い例:
 > ```bash
-> npx tsx src/line/send_text.ts "1行目\n2行目"
+> pnpm exec tsx src/line/send_text.ts "1行目\n2行目"
 > ```
 
 ## Claudeへの指示
@@ -69,7 +69,7 @@ npx tsx src/line/send_text.ts "こんにちは！"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/line/send_text.ts "{message}"
+pnpm exec tsx src/line/send_text.ts "{message}"
 ```
 
 ARGUMENTS として渡された message をそのまま引数に使用してください。

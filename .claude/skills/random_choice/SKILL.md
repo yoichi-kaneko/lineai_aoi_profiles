@@ -19,20 +19,20 @@ AIが何を選ぶか迷ったとき、これを使ってランダムな結果を
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 ## 実行方法
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/util/random_choice.ts <選択肢1> <選択肢2> [選択肢3 ...]
+pnpm exec tsx src/util/random_choice.ts <選択肢1> <選択肢2> [選択肢3 ...]
 ```
 
 例:
 
 ```bash
-npx tsx src/util/random_choice.ts ラーメン カレー うどん
+pnpm exec tsx src/util/random_choice.ts ラーメン カレー うどん
 ```
 
 ## 出力
@@ -59,7 +59,7 @@ npx tsx src/util/random_choice.ts ラーメン カレー うどん
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/util/random_choice.ts {選択肢1} {選択肢2} [選択肢3 ...]
+pnpm exec tsx src/util/random_choice.ts {選択肢1} {選択肢2} [選択肢3 ...]
 ```
 
 2. コマンドの出力から `selected` の値を取得してください。

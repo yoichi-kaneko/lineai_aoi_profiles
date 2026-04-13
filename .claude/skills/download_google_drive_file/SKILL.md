@@ -21,7 +21,7 @@ description: Google DriveのファイルをfileIdを指定してダウンロー�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -36,7 +36,7 @@ GOOGLE_OAUTH_CREDENTIALS="/path/to/gcp-oauth.keys.json"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/google_drive/auth.ts
+pnpm exec tsx src/google_drive/auth.ts
 ```
 
 表示された URL をブラウザで開いて Google アカウントを認証すると、
@@ -49,7 +49,7 @@ npx tsx src/google_drive/auth.ts
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/google_drive/download_file.ts {fileId}
+pnpm exec tsx src/google_drive/download_file.ts {fileId}
 ```
 
 - `fileId`: Google Drive のファイル ID（Drive URL の `/d/<fileId>/` の部分）

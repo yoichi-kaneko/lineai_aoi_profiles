@@ -31,7 +31,7 @@ description: 指定した日付（YYYY-MM-DD）に一致するFirestoreのnotes�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -44,7 +44,7 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/get_docs.ts "2026-03-21"
+pnpm exec tsx src/firebase/get_docs.ts "2026-03-21"
 ```
 
 ## Claudeへの指示
@@ -53,7 +53,7 @@ npx tsx src/firebase/get_docs.ts "2026-03-21"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/firebase/get_docs.ts "{date}"
+pnpm exec tsx src/firebase/get_docs.ts "{date}"
 ```
 
 ARGUMENTS として渡された `date`（YYYY-MM-DD形式）をそのまま引数に使用してください。

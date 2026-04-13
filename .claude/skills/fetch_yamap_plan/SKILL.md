@@ -32,21 +32,21 @@ https://yamap.com/plans/code/{CODE}/printing  # 末尾の /printing は自動的
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
-npx playwright install chromium
+pnpm install
+pnpm exec playwright install chromium
 ```
 
 ## 実行方法
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX"
+pnpm exec tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX"
 ```
 
 `/printing` 付きURLも使用可能です：
 
 ```bash
-npx tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX/printing"
+pnpm exec tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX/printing"
 ```
 
 ## 注意事項
@@ -62,7 +62,7 @@ npx tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX/printing"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/yamap/fetch_plan.ts "{ARGUMENTS として渡された URL}"
+pnpm exec tsx src/yamap/fetch_plan.ts "{ARGUMENTS として渡された URL}"
 ```
 
 ARGUMENTSとして渡されたURLをそのまま引数に使用してください。

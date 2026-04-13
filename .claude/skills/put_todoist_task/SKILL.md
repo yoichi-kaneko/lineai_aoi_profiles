@@ -14,7 +14,7 @@ Todoistの Inbox に新しいタスクを作成するスキルです。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -30,13 +30,13 @@ TODOIST_API_TOKEN="your_api_token"
 description がある場合：
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/todoist/put_task.ts "{content}" "{description}"
+pnpm exec tsx src/todoist/put_task.ts "{content}" "{description}"
 ```
 
 description がない場合：
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/todoist/put_task.ts "{content}"
+pnpm exec tsx src/todoist/put_task.ts "{content}"
 ```
 
 ARGUMENTS として渡された `content`（タスクタイトル）と `description`（任意の詳細）をそれぞれ引数に使用してください。
@@ -48,13 +48,13 @@ ARGUMENTS として渡された `content`（タスクタイトル）と `descrip
 >
 > 悪い例（動作しない可能性あり）:
 > ```bash
-> npx tsx src/todoist/put_task.ts "タスクタイトル" "1行目
+> pnpm exec tsx src/todoist/put_task.ts "タスクタイトル" "1行目
 > 2行目"
 > ```
 >
 > 良い例:
 > ```bash
-> npx tsx src/todoist/put_task.ts "タスクタイトル" "1行目\n2行目"
+> pnpm exec tsx src/todoist/put_task.ts "タスクタイトル" "1行目\n2行目"
 > ```
 
 **複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**

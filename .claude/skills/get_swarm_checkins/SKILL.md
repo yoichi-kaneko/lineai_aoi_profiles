@@ -21,7 +21,7 @@ description: 指定した日付範囲のSwarm（Foursquare）チェックイン�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -36,7 +36,7 @@ SWARM_OAUTH_TOKEN="swarm_access_token"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/swarm/get_checkins.ts {start_date} {end_date}
+pnpm exec tsx src/swarm/get_checkins.ts {start_date} {end_date}
 ```
 
 - `start_date` / `end_date`: `YYYY-MM-DD` 形式

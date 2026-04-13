@@ -31,15 +31,15 @@ https://yamap.com/activities/{ID}
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
-npx playwright install chromium
+pnpm install
+pnpm exec playwright install chromium
 ```
 
 ## 実行方法
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/yamap/fetch_activity.ts "https://yamap.com/activities/XXXX"
+pnpm exec tsx src/yamap/fetch_activity.ts "https://yamap.com/activities/XXXX"
 ```
 
 ## 注意事項

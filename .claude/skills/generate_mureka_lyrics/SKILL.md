@@ -19,7 +19,7 @@ Mureka APIを使って歌詞を生成するスタンドアロン CLI スクリ�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -32,13 +32,13 @@ MUREKA_API_KEY="your_api_key"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/generate_lyrics.ts "{プロンプト}"
+pnpm exec tsx src/mureka/generate_lyrics.ts "{プロンプト}"
 ```
 
 例:
 
 ```bash
-npx tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"
+pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"
 ```
 
 ## 出力
@@ -62,7 +62,7 @@ npx tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした�
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/mureka/generate_lyrics.ts "{プロンプト}"
+pnpm exec tsx src/mureka/generate_lyrics.ts "{プロンプト}"
 ```
 
    **注意:** プロンプトが複数行に渡る場合、改行を `\n` に置き換えて1行の文字列として渡してください。
@@ -70,7 +70,7 @@ npx tsx src/mureka/generate_lyrics.ts "{プロンプト}"
    例:
 
    ```bash
-   npx tsx src/mureka/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
+   pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
    ```
 
 2. コマンドの出力から `lyrics` を取得してください。

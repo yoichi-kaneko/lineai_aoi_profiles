@@ -22,7 +22,7 @@ description: 地点名または住所から緯度・経度を取得し、OpenWea
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
@@ -44,7 +44,7 @@ OPEN_WEATHER_APP_ID="your_api_key"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/google_map/geocode.ts "{住所または地点名}"
+pnpm exec tsx src/google_map/geocode.ts "{住所または地点名}"
 ```
 
 ### ステップ2：天気予報の取得
@@ -53,7 +53,7 @@ npx tsx src/google_map/geocode.ts "{住所または地点名}"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/openweather/forecast.ts {緯度} {経度}
+pnpm exec tsx src/openweather/forecast.ts {緯度} {経度}
 ```
 
 コマンドの実行結果を、そのままユーザーに提示してください。

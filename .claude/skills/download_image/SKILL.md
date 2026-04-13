@@ -23,14 +23,14 @@ description: 公開URLから画像をダウンロードし、tmp/ディレクト
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npm install
+pnpm install
 ```
 
 ## 実行方法
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/util/download_image.ts "{画像のURL}"
+pnpm exec tsx src/util/download_image.ts "{画像のURL}"
 ```
 
 ## 出力
@@ -63,7 +63,7 @@ npx tsx src/util/download_image.ts "{画像のURL}"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-npx tsx src/util/download_image.ts "{ARGUMENTSとして渡されたURL}"
+pnpm exec tsx src/util/download_image.ts "{ARGUMENTSとして渡されたURL}"
 ```
 
 2. コマンドの出力から `savedPath` を取得してください。

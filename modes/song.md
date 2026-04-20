@@ -38,7 +38,6 @@
 
 ### ステップ3：楽曲の指示の作成
 
-<!-- TODO: assets/songs_guildline.md の内容が整ったら、このステップの詳細を更新する -->
 [assets/songs_guildline.md](../assets/songs_guildline.md) のガイドラインとサンプルを参照し、楽曲生成のための指示（instrument / genres / tags / description）を作成してください。
 
 - ステップ1・2で得たキーワードをもとに内容を決定してください

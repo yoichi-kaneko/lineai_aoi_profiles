@@ -34,13 +34,20 @@ elif [ "$MODE" = "noon" ]; then
   TRIGGER_PROMPT="daily message (望): ${TARGET_DATE}"
 elif [ "$MODE" = "off_mountain" ]; then
   TRIGGER_PROMPT="daily message (帰灯): ${TARGET_DATE}"
+elif [ "$MODE" = "song" ]; then
+  TRIGGER_PROMPT="daily message (調べ): ${TARGET_DATE}"
 else
   TRIGGER_PROMPT="daily message (暁): ${TARGET_DATE}"
 fi
 
-# 4. claude を実行（タイムアウト: 1200秒 / リトライ: 最大2回）
+# 4. claude を実行（タイムアウト: 通常1200秒 / 調べモード2700秒 / リトライ: 最大2回）
+# 調べモードは楽曲生成の非同期待機（sleep 300 × 最大3回）があるため長めに設定
 MAX_RETRIES=2
-TIMEOUT_SEC=1200
+if [ "$MODE" = "song" ]; then
+  TIMEOUT_SEC=2700
+else
+  TIMEOUT_SEC=1200
+fi
 EXIT_CODE=0
 
 for i in $(seq 1 $MAX_RETRIES); do

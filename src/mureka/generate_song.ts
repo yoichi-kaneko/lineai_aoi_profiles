@@ -8,6 +8,9 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
+const MAX_LYRICS_LENGTH = 3000;
+const MAX_PROMPT_LENGTH = 1024;
+
 function getApiKey(): string {
   const key = process.env.MUREKA_API_KEY;
   if (!key) {
@@ -30,6 +33,16 @@ async function main() {
   // \\n をリテラル改行に戻す
   const lyrics = rawLyrics.replace(/\\n/g, "\n");
   const prompt = rawPrompt.replace(/\\n/g, "\n");
+
+  if (lyrics.length > MAX_LYRICS_LENGTH) {
+    console.error(`歌詞が長すぎます: ${lyrics.length}文字（上限: ${MAX_LYRICS_LENGTH}文字）`);
+    process.exit(1);
+  }
+
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    console.error(`プロンプトが長すぎます: ${prompt.length}文字（上限: ${MAX_PROMPT_LENGTH}文字）`);
+    process.exit(1);
+  }
 
   const apiKey = getApiKey();
   const model = process.env.MUREKA_MODEL || "auto";
@@ -61,10 +74,15 @@ async function main() {
     process.exit(1);
   }
 
-  const data = await response.json() as { task_id: string; [key: string]: unknown };
+  const data = await response.json() as { id?: string; [key: string]: unknown };
+  const responseId = data.id;
+  if (!responseId) {
+    console.error("APIレスポンスに id が含まれていません");
+    process.exit(1);
+  }
 
   console.log(JSON.stringify({
-    task_id: data.task_id,
+    task_id: responseId,
     model,
   }, null, 2));
 }

@@ -68,7 +68,7 @@
 
 スキルへ渡す引数は以下の通りです。
 
-- **`prompt`**: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）
+- **`prompt`**: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**1024文字以内**に収めてください
 - **`lyrics`**: ステップ4で生成した最適化済みの歌詞
 
 生成開始後に返却される `task_id` を記録してください。生成は非同期で行われるため、完了まで次のステップで待機します。

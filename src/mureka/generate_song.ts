@@ -8,6 +8,8 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
+// 入力長の上限は POST /v1/song/generate のリクエストボディ仕様（maximum）に合わせる。
+// https://platform.mureka.ai/docs/api/operations/post-v1-song-generate.html
 const MAX_LYRICS_LENGTH = 3000;
 const MAX_PROMPT_LENGTH = 1024;
 

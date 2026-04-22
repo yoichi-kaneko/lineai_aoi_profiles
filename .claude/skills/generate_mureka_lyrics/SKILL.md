@@ -1,6 +1,6 @@
 ---
 name: generate_mureka_lyrics
-description: Mureka APIを使って歌詞を生成する。プロンプトを渡すとMurekaフォーマットに適した歌詞を生成して返す。
+description: Mureka APIを使って歌詞を生成する。プロンプトを渡すとMurekaフォーマットに適した歌詞とタイトルを生成して返す。
 ---
 
 # generate_mureka_lyrics
@@ -9,8 +9,8 @@ Mureka APIを使って歌詞を生成するスタンドアロン CLI スクリ�
 
 ## 概要
 
-- プロンプトを受け取り、Mureka の歌詞生成APIで歌詞を生成します
-- 生成された歌詞はJSON形式で出力されます
+- プロンプトを受け取り、Mureka の歌詞生成APIで歌詞とタイトルを生成します
+- 生成された歌詞とタイトルはJSON形式で出力されます
 
 ## 事前準備
 
@@ -48,6 +48,7 @@ pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマに�
 ```json
 {
   "prompt": "入力したプロンプト",
+  "title": "生成された曲タイトル",
   "lyrics": "生成された歌詞テキスト"
 }
 ```
@@ -73,6 +74,6 @@ pnpm exec tsx src/mureka/generate_lyrics.ts "{プロンプト}"
    pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
    ```
 
-2. コマンドの出力から `lyrics` を取得してください。
+2. コマンドの出力から `title` と `lyrics` を取得してください。
 
-3. 生成された歌詞をユーザーに提示してください。
+3. 生成されたタイトルと歌詞をユーザーに提示してください。

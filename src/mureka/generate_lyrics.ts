@@ -46,10 +46,11 @@ async function main() {
     process.exit(1);
   }
 
-  const data = await response.json() as { lyrics: string };
+  const data = await response.json() as { title: string; lyrics: string };
 
   console.log(JSON.stringify({
     prompt,
+    title: data.title,
     lyrics: data.lyrics,
   }, null, 2));
 }

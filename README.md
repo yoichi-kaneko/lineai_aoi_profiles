@@ -151,7 +151,7 @@ lineai_aoi_profiles/
 |------|------|
 | サービス名 | OpenAI ChatGPT API |
 | 役割 | 碧衣のキャラクターに合わせた画像を生成する |
-| サービスURL | https://chatgpt.com/ |
+| サービスURL | https://platform.openai.com |
 | スキル | `generate_gpt_image` → [SKILL.md](.claude/skills/generate_gpt_image/SKILL.md) |
 
 ### Cloudinary

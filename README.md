@@ -142,6 +142,17 @@ lineai_aoi_profiles/
 | サービスURL | https://ai.google.dev/ |
 | スキル | `generate_gemini_image` → [SKILL.md](.claude/skills/generate_gemini_image/SKILL.md) |
 
+備考: 現在 `generate_gemini_image` は非推奨です（原則 `generate_gpt_image` を使用）。
+
+### OpenAI ChatGPT API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | OpenAI ChatGPT API |
+| 役割 | 碧衣のキャラクターに合わせた画像を生成する |
+| サービスURL | https://chatgpt.com/ |
+| スキル | `generate_gpt_image` → [SKILL.md](.claude/skills/generate_gpt_image/SKILL.md) |
+
 ### Cloudinary
 
 | 項目 | 内容 |

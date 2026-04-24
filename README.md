@@ -30,6 +30,7 @@ lineai_aoi_profiles/
 │   ├── google_map/        # Google Maps API（ジオコーディング）
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── mureka/            # Mureka 楽曲・歌詞生成
+│   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
 │   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作

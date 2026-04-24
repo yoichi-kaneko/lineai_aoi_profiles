@@ -57,7 +57,7 @@ function loadReferenceImages(): ReferenceImage[] {
   const dirPath = resolve(PROJECT_ROOT, importDir);
   if (!existsSync(dirPath)) return [];
 
-  const files = readdirSync(dirPath);
+  const files = readdirSync(dirPath).sort();
   const images: ReferenceImage[] = [];
 
   for (const file of files) {

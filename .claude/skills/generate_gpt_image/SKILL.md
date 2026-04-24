@@ -28,7 +28,7 @@ pnpm install
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
 
-```
+```dotenv
 OPENAI_GPT_API_KEY="your_api_key"
 OPENAI_GPT_GENERATE_IMAGE_MODEL="gpt-image-2"
 

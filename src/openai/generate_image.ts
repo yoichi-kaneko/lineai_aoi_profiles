@@ -10,14 +10,15 @@ import {
 } from "fs";
 import path from "path";
 import OpenAI, { toFile } from "openai";
+import type { Uploadable } from "openai/uploads";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
-const IMAGE_SIZE = "1024x1024";
-const IMAGE_QUALITY = "high";
-const IMAGE_OUTPUT_FORMAT = "png";
+const IMAGE_SIZE = "1024x1024" as const;
+const IMAGE_QUALITY = "high" as const;
+const IMAGE_OUTPUT_FORMAT = "png" as const;
 
 const IMAGE_MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -74,7 +75,9 @@ function loadReferenceImages(): ReferenceImage[] {
   return images;
 }
 
-async function createImageInputs(referenceImages: ReferenceImage[]) {
+async function createImageInputs(
+  referenceImages: ReferenceImage[],
+): Promise<Uploadable[]> {
   return Promise.all(
     referenceImages.map(async (image) =>
       toFile(createReadStream(image.path), path.basename(image.path), {
@@ -129,14 +132,14 @@ async function main() {
           size: IMAGE_SIZE,
           quality: IMAGE_QUALITY,
           output_format: IMAGE_OUTPUT_FORMAT,
-        } as any)
+        })
       : await client.images.generate({
           model: modelName,
           prompt,
           size: IMAGE_SIZE,
           quality: IMAGE_QUALITY,
           output_format: IMAGE_OUTPUT_FORMAT,
-        } as any);
+        });
 
   const savedPaths = saveGeneratedImages(result.data ?? [], IMAGE_OUTPUT_FORMAT);
 

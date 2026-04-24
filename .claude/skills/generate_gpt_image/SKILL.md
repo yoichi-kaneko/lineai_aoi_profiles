@@ -32,7 +32,7 @@ pnpm install
 OPENAI_GPT_API_KEY="your_api_key"
 OPENAI_GPT_GENERATE_IMAGE_MODEL="gpt-image-2"
 
-# 任意: 参考画像ディレクトリ（ルートからの相対パス）
+# 参考画像ディレクトリ（ルートからの相対パス）
 GENERATE_IMAGE_IMPORT_DIR="assets/images"
 ```
 

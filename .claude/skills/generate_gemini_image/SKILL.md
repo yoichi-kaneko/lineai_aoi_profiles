@@ -32,7 +32,7 @@ GOOGLE_GEMINI_API_KEY="your_api_key"
 GOOGLE_GEMINI_GENERATE_IMAGEMODEL="gemini-3.1-flash-image-preview"
 
 # 任意: 参考画像ディレクトリ（ルートからの相対パス）
-GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR="assets/images"
+GENERATE_IMAGE_IMPORT_DIR="assets/images"
 ```
 
 ## Claudeへの指示

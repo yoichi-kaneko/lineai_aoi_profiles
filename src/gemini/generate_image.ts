@@ -46,7 +46,7 @@ interface InlineData {
 }
 
 function loadReferenceImages(): InlineData[] {
-  const importDir = process.env.GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR;
+  const importDir = process.env.GENERATE_IMAGE_IMPORT_DIR;
   if (!importDir) return [];
 
   const dirPath = resolve(PROJECT_ROOT, importDir);

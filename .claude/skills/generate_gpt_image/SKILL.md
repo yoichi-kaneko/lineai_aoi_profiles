@@ -54,7 +54,7 @@ pnpm exec tsx src/openai/generate_image.ts "{ARGUMENTSとして渡されたプ�
    例（複数行プロンプトの場合）:
 
    ```bash
-   # 改行を \n に置き換えて1行の文字列として渡す
+   # 改行を「\n（リテラルの2文字）」に置き換えて1行の文字列として渡す（スクリプト側で改行に復元されます）
    pnpm exec tsx src/openai/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
    ```
 

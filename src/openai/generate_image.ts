@@ -121,13 +121,16 @@ function saveGeneratedImages(
 }
 
 async function main() {
-  const prompt = process.argv[2];
+  const rawPrompt = process.argv[2];
 
-  if (!prompt) {
+  if (!rawPrompt) {
     console.error("使用方法: npx tsx src/openai/generate_image.ts <プロンプト>");
     console.error('例: npx tsx src/openai/generate_image.ts "青い空と白い雲"');
     process.exit(1);
   }
+
+  // リテラルの \n を実際の改行文字に変換する（他スキルと同様の受け渡し方式）
+  const prompt = rawPrompt.replace(/\\n/g, "\n");
 
   const apiKey = getApiKey();
   const modelName = getModel();

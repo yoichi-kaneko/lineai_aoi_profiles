@@ -30,6 +30,7 @@ lineai_aoi_profiles/
 │   ├── google_map/        # Google Maps API（ジオコーディング）
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── mureka/            # Mureka 楽曲・歌詞生成
+│   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
 │   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作
@@ -141,6 +142,17 @@ lineai_aoi_profiles/
 | 役割 | 碧衣のキャラクターに合わせた画像を生成する |
 | サービスURL | https://ai.google.dev/ |
 | スキル | `generate_gemini_image` → [SKILL.md](.claude/skills/generate_gemini_image/SKILL.md) |
+
+備考: 現在 `generate_gemini_image` は非推奨です（原則 `generate_gpt_image` を使用）。
+
+### OpenAI ChatGPT API
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | OpenAI ChatGPT API |
+| 役割 | 碧衣のキャラクターに合わせた画像を生成する |
+| サービスURL | https://platform.openai.com |
+| スキル | `generate_gpt_image` → [SKILL.md](.claude/skills/generate_gpt_image/SKILL.md) |
 
 ### Cloudinary
 

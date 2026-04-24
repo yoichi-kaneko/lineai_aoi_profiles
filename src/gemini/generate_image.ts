@@ -46,7 +46,14 @@ interface InlineData {
 }
 
 function loadReferenceImages(): InlineData[] {
-  const importDir = process.env.GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR;
+  const importDir =
+    process.env.GENERATE_IMAGE_IMPORT_DIR ??
+    process.env.GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR;
+  if (process.env.GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR && !process.env.GENERATE_IMAGE_IMPORT_DIR) {
+    console.warn(
+      "環境変数 GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR は非推奨です。GENERATE_IMAGE_IMPORT_DIR に移行してください。",
+    );
+  }
   if (!importDir) return [];
 
   const dirPath = resolve(PROJECT_ROOT, importDir);

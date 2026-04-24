@@ -1,20 +1,20 @@
 ---
-name: generate_gemini_image
-description: Google Gemini APIを使って画像を生成する（※現在は非推奨。原則 `generate_gpt_image` を使用）。プロンプトを渡すと画像を生成し、tmp/ディレクトリに保存する。参考画像ディレクトリが設定されている場合は自動的に添付して生成する。
+name: generate_gpt_image
+description: OpenAI GPT Image APIを使って画像を生成する。プロンプトを渡すと画像を生成し、tmp/ディレクトリに保存する。参考画像ディレクトリが設定されている場合は自動的に添付して生成する。
 ---
 
-# generate_gemini_image
+# generate_gpt_image
 
-Google Gemini APIを使って画像を生成するスタンドアロン CLI スクリプトです。
+OpenAI GPT Image APIを使って画像を生成するスタンドアロン CLI スクリプトです。
 
 ## 概要
 
-- **非推奨**: 現在はこのスキルの利用を一旦停止する方針です。画像生成は原則 **`generate_gpt_image`** を使用してください。
-- プロンプトを受け取り、Gemini の画像生成モデルで画像を生成します
+- プロンプトを受け取り、OpenAI の画像生成モデルで画像を生成します
 - 生成した画像は `tmp/` ディレクトリに保存します
 - 参考画像ディレクトリが設定されている場合、その画像を自動的に参考として送信します
-- アスペクト比: `1:1`（固定）
-- 解像度: `1K`（固定）
+- 画像サイズ: `1024x1024`（固定）
+- 画質: `medium`（固定）
+- 出力形式: `png`（固定）
 
 ## 事前準備
 
@@ -28,11 +28,11 @@ pnpm install
 
 プロジェクトルートの `.env` に以下の環境変数が必要です。
 
-```
-GOOGLE_GEMINI_API_KEY="your_api_key"
-GOOGLE_GEMINI_GENERATE_IMAGEMODEL="gemini-3.1-flash-image-preview"
+```dotenv
+OPENAI_GPT_API_KEY="your_api_key"
+OPENAI_GPT_GENERATE_IMAGE_MODEL="gpt-image-2"
 
-# 任意: 参考画像ディレクトリ（ルートからの相対パス）
+# 参考画像ディレクトリ（ルートからの相対パス）
 GENERATE_IMAGE_IMPORT_DIR="assets/images"
 ```
 
@@ -46,7 +46,7 @@ GENERATE_IMAGE_IMPORT_DIR="assets/images"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
+pnpm exec tsx src/openai/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
 ```
 
    **注意:** 用意したプロンプトが複数行に渡る場合、そのまま実行すると文字列が正しく渡されません。必ずクオート処理を行い、コマンドとして成立するようにしてください。
@@ -54,8 +54,8 @@ pnpm exec tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプ�
    例（複数行プロンプトの場合）:
 
    ```bash
-   # 改行を \n に置き換えて1行の文字列として渡す
-   pnpm exec tsx src/gemini/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
+   # 改行を「\n（リテラルの2文字）」に置き換えて1行の文字列として渡す（スクリプト側で改行に復元されます）
+   pnpm exec tsx src/openai/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
    ```
 
 2. コマンドの出力から `savedPaths` を取得してください。
@@ -63,3 +63,5 @@ pnpm exec tsx src/gemini/generate_image.ts "{ARGUMENTSとして渡されたプ�
 3. `savedPaths` の各ファイルをReadツールで読み取り、生成された画像をユーザーに提示してください。
 
 4. 生成結果（モデル名・参考画像数・保存パスなど）をユーザーに報告してください。
+
+5. `referenceImagesCount` が 1 以上の場合は、参考画像を使った生成として説明してください。

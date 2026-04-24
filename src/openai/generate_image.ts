@@ -53,10 +53,16 @@ function getModel(): string {
 
 function loadReferenceImages(): ReferenceImage[] {
   const importDir = process.env.GENERATE_IMAGE_IMPORT_DIR;
-  if (!importDir) return [];
+  if (!importDir) {
+    console.error("環境変数 GENERATE_IMAGE_IMPORT_DIR が設定されていません");
+    process.exit(1);
+  }
 
   const dirPath = resolve(PROJECT_ROOT, importDir);
-  if (!existsSync(dirPath)) return [];
+  if (!existsSync(dirPath)) {
+    console.error(`参照画像ディレクトリが存在しません: ${dirPath}`);
+    process.exit(1);
+  }
 
   const files = readdirSync(dirPath).sort();
   const images: ReferenceImage[] = [];
@@ -70,6 +76,11 @@ function loadReferenceImages(): ReferenceImage[] {
       path: path.join(dirPath, file),
       mimeType,
     });
+  }
+
+  if (images.length === 0) {
+    console.error(`参照画像が見つかりません: ${dirPath}`);
+    process.exit(1);
   }
 
   return images;
@@ -123,23 +134,14 @@ async function main() {
   const client = new OpenAI({ apiKey });
   const referenceImages = loadReferenceImages();
 
-  const result =
-    referenceImages.length > 0
-      ? await client.images.edit({
-          model: modelName,
-          image: await createImageInputs(referenceImages),
-          prompt,
-          size: IMAGE_SIZE,
-          quality: IMAGE_QUALITY,
-          output_format: IMAGE_OUTPUT_FORMAT,
-        })
-      : await client.images.generate({
-          model: modelName,
-          prompt,
-          size: IMAGE_SIZE,
-          quality: IMAGE_QUALITY,
-          output_format: IMAGE_OUTPUT_FORMAT,
-        });
+  const result = await client.images.edit({
+    model: modelName,
+    image: await createImageInputs(referenceImages),
+    prompt,
+    size: IMAGE_SIZE,
+    quality: IMAGE_QUALITY,
+    output_format: IMAGE_OUTPUT_FORMAT,
+  });
 
   const savedPaths = saveGeneratedImages(result.data ?? [], IMAGE_OUTPUT_FORMAT);
 
@@ -153,7 +155,7 @@ async function main() {
       {
         prompt,
         model: modelName,
-        operation: referenceImages.length > 0 ? "edit" : "generate",
+        operation: "edit",
         size: IMAGE_SIZE,
         quality: IMAGE_QUALITY,
         outputFormat: IMAGE_OUTPUT_FORMAT,

@@ -17,7 +17,7 @@ const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 const IMAGE_SIZE = "1024x1024" as const;
-const IMAGE_QUALITY = "high" as const;
+const IMAGE_QUALITY = "medium" as const;
 const IMAGE_OUTPUT_FORMAT = "png" as const;
 
 const IMAGE_MIME_TYPES: Record<string, string> = {

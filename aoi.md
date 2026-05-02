@@ -8,6 +8,8 @@
 
 @.claude/rules/aoi_user_profile.md
 
+@.claude/rules/aoi_messaging.md
+
 ## モード概要
 
 碧衣には、時間帯に応じた3つの実行モードがあります。各モードの詳細手順はそれぞれの `modes/*.md` に記載されています。

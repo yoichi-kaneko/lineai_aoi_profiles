@@ -1,18 +1,20 @@
 ---
 name: send_line_text
-description: LINEにテキストメッセージを送信する。環境変数で設定されたアクセストークンと送信先ユーザーIDを使用し、指定したメッセージをプッシュ通知で送る。
+description: LINEにテキストメッセージを送信する。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用し、指定したメッセージをプッシュ通知で送る。送信先はuser（デフォルト）/group/bothから選択可能。
 ---
 
 # send_line_text
 
-環境変数で指定された LINE アクセストークンと送信先ユーザーID を使って、テキストメッセージをプッシュ送信するスタンドアロン CLI スクリプトです。
+環境変数で指定された LINE アクセストークンと送信先ID を使って、テキストメッセージをプッシュ送信するスタンドアロン CLI スクリプトです。
 
 ## 概要
 
 - **SDK**: `@line/bot-sdk` の `MessagingApiClient.pushMessage` を使用
-- **送信先**: 環境変数 `LINE_DESTINATION_USER_ID` に固定（変更不可）
+- **送信先**: `--destination` オプションで指定（デフォルト: `user`）
+  - `user` → `LINE_DESTINATION_USER_ID`
+  - `group` → `LINE_DESTINATION_GROUP_ID`
+  - `both` → 上記2件に順番に送信
 - **認証**: 環境変数 `LINE_ACCESS_TOKEN` を使用
-- **引数**: 送信したいメッセージのみ
 
 ## 事前準備
 
@@ -29,19 +31,27 @@ pnpm install
 ```
 LINE_ACCESS_TOKEN="your_access_token"
 LINE_DESTINATION_USER_ID="your_user_id"
+LINE_DESTINATION_GROUP_ID="your_group_id"   # group / both を使う場合に必要
 ```
 
 ## 実行方法
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/line/send_text.ts "送信したいメッセージ"
+pnpm exec tsx src/line/send_text.ts [--destination user|group|both] "送信したいメッセージ"
 ```
 
 例:
 
 ```bash
-pnpm exec tsx src/line/send_text.ts "こんにちは！"
+# ユーザーに送信（デフォルト）
+pnpm exec tsx src/line/send_text.ts "こんにちは"
+
+# グループに送信
+pnpm exec tsx src/line/send_text.ts --destination group "こんにちは"
+
+# ユーザーとグループ両方に送信
+pnpm exec tsx src/line/send_text.ts --destination both "こんにちは"
 ```
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
@@ -69,10 +79,11 @@ pnpm exec tsx src/line/send_text.ts "こんにちは！"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/line/send_text.ts "{message}"
+pnpm exec tsx src/line/send_text.ts {destination_option} "{message}"
 ```
 
-ARGUMENTS として渡された message をそのまま引数に使用してください。
+- ARGUMENTS として渡された message をそのまま引数に使用してください。
+- destination が指定されている場合は `--destination user|group|both` をメッセージの前に追加してください。指定なしの場合はオプション不要です。
 
 **複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**
 これを行わないと正常に動作しない恐れがあります。

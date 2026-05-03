@@ -1,7 +1,15 @@
+import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { OAuth2Client } from "google-auth-library";
+import { execEc2Command } from "../lib/execEc2Command";
 
 const oauth2Client = new OAuth2Client();
+const firestore = new Firestore();
+
+/** notes の `date` 用。ローカル日の 0:00 のみ（receiveLineMessage と同様、時刻は保持しない） */
+function startOfLocalDay(base: Date): Date {
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate());
+}
 
 functions.http("receiveGasRequest", async (req, res) => {
   if (req.method !== "POST") {
@@ -45,6 +53,45 @@ functions.http("receiveGasRequest", async (req, res) => {
     return;
   }
 
-  console.log(url);
-  res.status(200).send("OK");
+  try {
+    const now = new Date();
+    const dateValue = startOfLocalDay(now);
+    const fiveDaysAgoStart = new Date(dateValue);
+    fiveDaysAgoStart.setDate(fiveDaysAgoStart.getDate() - 5);
+
+    const recentNotes = await firestore
+      .collection("notes")
+      .where("date", ">=", Timestamp.fromDate(fiveDaysAgoStart))
+      .get();
+
+    const isDuplicate = recentNotes.docs.some((doc) => {
+      const data = doc.data();
+      return (
+        data.type === "location_url" &&
+        typeof data.description === "string" &&
+        data.description === url
+      );
+    });
+
+    if (isDuplicate) {
+      console.log("receiveGasRequest: skip duplicate url (recent notes)", {
+        url,
+      });
+      res.status(200).send("OK");
+      return;
+    }
+
+    await firestore.collection("notes").add({
+      date: Timestamp.fromDate(dateValue),
+      description: url,
+      type: "location_url",
+      isRead: false,
+      createdAt: Timestamp.fromDate(new Date()),
+    });
+    await execEc2Command();
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 });

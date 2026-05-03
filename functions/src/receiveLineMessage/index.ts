@@ -1,7 +1,7 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { validateSignature, webhook } from "@line/bot-sdk";
-import { execEc2Command } from "./execEc2Command";
+import { execEc2Command } from "../lib/execEc2Command";
 
 // EC2コマンドのトリガーキーワード（前方一致）
 const EC2_TRIGGER_KEYWORDS = ["下山", "無事下山"];

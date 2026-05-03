@@ -15,10 +15,7 @@ functions.http("receiveLineMessage", async (req, res) => {
   const signature = req.headers["x-line-signature"] as string | undefined;
   const rawBody = (req as unknown as { rawBody: Buffer }).rawBody;
 
-  if (
-    !signature ||
-    !validateSignature(rawBody, channelSecret, signature)
-  ) {
+  if (!signature || !validateSignature(rawBody, channelSecret, signature)) {
     res.status(401).send("Unauthorized");
     return;
   }
@@ -32,9 +29,9 @@ functions.http("receiveLineMessage", async (req, res) => {
   const events = body.events ?? [];
 
   for (const event of events) {
+    // グループメッセージは無視
     if (event.source?.type === "group") {
-      res.status(200).send("OK");
-      return;
+      continue;
     }
 
     if (event.type === "message") {
@@ -85,10 +82,9 @@ functions.http("receiveLineMessage", async (req, res) => {
         createdAt: Timestamp.fromDate(new Date()),
       });
     } else {
-      const messageType =
-        event.type === "message" ? event.message.type : "N/A";
+      const messageType = event.type === "message" ? event.message.type : "N/A";
       throw new Error(
-        `Unsupported event: type=${event.type}, message.type=${messageType}`
+        `Unsupported event: type=${event.type}, message.type=${messageType}`,
       );
     }
   }

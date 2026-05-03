@@ -59,10 +59,13 @@ pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "下山報告" "off_mountain"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
+# type 省略時（デフォルトは src/firebase/noteTypes.ts の NOTE_TYPE.FROM_AOI と同じ）
+pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}"
+# type 指定時
 pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}" "{type}"
 ```
 
-`{type}` は省略可能です。省略時の既定値は [src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts) の `NOTE_TYPE.FROM_AOI` と同じ文字列です。
+`{type}` は省略可能です。既定値の詳細は [src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts) の `NOTE_TYPE.FROM_AOI` を参照してください。`{type}` に空文字を渡すと CLI がエラーになるため、省略するか許可された値のみを渡してください。
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
 >

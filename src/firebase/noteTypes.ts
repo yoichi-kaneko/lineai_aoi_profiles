@@ -7,6 +7,8 @@ export const NOTE_TYPE = {
   FROM_AOI: "from_aoi",
   /** 帰灯モードが下山直後に残す記録。noon / night が帰灯の実行有無を識別するために参照する。 */
   OFF_MOUNTAIN: "off_mountain",
+  /** 門灯モードが入山連絡（家族グループへの送信）後に残す記録。後続モードが山行コンテキストを把握するために参照する。 */
+  UP_MOUNTAIN: "up_mountain",
   /** ユーザーが LINE から送信したテキストメッセージを Webhook で記録したもの。 */
   LINE_TEXT: "line_text",
   /** ユーザーが LINE から送信した画像メッセージを Webhook で記録したもの（description に messageId 等）。 */

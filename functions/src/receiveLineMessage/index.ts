@@ -1,6 +1,7 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { validateSignature, webhook } from "@line/bot-sdk";
+import { NOTE_TYPE } from "../../../src/firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 
 // EC2コマンドのトリガーキーワード（前方一致）
@@ -55,7 +56,7 @@ functions.http("receiveLineMessage", async (req, res) => {
       await firestore.collection("notes").add({
         date: Timestamp.fromDate(dateValue),
         description: message.text,
-        type: "line_text",
+        type: NOTE_TYPE.LINE_TEXT,
         isRead: false,
         createdAt: Timestamp.fromDate(new Date()),
       });
@@ -79,7 +80,7 @@ functions.http("receiveLineMessage", async (req, res) => {
       await firestore.collection("notes").add({
         date: Timestamp.fromDate(dateValue),
         description: JSON.stringify({ id: message.id }),
-        type: "line_image",
+        type: NOTE_TYPE.LINE_IMAGE,
         isRead: false,
         createdAt: Timestamp.fromDate(new Date()),
       });

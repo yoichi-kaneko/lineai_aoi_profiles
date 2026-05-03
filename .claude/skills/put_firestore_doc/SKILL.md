@@ -1,6 +1,6 @@
 ---
 name: put_firestore_doc
-description: 特定の要件に基づいてFirestoreのnotesコレクションにdocを追加する。引数は日付(YYYY-MM-DD)と説明文、任意でtype（省略時はfrom_aoi）。isRead=false固定。
+description: Firestoreのnotesにdocを追加する。引数は日付(YYYY-MM-DD)・説明文・任意のtype（許可値・省略時既定はsrc/firebase/noteTypes.tsのNOTE_TYPE参照）。未定義のtypeはCLIがエラー。isRead=false固定。
 ---
 
 # put_firestore_doc
@@ -15,11 +15,13 @@ description: 特定の要件に基づいてFirestoreのnotesコレクション�
 
 ## ドキュメント構造
 
+第3引数 `type` の取りうる値・意味・省略時のデフォルトは **[src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts)**（CLI は `NOTE_TYPE.FROM_AOI` と同値）を参照してください。定義にない文字列を渡すと CLI はエラーになります。
+
 | フィールド    | 型        | 内容                         |
 |-------------|-----------|------------------------------|
 | date        | Timestamp | 引数の日付（Date型）           |
 | description | string    | 引数の説明文                  |
-| type        | string    | 第3引数から取得（省略時は `"from_aoi"`）|
+| type        | string    | 第3引数（省略時は `from_aoi`）。許可値は `noteTypes.ts` |
 | isRead      | boolean   | `false` 固定（作成時）        |
 | createdAt   | Timestamp | 登録日時（秒まで）             |
 
@@ -42,11 +44,11 @@ FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ## 実行方法
 
 ```bash
-# typeを省略（デフォルト: from_aoi）
+# typeを省略（デフォルトは noteTypes.ts の NOTE_TYPE.FROM_AOI と同じ）
 cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"
 
-# typeを指定
+# typeを指定（許可される文字列は noteTypes.ts の NOTE_TYPE を参照）
 cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/firebase/put_doc.ts "2026-03-21" "下山報告" "off_mountain"
 ```
@@ -60,7 +62,7 @@ cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/firebase/put_doc.ts "{date}" "{description}" "{type}"
 ```
 
-`{type}` は省略可能です。省略した場合は `from_aoi` が使用されます。
+`{type}` は省略可能です。省略時の既定値は [src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts) の `NOTE_TYPE.FROM_AOI` と同じ文字列です。
 
 > **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
 >

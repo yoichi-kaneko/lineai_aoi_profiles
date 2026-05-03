@@ -1,6 +1,7 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { OAuth2Client } from "google-auth-library";
+import { NOTE_TYPE } from "../../../src/firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 
 const oauth2Client = new OAuth2Client();
@@ -67,7 +68,7 @@ functions.http("receiveGasRequest", async (req, res) => {
     const isDuplicate = recentNotes.docs.some((doc) => {
       const data = doc.data();
       return (
-        data.type === "location_url" &&
+        data.type === NOTE_TYPE.LOCATION_URL &&
         typeof data.description === "string" &&
         data.description === url
       );
@@ -84,7 +85,7 @@ functions.http("receiveGasRequest", async (req, res) => {
     await firestore.collection("notes").add({
       date: Timestamp.fromDate(dateValue),
       description: url,
-      type: "location_url",
+      type: NOTE_TYPE.LOCATION_URL,
       isRead: false,
       createdAt: Timestamp.fromDate(new Date()),
     });

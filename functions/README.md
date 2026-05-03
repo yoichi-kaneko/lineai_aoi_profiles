@@ -9,7 +9,7 @@
 LINE Webhook からのリクエストを受け取る HTTP 関数。
 
 - LINE の署名検証（`x-line-signature`）を行い、不正なリクエストを弾く
-- テキストメッセージ（`line_text`）と画像メッセージ（`line_image`）を Firestore の `notes` コレクションに保存する
+- テキスト・画像メッセージを Firestore の `notes` に保存する（`type` は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) の `LINE_TEXT` / `LINE_IMAGE` と同値）
 - 未対応のメッセージタイプはエラーをスローする
 - テキストメッセージの内容が特定のキーワードで始まる場合、Firestore への保存後に EC2 コマンドを実行する（後述）
 

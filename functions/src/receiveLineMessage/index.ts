@@ -31,6 +31,11 @@ functions.http("receiveLineMessage", async (req, res) => {
   const events = body.events ?? [];
 
   for (const event of events) {
+    if (event.source?.type === "group") {
+      res.status(200).send("OK");
+      return;
+    }
+
     if (event.type === "message") {
       const sourceUserId = event.source?.userId;
       if (sourceUserId !== lineUserId) {

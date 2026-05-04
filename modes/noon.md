@@ -7,7 +7,7 @@
 - **`get_firestore_docs`**: `dateFrom`・`dateTo` ともに本日の日付（YYYY-MM-DD）を指定して、暁モードから引き継いだ情報を取得する
 - **`get_google_calendar_events`**: `dateFrom` に本日の `YYYY-MM-DD`、`dateTo` に5日後の `YYYY-MM-DD` を指定して取得する
 
-取得した引き継ぎ情報の中に報告内容に組み込めるものがあれば、ステップ4「報告内容の作成」に反映してください。Firestore ドキュメントの `type` ごとの意味は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。画像を扱う場合は `type` に応じて取得手段を使い分けてください（例: `line_image` は **`download_line_image` スキル**、URL 画像は **`download_image` スキル**）。
+取得した引き継ぎ情報の中に報告内容に組み込めるものがあれば、ステップ4「報告内容の作成」に反映してください。Firestore ドキュメントの `type` ごとの意味は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。`type` = `line_image` の `description` は LINE のメッセージID（`{"id":"..."}` 形式）であるため、画像を扱う場合は **`download_line_image` スキル**で取得・解析してください。外部URLの画像のみ **`download_image` スキル**を使用してください。
 
 ### ステップ2：登山計画の確認・分析
 1. **分析**: まず、ステップ1で取得したFirestoreの引き継ぎ情報を確認し、帰灯モードが記録した「下山報告」が含まれているかを最初に確認してください。帰灯モードは下山直後に `put_firestore_doc` で下山報告の記録を残します（`type` = `off_mountain` の意味は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照）。

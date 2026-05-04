@@ -10,6 +10,7 @@ dotenv.config({ path: resolve(__dirname, "../../.env") });
 import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
+import { NOTE_TYPE, isNoteType, type NoteType } from "./noteTypes";
 
 function getFirebaseConfigPath(): string {
   const configPath = process.env.FIREBASE_CONFIG_PATH;
@@ -23,7 +24,7 @@ function getFirebaseConfigPath(): string {
 async function main() {
   const date = process.argv[2];
   const description = process.argv[3];
-  const type = process.argv[4] ?? "from_aoi";
+  const typeArg = process.argv[4] ?? NOTE_TYPE.FROM_AOI;
 
   if (!date || !description) {
     console.error("使用方法: npx tsx src/firebase/put_doc.ts <date(YYYY-MM-DD)> <description> [type]");
@@ -31,6 +32,14 @@ async function main() {
     console.error('例: npx tsx src/firebase/put_doc.ts "2026-03-21" "下山報告" "off_mountain"');
     process.exit(1);
   }
+
+  if (!isNoteType(typeArg)) {
+    console.error(
+      `不正な type: "${typeArg}"。許可される値は src/firebase/noteTypes.ts の NOTE_TYPE を参照してください。`
+    );
+    process.exit(1);
+  }
+  const type: NoteType = typeArg;
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     console.error("日付は YYYY-MM-DD 形式で指定してください");

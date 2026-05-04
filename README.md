@@ -19,7 +19,7 @@ lineai_aoi_profiles/
 ├── package.json           # npm パッケージ管理（ルート）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
-├── modes/                 # モード別設定（morning / noon / night）
+├── modes/                 # モード別設定（morning / noon / night / up_mountain / off_mountain / song）
 ├── assets/                # 画像素材・ガイドライン
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
@@ -36,19 +36,39 @@ lineai_aoi_profiles/
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
 │   └── yamap/             # YAMAP 登山情報スクレイピング
+├── gas/                   # Google Apps Script 連携コード
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
-│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存
+│       ├── index.ts             # Cloud Functions エントリポイント
+│       ├── lib/                 # Cloud Functions 共通処理
+│       ├── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存
+│       └── receiveGasRequest/   # GAS 経由の位置情報URL受信・EC2コマンド実行
 └── .claude/
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
+    │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調・Log分離など）
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 
-## 4. 連携しているサービスについて
+## 4. 実行モードについて
+
+碧衣は、日次の定期モードと登山・創作に関する特別モードを持ちます。各モードの詳細手順は `modes/*.md` に記載されています。
+
+| モード名 | トリガーキー | 主な役割 |
+|---|---|---|
+| 暁（あかつき） | `daily message (暁)` | 朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
+| 望（のぞみ） | `daily message (望)` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
+| 小夜（さよ） | `daily message (小夜)` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成する |
+| 門灯（もんとう） | `daily message (門灯)` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
+| 帰灯（きとう） | `daily message (帰灯)` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
+| 調べ（しらべ） | `daily message (調べ)` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
+
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。
+
+## 5. 連携しているサービスについて
 
 外部サービスへのアクセスは、Fetch MCP Server を除きすべて Claude スキルを通じて行います。
 
@@ -57,9 +77,10 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | LINE Messaging API |
-| 役割 | 碧衣からユーザーへのメッセージ・画像・音声送信、およびユーザーから受信した画像のダウンロードを担う |
+| 役割 | 碧衣からユーザーまたは家族グループへのメッセージ・画像・音声送信、およびユーザーから受信した画像のダウンロードを担う |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
 | スキル | `send_line_text` / `send_line_image` / `send_line_audio` / `download_line_image` |
+| 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 
 ### Google Calendar API
 
@@ -129,10 +150,33 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Firebase / Firestore |
-| 役割 | ユーザーから碧衣へのメモ・メッセージを保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み込みを行う |
+| 役割 | ユーザーから碧衣へのメモ・メッセージ、モード間の引き継ぎ記録、位置情報URLを保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
 | スキル | `get_firestore_docs` / `put_firestore_doc` |
-| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存） |
+| `type` 定義 | `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする |
+| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する |
+| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存） / `functions/src/receiveGasRequest/`（GAS からの位置情報URL受信 → Firestore 保存 → EC2コマンド実行） |
+| LINE受信トリガー | ユーザーからの `下山` / `無事下山` などのキーワードを受け、Firestore 保存後に EC2 コマンドを実行する |
+
+### Google Apps Script
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | Google Apps Script |
+| 役割 | Gmail から指定条件に合う未読メールを確認し、本文内の位置情報URLを Cloud Functions へ中継する |
+| サービスURL | https://developers.google.com/apps-script |
+| 実装 | `gas/relay.gs` |
+| 連携先 | `functions/src/receiveGasRequest/` |
+
+### AWS Systems Manager
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | AWS Systems Manager |
+| 役割 | Cloud Functions から EC2 上の処理を起動するため、SSM 経由でコマンドを送信する |
+| サービスURL | https://aws.amazon.com/systems-manager/ |
+| 実装 | `functions/src/lib/execEc2Command.ts` |
+| デプロイ関連 | `functions/deploy.sh` と `functions/README.md` に環境変数・Secrets・デプロイ手順を記載 |
 
 ### Google Gemini API
 
@@ -180,7 +224,7 @@ lineai_aoi_profiles/
 | 役割 | Web ページを取得する MCP ツール。Claude 標準の fetch よりも性能が高いため導入 |
 | MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
 
-## 5. タイムアウト・リトライについて
+## 6. タイムアウト・リトライについて
 
 `send_daily_line.sh` は、APIやMCPサーバーの無応答によるハングアップを防ぐため、シェルレベルのタイムアウトとリトライを実装しています。
 
@@ -200,33 +244,6 @@ lineai_aoi_profiles/
 | ツールが応答を返さず無限待ち（真のハング） | シェルレベルの `timeout` で強制終了 → リトライ |
 | ツールがエラーを返す（APIエラー、認証失敗など） | Claudeルールに基づきスキップして続行 |
 | 一時的な障害（API瞬断など） | シェルリトライ + Claudeルールによるスキップ |
-
-## 6. PR #4 で反映された差分
-
-対象PR: [Add off_mountain mode and improve LINE flow #4](https://github.com/yoichi-kaneko/lineai_aoi_profiles/pull/4)
-
-### 追加・更新された主な内容
-
-- **モード仕様の拡張**
-  - `modes/off_mountain.md` が「帰灯（きとう）モード」として実運用手順を持つ内容に拡張
-  - `modes/noon.md` / `modes/night.md` で、帰灯モード実行後の分岐（Firestore記録を優先する判断）を追加
-
-- **Firestore取得仕様の更新（日付範囲対応）**
-  - `src/firebase/get_docs.ts` が単一日付引数から `dateFrom` / `dateTo` の2引数へ変更
-  - `.claude/skills/get_firestore_docs/SKILL.md` の説明と実行例を日付範囲取得前提に更新
-  - 暁/望/小夜/帰灯モードからの `get_firestore_docs` 呼び出し指示が範囲指定前提に更新
-
-- **Cloud Functions（LINE受信）の機能拡張**
-  - `functions/src/receiveLineMessage/index.ts` に、特定キーワード（`下山` / `無事下山`）受信時のEC2コマンド実行フローを追加
-  - `functions/src/receiveLineMessage/execEc2Command.ts` を新規追加（AWS SSM経由でEC2コマンドを送信）
-  - `functions/src/receiveLineMessage/.secrets` と `functions/.gitignore` を追加・更新し、Secrets/環境変数の管理手順を整理
-  - `functions/README.md` を更新し、トリガー条件・必要環境変数・デプロイ手順を明文化
-  - `functions/deploy.sh` を新規追加し、`.env.yaml` と `.secrets` を自動解決してデプロイ可能に変更
-
-- **依存関係・ワークスペース設定の更新**
-  - `functions/package.json` に `@aws-sdk/client-ssm` を追加
-  - `pnpm-lock.yaml` を更新（AWS SDK関連依存を反映）
-  - `pnpm-workspace.yaml` に `allowBuilds` 設定を追加（`@firebase/util`, `esbuild`, `protobufjs`）
 
 ## 7. ライセンスについて
 

@@ -1,7 +1,7 @@
 {
   "name": "aoi-functions",
   "version": "1.0.0",
-  "main": "dist/receiveLineMessage/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "start": "functions-framework --target=receiveLineMessage"
@@ -10,7 +10,8 @@
     "@aws-sdk/client-ssm": "^3.0.0",
     "@google-cloud/firestore": "^7.0.0",
     "@google-cloud/functions-framework": "^3.0.0",
-    "@line/bot-sdk": "^10.6.0"
+    "@line/bot-sdk": "^10.6.0",
+    "google-auth-library": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

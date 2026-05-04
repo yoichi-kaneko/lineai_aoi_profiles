@@ -16,11 +16,13 @@ description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一�
 
 ## ドキュメント構造
 
+`type` フィールドの取りうる値と各値の意味は **[src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts)** を参照してください。
+
 | フィールド    | 型        | 内容                         |
 |-------------|-----------|------------------------------|
 | date        | Timestamp | ドキュメントの日付             |
 | description | string    | 説明文                       |
-| type        | string    | ドキュメントの種別             |
+| type        | string    | 上記 `noteTypes.ts` の定義に従う |
 | isRead      | boolean   | 既読フラグ（取得後 `true` に更新）|
 | createdAt   | Timestamp | 登録日時                      |
 

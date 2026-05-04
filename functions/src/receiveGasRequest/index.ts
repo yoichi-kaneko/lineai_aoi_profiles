@@ -1,8 +1,8 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { OAuth2Client } from "google-auth-library";
-import { NOTE_TYPE } from "../../../src/firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
+import { NOTE_TYPE } from "../firebase/noteTypes";
 
 const oauth2Client = new OAuth2Client();
 const firestore = new Firestore();

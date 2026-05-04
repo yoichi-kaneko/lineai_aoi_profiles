@@ -1,7 +1,7 @@
 import { Firestore, Timestamp } from "@google-cloud/firestore";
 import * as functions from "@google-cloud/functions-framework";
 import { validateSignature, webhook } from "@line/bot-sdk";
-import { NOTE_TYPE } from "../../../src/firebase/noteTypes";
+import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 
 // EC2コマンドのトリガーキーワード（前方一致）
@@ -29,8 +29,8 @@ functions.http("receiveLineMessage", async (req, res) => {
   const events = body.events ?? [];
 
   for (const event of events) {
-    // グループメッセージは無視
-    if (event.source?.type === "group") {
+    // グループメッセージ・ルームメッセージは無視
+    if (event.source?.type === "group" || event.source?.type === "room") {
       continue;
     }
 

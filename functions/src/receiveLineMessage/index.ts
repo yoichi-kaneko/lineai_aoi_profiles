@@ -7,6 +7,13 @@ import { execEc2Command } from "../lib/execEc2Command";
 // EC2コマンドのトリガーキーワード（前方一致）
 const EC2_TRIGGER_KEYWORDS = ["下山", "無事下山"];
 
+/** notes の `date` 用。JST 基準で日付を揃え、UTC midnight として返す */
+function startOfJstDay(base: Date): Date {
+  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  const jst = new Date(base.getTime() + JST_OFFSET_MS);
+  return new Date(Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), jst.getUTCDate()));
+}
+
 const firestore = new Firestore();
 
 functions.http("receiveLineMessage", async (req, res) => {
@@ -44,11 +51,7 @@ functions.http("receiveLineMessage", async (req, res) => {
 
     if (event.type === "message" && event.message.type === "text") {
       const message = event.message as webhook.TextMessageContent;
-      const receivedAt = new Date(event.timestamp);
-      const year = receivedAt.getFullYear();
-      const month = receivedAt.getMonth();
-      const day = receivedAt.getDate();
-      const dateValue = new Date(year, month, day);
+      const dateValue = startOfJstDay(new Date(event.timestamp));
 
       await firestore.collection("notes").add({
         date: Timestamp.fromDate(dateValue),
@@ -68,11 +71,7 @@ functions.http("receiveLineMessage", async (req, res) => {
         "line"
     ) {
       const message = event.message as webhook.ImageMessageContent;
-      const receivedAt = new Date(event.timestamp);
-      const year = receivedAt.getFullYear();
-      const month = receivedAt.getMonth();
-      const day = receivedAt.getDate();
-      const dateValue = new Date(year, month, day);
+      const dateValue = startOfJstDay(new Date(event.timestamp));
 
       await firestore.collection("notes").add({
         date: Timestamp.fromDate(dateValue),

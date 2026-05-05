@@ -7,9 +7,11 @@ import { NOTE_TYPE } from "../firebase/noteTypes";
 const oauth2Client = new OAuth2Client();
 const firestore = new Firestore();
 
-/** notes の `date` 用。ローカル日の 0:00 のみ（receiveLineMessage と同様、時刻は保持しない） */
-function startOfLocalDay(base: Date): Date {
-  return new Date(base.getFullYear(), base.getMonth(), base.getDate());
+/** notes の `date` 用。JST 基準で日付を揃え、UTC midnight として返す */
+function startOfJstDay(base: Date): Date {
+  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  const jst = new Date(base.getTime() + JST_OFFSET_MS);
+  return new Date(Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), jst.getUTCDate()));
 }
 
 /**
@@ -122,7 +124,7 @@ functions.http("receiveGasRequest", async (req, res) => {
 
   try {
     const now = new Date();
-    const dateValue = startOfLocalDay(now);
+    const dateValue = startOfJstDay(now);
     const fiveDaysAgoStart = new Date(dateValue);
     fiveDaysAgoStart.setDate(fiveDaysAgoStart.getDate() - 5);
 

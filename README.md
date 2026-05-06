@@ -36,14 +36,12 @@ lineai_aoi_profiles/
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
 │   └── yamap/             # YAMAP 登山情報スクレイピング
-├── gas/                   # Google Apps Script 連携コード
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
 │       ├── index.ts             # Cloud Functions エントリポイント
 │       ├── lib/                 # Cloud Functions 共通処理
-│       ├── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存
-│       └── receiveGasRequest/   # GAS 経由の位置情報URL受信・EC2コマンド実行
+│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
 └── .claude/
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
@@ -62,11 +60,11 @@ lineai_aoi_profiles/
 | 暁（あかつき） | `daily message (暁)` | 朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
 | 望（のぞみ） | `daily message (望)` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
 | 小夜（さよ） | `daily message (小夜)` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成する |
-| 門灯（もんとう） | `daily message (門灯)` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
-| 帰灯（きとう） | `daily message (帰灯)` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
+| 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
+| 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
 | 調べ（しらべ） | `daily message (調べ)` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
 
-`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
 ## 5. 連携しているサービスについて
 
@@ -77,7 +75,7 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | LINE Messaging API |
-| 役割 | 碧衣からユーザーまたは家族グループへのメッセージ・画像・音声送信、およびユーザーから受信した画像のダウンロードを担う |
+| 役割 | 碧衣からユーザーまたは家族グループへのメッセージ・画像・音声送信、ユーザーから受信したテキスト・画像の Webhook 取り込み、および画像ダウンロードを担う |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
 | スキル | `send_line_text` / `send_line_image` / `send_line_audio` / `download_line_image` |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
@@ -150,30 +148,20 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Firebase / Firestore |
-| 役割 | ユーザーから碧衣へのメモ・メッセージ、モード間の引き継ぎ記録、位置情報URLを保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
+| 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
 | スキル | `get_firestore_docs` / `put_firestore_doc` |
 | `type` 定義 | `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する |
-| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存） / `functions/src/receiveGasRequest/`（GAS からの位置情報URL受信 → Firestore 保存 → EC2コマンド実行） |
-| LINE受信トリガー | ユーザーからの `下山` / `無事下山` などのキーワードを受け、Firestore 保存後に EC2 コマンドを実行する |
-
-### Google Apps Script
-
-| 項目 | 内容 |
-|------|------|
-| サービス名 | Google Apps Script |
-| 役割 | Gmail から指定条件に合う未読メールを確認し、本文内の位置情報URLを Cloud Functions へ中継する |
-| サービスURL | https://developers.google.com/apps-script |
-| 実装 | `gas/relay.gs` |
-| 連携先 | `functions/src/receiveGasRequest/` |
+| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する |
 
 ### AWS Systems Manager
 
 | 項目 | 内容 |
 |------|------|
 | サービス名 | AWS Systems Manager |
-| 役割 | Cloud Functions から EC2 上の処理を起動するため、SSM 経由でコマンドを送信する |
+| 役割 | Cloud Functions から EC2 上の処理を起動するため、SSM 経由でコマンドを送信する。`EC2_COMMAND_TEMPLATE` の `{MODE}` を `up_mountain` / `off_mountain` に置換して実行する |
 | サービスURL | https://aws.amazon.com/systems-manager/ |
 | 実装 | `functions/src/lib/execEc2Command.ts` |
 | デプロイ関連 | `functions/deploy.sh` と `functions/README.md` に環境変数・Secrets・デプロイ手順を記載 |

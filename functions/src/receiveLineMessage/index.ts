@@ -74,7 +74,11 @@ functions.http("receiveLineMessage", async (req, res) => {
 
       const triggerMode = findTriggerMode(message.text);
       if (triggerMode !== null) {
-        await execEc2Command(triggerMode);
+        try {
+          await execEc2Command(triggerMode);
+        } catch (err) {
+          console.error("execEc2Command failed:", err);
+        }
       }
     } else if (
       event.type === "message" &&

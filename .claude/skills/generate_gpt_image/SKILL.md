@@ -1,6 +1,6 @@
 ---
 name: generate_gpt_image
-description: OpenAI GPT Image APIを使って画像を生成する。プロンプトを渡すと画像を生成し、tmp/ディレクトリに保存する。参考画像ディレクトリが設定されている場合は自動的に添付して生成する。
+description: OpenAI GPT Image APIを使って画像を生成する。プロンプトと添付する参考画像ファイル名を渡すと画像を生成し、tmp/ディレクトリに保存する。
 ---
 
 # generate_gpt_image
@@ -11,7 +11,8 @@ OpenAI GPT Image APIを使って画像を生成するスタンドアロン CLI �
 
 - プロンプトを受け取り、OpenAI の画像生成モデルで画像を生成します
 - 生成した画像は `tmp/` ディレクトリに保存します
-- 参考画像ディレクトリが設定されている場合、その画像を自動的に参考として送信します
+- 第二引数で指定した参考画像ファイルを送信します
+- 参考画像ファイルは `GENERATE_IMAGE_IMPORT_DIR` 配下のファイル名のみを指定します
 - 画像サイズ: `1024x1024`（固定）
 - 画質: `medium`（固定）
 - 出力形式: `png`（固定）
@@ -46,8 +47,16 @@ GENERATE_IMAGE_IMPORT_DIR="assets/images"
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/openai/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}"
+pnpm exec tsx src/openai/generate_image.ts "{ARGUMENTSとして渡されたプロンプト}" "{添付するファイル名}"
 ```
+
+   **注意:** 第二引数には `GENERATE_IMAGE_IMPORT_DIR` 配下にあるファイル名のみを指定してください。ディレクトリパスは付けません。
+
+   複数のファイルを添付する場合は、カンマ `,` で区切って指定してください。
+
+   ```bash
+   pnpm exec tsx src/openai/generate_image.ts "青い空と白い雲" "reference.png,style.webp"
+   ```
 
    **注意:** 用意したプロンプトが複数行に渡る場合、そのまま実行すると文字列が正しく渡されません。必ずクオート処理を行い、コマンドとして成立するようにしてください。
 
@@ -55,7 +64,7 @@ pnpm exec tsx src/openai/generate_image.ts "{ARGUMENTSとして渡されたプ�
 
    ```bash
    # 改行を「\n（リテラルの2文字）」に置き換えて1行の文字列として渡す（スクリプト側で改行に復元されます）
-   pnpm exec tsx src/openai/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。"
+   pnpm exec tsx src/openai/generate_image.ts "青い空と白い雲。\n遠くに山並みが見える風景画。" "reference.png"
    ```
 
 2. コマンドの出力から `savedPaths` を取得してください。

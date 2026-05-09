@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import {
   existsSync,
   mkdirSync,
-  readdirSync,
   writeFileSync,
   createReadStream,
 } from "fs";
@@ -51,7 +50,21 @@ function getModel(): string {
   return model;
 }
 
-function loadReferenceImages(): ReferenceImage[] {
+function parseReferenceFileNames(rawFileNames: string): string[] {
+  const fileNames = rawFileNames
+    .split(",")
+    .map((fileName) => fileName.trim())
+    .filter(Boolean);
+
+  if (fileNames.length === 0) {
+    console.error("参照画像ファイル名を指定してください");
+    process.exit(1);
+  }
+
+  return fileNames;
+}
+
+function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
   const importDir = process.env.GENERATE_IMAGE_IMPORT_DIR;
   if (!importDir) {
     console.error("環境変数 GENERATE_IMAGE_IMPORT_DIR が設定されていません");
@@ -64,23 +77,32 @@ function loadReferenceImages(): ReferenceImage[] {
     process.exit(1);
   }
 
-  const files = readdirSync(dirPath).sort();
+  const files = parseReferenceFileNames(rawFileNames);
   const images: ReferenceImage[] = [];
 
   for (const file of files) {
+    if (file !== path.basename(file)) {
+      console.error(`ファイル名のみを指定してください: ${file}`);
+      process.exit(1);
+    }
+
     const ext = path.extname(file).toLowerCase();
     const mimeType = IMAGE_MIME_TYPES[ext];
-    if (!mimeType) continue;
+    if (!mimeType) {
+      console.error(`対応していない画像形式です: ${file}`);
+      process.exit(1);
+    }
+
+    const filePath = path.join(dirPath, file);
+    if (!existsSync(filePath)) {
+      console.error(`参照画像ファイルが存在しません: ${filePath}`);
+      process.exit(1);
+    }
 
     images.push({
-      path: path.join(dirPath, file),
+      path: filePath,
       mimeType,
     });
-  }
-
-  if (images.length === 0) {
-    console.error(`参照画像が見つかりません: ${dirPath}`);
-    process.exit(1);
   }
 
   return images;
@@ -122,10 +144,15 @@ function saveGeneratedImages(
 
 async function main() {
   const rawPrompt = process.argv[2];
+  const rawFileNames = process.argv[3];
 
-  if (!rawPrompt) {
-    console.error("使用方法: npx tsx src/openai/generate_image.ts <プロンプト>");
-    console.error('例: npx tsx src/openai/generate_image.ts "青い空と白い雲"');
+  if (!rawPrompt || !rawFileNames) {
+    console.error(
+      "使用方法: npx tsx src/openai/generate_image.ts <プロンプト> <参照画像ファイル名[,参照画像ファイル名...]>",
+    );
+    console.error(
+      '例: npx tsx src/openai/generate_image.ts "青い空と白い雲" "reference.png,style.webp"',
+    );
     process.exit(1);
   }
 
@@ -135,7 +162,7 @@ async function main() {
   const apiKey = getApiKey();
   const modelName = getModel();
   const client = new OpenAI({ apiKey });
-  const referenceImages = loadReferenceImages();
+  const referenceImages = loadReferenceImages(rawFileNames);
 
   const result = await client.images.edit({
     model: modelName,

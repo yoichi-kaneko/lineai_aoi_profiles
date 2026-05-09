@@ -42,13 +42,13 @@ else
   TRIGGER_PROMPT="daily message (暁): ${TARGET_DATE}"
 fi
 
-# 4. claude を実行（タイムアウト: 通常1200秒 / 調べモード2700秒 / リトライ: 最大2回）
+# 4. claude を実行（タイムアウト: 通常1800秒 / 調べモード2700秒 / リトライ: 最大2回）
 # 調べモードは楽曲生成の非同期待機（sleep 300 × 最大3回）があるため長めに設定
 MAX_RETRIES=2
 if [ "$MODE" = "song" ]; then
   TIMEOUT_SEC=2700
 else
-  TIMEOUT_SEC=1200
+  TIMEOUT_SEC=1800
 fi
 EXIT_CODE=0
 

@@ -105,11 +105,6 @@ function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
     });
   }
 
-  if (images.length === 0) {
-    console.error(`参照画像が見つかりません: ${dirPath}`);
-    process.exit(1);
-  }
-
   return images;
 }
 

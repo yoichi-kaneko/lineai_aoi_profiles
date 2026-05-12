@@ -68,8 +68,17 @@
 
 スキルへ渡す引数は以下の通りです。
 
-- **`prompt`**: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**1024文字以内**に収めてください
+- **`prompt`**: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください
 - **`lyrics`**: ステップ4で生成した最適化済みの歌詞
+
+`prompt` は以下の形式で `generate_mureka_song` に渡されるため、この最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。
+
+```text
+instrument: （使用する楽器・音色）
+genres: （ジャンル）
+tags: （雰囲気・感情・テーマ）
+description: （楽曲全体の構成・特徴・感情的な弧）
+```
 
 生成開始後に返却される `task_id` を記録してください。生成は非同期で行われるため、完了まで次のステップで待機します。
 

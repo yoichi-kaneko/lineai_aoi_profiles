@@ -23,7 +23,9 @@ Murekaへの楽曲生成指示は、以下の4つの要素で構成します。�
 
 ### プロンプト全体の文字数目安
 
-Mureka APIに渡される `prompt`（4要素を結合した全体）には **1024文字以内** の制約があります。ただし、上限ぎりぎりまで詰め込むと初回生成で API エラーが返り再試行が必要になる、あるいは生成が不安定になる原因となるため、**合計700文字程度（上限の約7割）を目安** に収めることを推奨します。各要素の文字数の目安は以下の通りです（合計約700文字）。
+Mureka APIに渡される `prompt`（4要素を結合した全体）には **1024文字以内** の制約があります。この上限は、各要素の本文だけでなく、`instrument:` などのラベルと改行コードを含めて判定されるため、**最終的にAPIへ渡される結合後文字列が1024文字以内であることが必須** です。
+
+ただし、上限ぎりぎりまで詰め込むと初回生成で API エラーが返り再試行が必要になる、あるいは生成が不安定になる原因となるため、**ラベルと改行込みの合計で700文字程度（上限の約7割）を目安** に収めることを推奨します。各要素の文字数の目安は以下の通りです（本文合計で約700文字）。
 
 | 要素 | 文字数の目安 |
 | :--- | :--- |
@@ -33,6 +35,19 @@ Mureka APIに渡される `prompt`（4要素を結合した全体）には **102
 | description | 約430文字 |
 
 これは厳密な制約ではなく、初回生成の成功率を高めるための目安です。シーンに応じて要素間で文字数を融通しても構いませんが、合計が700文字を大きく超える場合は描写の重複や冗長な形容を見直してください。
+
+#### 最終フォーマットと文字数判定
+
+1024文字以内かどうかは、以下のラベル付きフォーマットに結合した後の文字列で確認してください。各要素の本文だけを個別に数えると、ラベルと改行の分だけ実際の `prompt` が長くなります。
+
+```text
+instrument: Lead Vocal (Female, Clear, Japanese), Piano (Warm, Intimate), Crystal-like Synth Pad (Ethereal, Soft)
+genres: Ambient Pop, Cinematic
+tags: Ethereal, Introspective, Hopeful, Warm, Nocturnal
+description: The song opens with a gentle piano motif and a translucent synth pad, creating a quiet space for Aoi's clear Japanese vocal. The verse stays intimate and reflective, while the chorus gradually expands with soft harmonies and a restrained cinematic lift. The arrangement should feel delicate, luminous, and emotionally sincere, leaving a calm afterglow.
+```
+
+このコードブロック内の文字列全体（`instrument:` / `genres:` / `tags:` / `description:` と3つの改行を含む）が、`generate_mureka_song` の `prompt` として渡される最終形です。生成前にこの最終形で1024文字以内であることを必ず確認してください。
 
 ### instrument
 

@@ -73,7 +73,7 @@ lineai_aoi_profiles/
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
-    │   └── aoi_constraints.md  # 注意事項（口調・Log分離など）
+    │   └── aoi_constraints.md  # 注意事項（口調など）
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 

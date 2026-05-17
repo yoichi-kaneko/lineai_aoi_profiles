@@ -97,32 +97,11 @@ function toRFC3339(datetime: string, timezone: string): string {
 
 function formatEvent(event: calendar_v3.Schema$Event): object {
   return {
-    id: event.id,
     summary: event.summary,
     description: event.description,
     location: event.location,
     start: event.start,
     end: event.end,
-    status: event.status,
-    htmlLink: event.htmlLink,
-    created: event.created,
-    updated: event.updated,
-    creator: event.creator,
-    organizer: event.organizer,
-    attendees: event.attendees,
-    recurrence: event.recurrence,
-    recurringEventId: event.recurringEventId,
-    conferenceData: event.conferenceData,
-    extendedProperties: event.extendedProperties,
-    reminders: event.reminders,
-    eventType: event.eventType,
-    attachments: event.attachments?.map((a) => ({
-      fileUrl: a.fileUrl,
-      title: a.title,
-      mimeType: a.mimeType,
-      iconLink: a.iconLink,
-      fileId: a.fileId,
-    })),
   };
 }
 
@@ -181,12 +160,10 @@ async function main() {
     timeZone: timezone,
   });
 
-  const events = response.data.items || [];
+  const events = (response.data.items || []).filter(
+    (e) => e.status !== "cancelled"
+  );
   const result = {
-    calendarId,
-    timeRange: { start: timeMin, end: timeMax },
-    timezone,
-    totalCount: events.length,
     events: events.map(formatEvent),
   };
 

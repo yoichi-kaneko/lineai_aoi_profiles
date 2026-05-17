@@ -1,11 +1,12 @@
 ---
 name: get_todoist_tasks
-description: Todoistの全タスクを取得する。
+description: Todoistの全タスクを取得する。返却フィールドは id / content / description / due / labels に絞り込み済み。
 ---
 
 # get_todoist_tasks
 
 Todoist Inbox を含む全タスクを取得するスキルです。
+返却される各タスクは、`id` / `content` / `description` / `due` / `labels` のみに絞り込まれています。
 
 ## 事前準備
 

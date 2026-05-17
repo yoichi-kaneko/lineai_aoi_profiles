@@ -1,11 +1,12 @@
 ---
 name: get_todoist_completed_tasks
-description: 指定した日付に完了したTodoistタスクを取得する。引数は日付（YYYY-MM-DD）。
+description: 指定した日付に完了したTodoistタスクを取得する。引数は日付（YYYY-MM-DD）。返却フィールドは id / content / description / due / labels に絞り込み済み。
 ---
 
 # get_todoist_completed_tasks
 
 指定した日付に完了したTodoistタスクを完了日時で絞り込んで取得するスキルです。
+返却される各タスクは、`id` / `content` / `description` / `due` / `labels` のみに絞り込まれています。
 
 ## 事前準備
 

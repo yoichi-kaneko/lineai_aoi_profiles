@@ -1,6 +1,6 @@
 ---
 name: get_google_calendar_events
-description: 指定した日付範囲のGoogleカレンダー予定を取得する。環境変数で設定されたカレンダーIDとタイムゾーンを使用し、添付ファイルのURLも含む予定一覧をJSON形式で返す。
+description: 指定した日付範囲のGoogleカレンダー予定を取得する。環境変数で設定されたカレンダーIDとタイムゾーンを使用し、予定一覧をJSON形式で返す。
 ---
 
 # get_google_calendar_events
@@ -11,8 +11,8 @@ description: 指定した日付範囲のGoogleカレンダー予定を取得す�
 
 以下の情報を取得して JSON 形式で標準出力に返します。
 
-- **予定一覧**: タイトル・日時・場所・説明・参加者・添付ファイル（fileUrl を含む）など
-- **時間範囲**: 指定した timeMin〜timeMax の期間に開始する予定
+- **予定一覧**: タイトル（summary）・説明（description）・場所（location）・開始日時（start）・終了日時（end）
+- ステータスが `cancelled` の予定はスキル側で除外されます
 
 ## 事前準備
 

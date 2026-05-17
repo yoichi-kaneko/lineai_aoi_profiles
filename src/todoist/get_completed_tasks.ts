@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../.env") });
 
-import { TodoistApi } from "@doist/todoist-sdk";
+import { TodoistApi, type Task } from "@doist/todoist-sdk";
 
 function getApiToken(): string {
   const token = process.env.TODOIST_API_TOKEN;
@@ -16,6 +16,16 @@ function getApiToken(): string {
     process.exit(1);
   }
   return token;
+}
+
+function formatTask(task: Task): object {
+  return {
+    id: task.id,
+    content: task.content,
+    description: task.description,
+    due: task.due,
+    labels: task.labels,
+  };
 }
 
 async function main() {
@@ -33,10 +43,13 @@ async function main() {
   }
 
   const api = new TodoistApi(getApiToken());
-  const result = await api.getCompletedTasksByCompletionDate({
+  const response = await api.getCompletedTasksByCompletionDate({
     since: `${date}T00:00:00`,
     until: `${date}T23:59:59`,
   });
+  const result = {
+    tasks: (response.items || []).map(formatTask),
+  };
   console.log(JSON.stringify(result, null, 2));
 }
 

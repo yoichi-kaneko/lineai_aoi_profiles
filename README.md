@@ -104,6 +104,7 @@ lineai_aoi_profiles/
 | 役割 | 碧衣からユーザーまたは家族グループへのメッセージ・画像・音声送信、ユーザーから受信したテキスト・画像の Webhook 取り込み、および画像ダウンロードを担う |
 | サービスURL | https://developers.line.biz/ja/services/messaging-api/ |
 | スキル | `send_line_text` / `send_line_image` / `send_line_audio` / `download_line_image` |
+| 送信仕様 | Push Message の `messages` に最大5件まで同梱可能。[`send_line_image`](.claude/skills/send_line_image/SKILL.md) / [`send_line_audio`](.claude/skills/send_line_audio/SKILL.md) はメディア→テキストの順で**1リクエスト**にまとめて送信。[`send_line_text`](.claude/skills/send_line_text/SKILL.md) はテキスト単独送信用 |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 
 ### Google Calendar API
@@ -219,7 +220,7 @@ lineai_aoi_profiles/
 | サービス名 | Cloudinary |
 | 役割 | LINE への画像・音声メッセージ送信に際し、ファイルを公開URLとしてホスティングするために使用される |
 | サービスURL | https://cloudinary.com/ |
-| 利用スキル | `send_line_image` / `send_line_audio`（内部で使用） |
+| 利用スキル | `send_line_image` / `send_line_audio`（アップロード後、LINEへメディア+テキストを同梱送信） |
 
 ### Mureka API
 

@@ -1,6 +1,6 @@
 ---
 name: send_line_image
-description: 画像をCloudinaryにアップロードし、そのURLと添えるテキストを使ってLINEに画像＋テキストを1回のプッシュで送信する。表示順は画像→テキスト。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用。送信先はuser（デフォルト）/group/bothから選択可能。
+description: 画像をCloudinaryにアップロードし、そのURLと添えるテキストを使ってLINEに画像＋テキストを1回のプッシュで送信する。表示順は画像→テキスト。送信失敗時は line_undelivered として Firestore に退避する。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用。送信先はuser（デフォルト）/group/bothから選択可能。
 ---
 
 # send_line_image
@@ -77,3 +77,7 @@ pnpm exec tsx src/line/send_image.ts {destination_option} "{originalUrl}" "{prev
 4. コマンドが成功したら、画像とテキストを送信した旨をユーザーに報告してください。
 
 **画像送信のあとに `send_line_text` を別途呼び出さないでください。** テキストは本スキルに含めて送ります。
+
+## 送信失敗時（Firestore 退避）
+
+ステップ3の LINE 送信が失敗した場合（非ゼロ終了、429・クオータ等）は、Cloudinary アップロード済みであれば **`originalUrl` / `previewUrl` を含め**、**[LINE 送信失敗時の Firestore 退避](../../docs/line_send_fallback.md)** に従い **`put_firestore_doc`** で `type: line_undelivered` を保存してください。添えるテキストは送信予定と同一、`[media:image]` を使用。`both` のときは宛先ごとに 1 件ずつ退避します。

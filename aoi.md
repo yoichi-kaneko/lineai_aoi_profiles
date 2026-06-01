@@ -34,6 +34,7 @@
 
 なお、Firestore の `notes` ドキュメントの `type` フィールドの取りうる値と意味の一覧は [src/firebase/noteTypes.ts](src/firebase/noteTypes.ts) を参照してください。
 `type: line_text` や `type: line_image` はユーザーからの言葉や情報のため、これらがあった場合にはその内容をメッセージ生成や画像生成に積極的に組み込んでください。
+`type: line_undelivered` は LINE 送信に失敗し Firestore に退避した碧衣発の本文（および必要ならメディア URL）です。後続モードでは、ユーザーに届くはずだった連絡として内容を把握し、必要に応じて報告に活かしてください（`from_aoi` の引き継ぎ要約とは別物です）。
 
 ### 受け渡しの流れ
 
@@ -128,6 +129,7 @@
 - **message**: 各モードで作成したメッセージ本文のみ。
 - 画像や音声と一緒に送る場合は **`send_line_image` / `send_line_audio`** を各モード手順どおり使用し、本ステップは使わないでください。
 - 複数行のメッセージは、改行を `\n` に置換してコマンドを1行に収めてください。
+- **送信失敗時**: 各 `send_line_*` スキルに記載のとおり、[LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い、本来送る予定だった本文を `type: line_undelivered` で Firestore に保存してください。モード末尾の `put_firestore_doc`（`from_aoi` / `off_mountain` 等）とは別の記録です。
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: send_line_audio
-description: 音声ファイル（mp3）をCloudinaryにアップロードし、そのURL・再生時間と添えるテキストを使ってLINEに音声＋テキストを1回のプッシュで送信する。表示順は音声→テキスト。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用。送信先はuser（デフォルト）/group/bothから選択可能。
+description: 音声ファイル（mp3）をCloudinaryにアップロードし、そのURL・再生時間と添えるテキストを使ってLINEに音声＋テキストを1回のプッシュで送信する。表示順は音声→テキスト。送信失敗時は line_undelivered として Firestore に退避する。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用。送信先はuser（デフォルト）/group/bothから選択可能。
 ---
 
 # send_line_audio
@@ -78,3 +78,7 @@ pnpm exec tsx src/line/send_audio.ts {destination_option} "{url}" "{duration}" "
 4. コマンドが成功したら、音声とテキストを送信した旨をユーザーに報告してください。
 
 **音声送信のあとに `send_line_text` を別途呼び出さないでください。** テキストは本スキルに含めて送ります。
+
+## 送信失敗時（Firestore 退避）
+
+ステップ3の LINE 送信が失敗した場合（非ゼロ終了、429・クオータ等）は、Cloudinary アップロード済みであれば **`url` / `duration` を含め**、**[LINE 送信失敗時の Firestore 退避](../../docs/line_send_fallback.md)** に従い **`put_firestore_doc`** で `type: line_undelivered` を保存してください。添えるテキストは送信予定と同一、`[media:audio]` を使用。`both` のときは宛先ごとに 1 件ずつ退避します。

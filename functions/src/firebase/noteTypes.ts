@@ -15,6 +15,12 @@ export const NOTE_TYPE = {
   LINE_IMAGE: "line_image",
   /** Google Apps Script 等から共有された位置情報URL（YAMAPから共有される）。 */
   LOCATION_URL: "location_url",
+  /**
+   * 碧衣が LINE Messaging API で送信しようとしたが失敗し、Firestore に退避した内容。
+   * `description` は送信予定のテキスト（および画像・音声の場合は Cloudinary URL 等）と同一粒度。
+   * 入方向の `line_text` / `line_image` や、後続向け要約の `from_aoi` とは別。
+   */
+  LINE_UNDELIVERED: "line_undelivered",
 } as const;
 
 /** {@link NOTE_TYPE} の値の union。 */

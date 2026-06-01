@@ -17,6 +17,8 @@ description: Firestoreのnotesにdocを追加する。引数は日付(YYYY-MM-DD
 
 第3引数 `type` の取りうる値・意味・省略時のデフォルトは **[src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts)**（CLI は `NOTE_TYPE.FROM_AOI` と同値）を参照してください。定義にない文字列を渡すと CLI はエラーになります。
 
+LINE 送信失敗時の退避では `line_undelivered` を指定します。手順の詳細は [LINE 送信失敗時の Firestore 退避](../../docs/line_send_fallback.md) を参照してください（`send_line_*` スキルから呼び出す想定）。
+
 | フィールド    | 型        | 内容                         |
 |-------------|-----------|------------------------------|
 | date        | Timestamp | 引数の日付（Date型）           |

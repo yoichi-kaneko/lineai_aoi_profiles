@@ -40,9 +40,10 @@ LINE AI「碧衣」のキャラクター設定や応答プロファイルを管�
 
 ```
 lineai_aoi_profiles/
+├── CLAUDE.md              # エージェントのモード切り替え定義
 ├── README.md              # 本ファイル
 ├── aoi.md                 # 碧衣のプロファイル定義
-├── package.json           # npm パッケージ管理（ルート）
+├── package.json           # pnpm パッケージ管理（ルート）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / off_mountain / song）
@@ -69,6 +70,7 @@ lineai_aoi_profiles/
 │       ├── lib/                 # Cloud Functions 共通処理
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
 └── .claude/
+    ├── coding_agent.md    # コーディングエージェントモードのガイドライン
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
@@ -81,16 +83,18 @@ lineai_aoi_profiles/
 
 碧衣は、日次の定期モードと登山・創作に関する特別モードを持ちます。各モードの詳細手順は `modes/*.md` に記載されています。
 
-| モード名 | トリガーキー | 主な役割 |
+| モード名 | 入力トリガー形式 | 主な役割 |
 |---|---|---|
-| 暁（あかつき） | `daily message (暁)` | 朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
-| 望（のぞみ） | `daily message (望)` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
-| 小夜（さよ） | `daily message (小夜)` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成する |
+| 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
+| 望（のぞみ） | `daily message (望): YYYY-MM-DD` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
+| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成する |
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
-| 調べ（しらべ） | `daily message (調べ)` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
+| 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
 
-`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
+
+対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の Asia/Tokyo 時刻からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
 
 ## 6. 連携しているサービスについて
 
@@ -184,6 +188,7 @@ lineai_aoi_profiles/
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
+| `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 
 ### AWS Systems Manager
 
@@ -241,7 +246,15 @@ lineai_aoi_profiles/
 | 役割 | Web ページを取得する MCP ツール。Claude 標準の fetch よりも性能が高いため導入 |
 | MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
 
-## 7. タイムアウト・リトライについて
+## 7. 二重実行防止・タイムアウト・リトライについて
+
+### 二重実行防止（run_logs チェック）
+
+`send_daily_line.sh` は `morning` / `noon` / `night` の実行前に Firestore の `run_logs` コレクションを参照し、当日の同モードの実行ログが存在する場合は Claude の起動をスキップして終了します。これにより、定期実行の重複や再起動によるメッセージの二重送信を防ぎます。
+
+`run_aoi_daily` スキルを対話モードから実行した場合も、モード処理完了後に `run_logs` へログを書き込みます（ただし実行前チェックはスキップします）。
+
+### タイムアウト・リトライ
 
 `send_daily_line.sh` は、APIやMCPサーバーの無応答によるハングアップを防ぐため、シェルレベルのタイムアウトとリトライを実装しています。
 

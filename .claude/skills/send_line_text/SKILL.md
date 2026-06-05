@@ -1,11 +1,13 @@
 ---
 name: send_line_text
-description: LINEにテキストメッセージを送信する。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用し、指定したメッセージをプッシュ通知で送る。送信先はuser（デフォルト）/group/bothから選択可能。
+description: LINEにテキストメッセージのみを単独で送信する。画像や音声に添える本文は send_line_image / send_line_audio を使う。送信失敗時は line_undelivered として Firestore に退避する。環境変数で設定されたアクセストークンと送信先ユーザーID/グループIDを使用し、プッシュ通知で送る。送信先はuser（デフォルト）/group/bothから選択可能。
 ---
 
 # send_line_text
 
-環境変数で指定された LINE アクセストークンと送信先ID を使って、テキストメッセージをプッシュ送信するスタンドアロン CLI スクリプトです。
+環境変数で指定された LINE アクセストークンと送信先ID を使って、**テキストのみ**をプッシュ送信するスタンドアロン CLI スクリプトです。
+
+画像や音声と一緒に送るテキストは **`send_line_image` / `send_line_audio`** を使用してください（同一リクエストでメディア→テキストの順に送信され、リクエスト件数を節約できます）。
 
 ## 概要
 
@@ -89,3 +91,12 @@ pnpm exec tsx src/line/send_text.ts {destination_option} "{message}"
 これを行わないと正常に動作しない恐れがあります。
 
 コマンドが成功したら、メッセージを送信した旨をユーザーに報告してください。
+
+## 送信失敗時（Firestore 退避）
+
+CLI が非ゼロ終了した場合、または 429・クオータ・レート制限などで送信できなかった場合は、**[LINE 送信失敗時の Firestore 退避](../../docs/line_send_fallback.md)** に従い、**`put_firestore_doc` スキル**で `type: line_undelivered` を指定して保存してください。
+
+- 本文は LINE に送る予定だったテキストと**同一**
+- `[media:text]`、`[destination:…]` の書式は退避ドキュメントを参照
+- `--destination both` のときは `user` / `group` それぞれ 1 件ずつ退避
+- **`from_aoi` には保存しない**（引き継ぎ要約用の type とは別）

@@ -9,7 +9,7 @@ LINE AIアシスタント「碧衣（あおい）」の設定・スキル管理�
 
 ## ディレクトリ構成
 
-```
+```text
 lineai_aoi_profiles/
 ├── CLAUDE.md               # このファイル
 ├── README.md               # プロジェクト概要
@@ -100,7 +100,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 スキルの定義は `.claude/skills/{skill_name}/SKILL.md` に、処理の実装は `src/{module}/` 以下に配置する。
 
 **スキルの構成:**
-```
+```text
 {skill_name}/
 └── SKILL.md           # スキル定義（Claude Codeが読み込む設定）
 ```

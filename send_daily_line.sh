@@ -48,7 +48,12 @@ if [ "$MODE" = "morning" ] || [ "$MODE" = "noon" ] || [ "$MODE" = "night" ]; the
   HAS_LOG_EXIT=$?
 
   if [ $HAS_LOG_EXIT -ne 0 ]; then
-    echo "[WARN] run_logs の確認に失敗しました (exit: ${HAS_LOG_EXIT})。処理を続行します。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    if [ "$FORCE_CONTINUE" = "true" ]; then
+      echo "[WARN] run_logs の確認に失敗しました (exit: ${HAS_LOG_EXIT})。FORCE_CONTINUE=true のため処理を続行します。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    else
+      echo "[ERROR] run_logs の確認に失敗しました (exit: ${HAS_LOG_EXIT})。二重送信防止のため処理を中断します。続行する場合は FORCE_CONTINUE=true を設定してください。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+      exit $HAS_LOG_EXIT
+    fi
   elif [ "$HAS_LOG_OUTPUT" = "true" ]; then
     echo "[INFO] 本日の ${MODE} は実行済みのためスキップします。DATE=${TARGET_DATE}" >&2
     exit 0

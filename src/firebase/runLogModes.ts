@@ -35,9 +35,9 @@ function getTokyoTimeInMinutes(now: Date): number {
  * Asia/Tokyo の現在時刻からデイリーモードを判定する。
  * 該当する時間帯がない場合は null を返す。
  *
- * - 03:00-09:00 → morning
- * - 12:00-14:00 → noon
- * - 20:00-23:00 → night
+ * - 03:00-08:59 → morning
+ * - 12:00-13:59 → noon
+ * - 20:00-22:59 → night
  */
 export function resolveDailyRunLogModeFromTokyoTime(now: Date = new Date()): RunLogMode | null {
   const timeInMinutes = getTokyoTimeInMinutes(now);

@@ -44,6 +44,18 @@ async function main() {
     process.exit(1);
   }
 
+  const [year, month, day] = date.split("-").map(Number);
+  const dateValue = new Date(year, month - 1, day);
+
+  if (
+    dateValue.getFullYear() !== year ||
+    dateValue.getMonth() !== month - 1 ||
+    dateValue.getDate() !== day
+  ) {
+    console.error("日付が不正です。存在する日付を YYYY-MM-DD 形式で指定してください");
+    process.exit(1);
+  }
+
   const configPath = getFirebaseConfigPath();
   const serviceAccount = JSON.parse(readFileSync(configPath, "utf-8")) as ServiceAccount;
 
@@ -52,9 +64,6 @@ async function main() {
   });
 
   const db = getFirestore();
-
-  const [year, month, day] = date.split("-").map(Number);
-  const dateValue = new Date(year, month - 1, day);
 
   const docData = {
     date: Timestamp.fromDate(dateValue),

@@ -47,7 +47,7 @@ pnpm exec tsx src/firebase/determine_daily_mode.ts
 3. 実行環境の日本時間で当日の日付を取得してください。
 
 ```bash
-TZ='Asia/Tokyo' date +%Y-%m-%d
+TZ='JST-9' date +%Y-%m-%d
 ```
 
 4. `aoi.md` の「モード概要」に従い、標準モードキーと日付から入力トリガーを組み立ててください。

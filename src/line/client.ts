@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { readFileSync } from "fs";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { messagingApi } from "@line/bot-sdk";
@@ -36,9 +37,17 @@ export function resolveDestinations(destination: string): string[] {
   process.exit(1);
 }
 
-/** リテラルの \n を実際の改行文字に変換する */
-export function normalizeMessageText(rawMessage: string): string {
-  return rawMessage.replace(/\\n/g, "\n");
+/** メッセージ本文を保存したファイルを読み込んで返す */
+export function readMessageText(filePath: string): string {
+  try {
+    return readFileSync(filePath, "utf-8");
+  } catch (error) {
+    console.error(
+      `メッセージファイルを読み込めませんでした: ${filePath}`,
+      error instanceof Error ? error.message : String(error)
+    );
+    process.exit(1);
+  }
 }
 
 export function createMessagingClient(): messagingApi.MessagingApiClient {

@@ -1,22 +1,22 @@
-import { normalizeMessageText, parseArgs, pushMessagesToDestinations, handleCliError } from "./client";
+import { readMessageText, parseArgs, pushMessagesToDestinations, handleCliError } from "./client";
 
 async function main() {
   const { destination, remaining } = parseArgs(process.argv.slice(2));
   const originalContentUrl = remaining[0];
   const previewImageUrl = remaining[1];
-  const rawMessage = remaining[2];
+  const messageFilePath = remaining[2];
 
-  if (!originalContentUrl || !previewImageUrl || !rawMessage) {
+  if (!originalContentUrl || !previewImageUrl || !messageFilePath) {
     console.error(
-      "使用方法: npx tsx src/line/send_image.ts [--destination user|group|both] <originalContentUrl> <previewImageUrl> <message>"
+      "使用方法: npx tsx src/line/send_image.ts [--destination user|group|both] <originalContentUrl> <previewImageUrl> <messageFilePath>"
     );
     console.error(
-      '例: npx tsx src/line/send_image.ts "https://example.com/image.jpg" "https://example.com/preview.jpg" "メッセージ本文"'
+      '例: npx tsx src/line/send_image.ts "https://example.com/image.jpg" "https://example.com/preview.jpg" "tmp/line_message.txt"'
     );
     process.exit(1);
   }
 
-  const message = normalizeMessageText(rawMessage);
+  const message = readMessageText(messageFilePath);
 
   await pushMessagesToDestinations(destination, [
     { type: "image", originalContentUrl, previewImageUrl },

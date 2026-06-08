@@ -1,17 +1,17 @@
-import { normalizeMessageText, parseArgs, pushMessagesToDestinations, handleCliError } from "./client";
+import { readMessageText, parseArgs, pushMessagesToDestinations, handleCliError } from "./client";
 
 async function main() {
   const { destination, remaining } = parseArgs(process.argv.slice(2));
-  const rawMessage = remaining[0];
+  const messageFilePath = remaining[0];
 
-  if (!rawMessage) {
-    console.error("使用方法: npx tsx src/line/send_text.ts [--destination user|group|both] <message>");
-    console.error('例: npx tsx src/line/send_text.ts "こんにちは"');
-    console.error('例: npx tsx src/line/send_text.ts --destination group "こんにちは"');
+  if (!messageFilePath) {
+    console.error("使用方法: npx tsx src/line/send_text.ts [--destination user|group|both] <messageFilePath>");
+    console.error('例: npx tsx src/line/send_text.ts "tmp/line_message.txt"');
+    console.error('例: npx tsx src/line/send_text.ts --destination group "tmp/line_message.txt"');
     process.exit(1);
   }
 
-  const message = normalizeMessageText(rawMessage);
+  const message = readMessageText(messageFilePath);
 
   await pushMessagesToDestinations(destination, [{ type: "text", text: message }]);
 

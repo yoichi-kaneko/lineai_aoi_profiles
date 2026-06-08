@@ -155,5 +155,6 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 
 - `.env` はGit管理外（`.gitignore`に含まれる）。直接編集・コミットしないこと
 - `tmp/` は一時ファイル置き場。コミット不要
-- スキルに複数行の値を渡す場合、改行は `\n`（リテラル）に変換してコマンドを1行に収めること（シェルの行分割を防ぐため）。対象スキル: `send_line_text`, `generate_mureka_song`, `generate_mureka_lyrics` など
+- スキルに複数行の値を渡す場合、改行は `\n`（リテラル）に変換してコマンドを1行に収めること（シェルの行分割を防ぐため）。対象スキル: `generate_mureka_song`, `generate_mureka_lyrics` など
+- `send_line_*`（`send_line_text` / `send_line_image` / `send_line_audio`）はメッセージ本文を引数で直接渡さず、`tmp/line_message.txt` に保存してそのパスを引数に渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要（各スキルの SKILL.md 参照）
 - 画像生成スキルは `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` に設定された参照画像を自動添付する

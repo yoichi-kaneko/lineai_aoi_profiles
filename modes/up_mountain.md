@@ -70,7 +70,7 @@
 
 - **destination**: `group`
 - **message**: ステップ2で作成したメッセージ本文のみ。
-- 複数行のメッセージは、改行を `\n` に置換してコマンドを1行に収めてください。
+- メッセージ本文は `tmp/line_message.txt` に保存し、そのパスを引数に渡します（`send_line_text` スキルの手順に従う）。改行はそのまま改行として書いてよく、`\n` への置換は不要です。
 - **送信失敗時**: [`send_line_text` スキル](../.claude/skills/send_line_text/SKILL.md) の Firestore 退避（`line_undelivered`）に従う。本モード末尾の `up_mountain` 記録とは別。
 
 ### ステップ3：Firestoreへの記録

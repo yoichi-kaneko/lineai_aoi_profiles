@@ -36,59 +36,46 @@ LINE_DESTINATION_USER_ID="your_user_id"
 LINE_DESTINATION_GROUP_ID="your_group_id"   # group / both を使う場合に必要
 ```
 
+## メッセージの受け渡し方法（ファイル経由）
+
+メッセージ本文は**コマンド引数で直接渡さず**、一時ファイル `tmp/line_message.txt` に保存し、そのパスを引数で渡します。スクリプトはファイルを読み込んで本文として送信します。これにより、改行を含むメッセージでもシェルのエスケープ事故（`\n` が崩れる等）が起きません。
+
+> **改行の扱い**: ファイルに書いた内容（実際の改行を含む）が**そのまま**送信されます。`\n` への置換やクォート処理は不要です。
+
 ## 実行方法
+
+1. 送信したい本文を `tmp/line_message.txt` に保存する（Write ツールで本文をそのまま書き込む。改行はそのまま改行として書いてよい）。
+2. ファイルパスを引数に渡してスクリプトを実行する。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/line/send_text.ts [--destination user|group|both] "送信したいメッセージ"
+pnpm exec tsx src/line/send_text.ts [--destination user|group|both] "tmp/line_message.txt"
 ```
 
 例:
 
 ```bash
 # ユーザーに送信（デフォルト）
-pnpm exec tsx src/line/send_text.ts "こんにちは"
+pnpm exec tsx src/line/send_text.ts "tmp/line_message.txt"
 
 # グループに送信
-pnpm exec tsx src/line/send_text.ts --destination group "こんにちは"
+pnpm exec tsx src/line/send_text.ts --destination group "tmp/line_message.txt"
 
 # ユーザーとグループ両方に送信
-pnpm exec tsx src/line/send_text.ts --destination both "こんにちは"
+pnpm exec tsx src/line/send_text.ts --destination both "tmp/line_message.txt"
 ```
-
-> **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
->
-> 改行を含むメッセージをそのままコマンドに渡すと、シェルが途中で行を分割してコマンドが正常に動作しません。
-> **複数行のメッセージは `\n` に置換して、コマンドを必ず1行に収めてください。**
->
-> スクリプト内部で `\n`（リテラル2文字）を自動的に実際の改行文字に変換するため、
-> コマンド引数として `\n` を渡すだけで LINE 上で改行されます。
->
-> 悪い例（動作しない可能性あり）:
-> ```bash
-> pnpm exec tsx src/line/send_text.ts "1行目
-> 2行目"
-> ```
->
-> 良い例:
-> ```bash
-> pnpm exec tsx src/line/send_text.ts "1行目\n2行目"
-> ```
 
 ## Claudeへの指示
 
-以下のコマンドを実行してください。
+1. ARGUMENTS として渡された message を、そのまま `tmp/line_message.txt` に保存してください（改行はそのまま改行として書き込み、`\n` への置換はしない）。
+2. 以下のコマンドを実行してください。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/line/send_text.ts {destination_option} "{message}"
+pnpm exec tsx src/line/send_text.ts {destination_option} "tmp/line_message.txt"
 ```
 
-- ARGUMENTS として渡された message をそのまま引数に使用してください。
-- destination が指定されている場合は `--destination user|group|both` をメッセージの前に追加してください。指定なしの場合はオプション不要です。
-
-**複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**
-これを行わないと正常に動作しない恐れがあります。
+- destination が指定されている場合は `--destination user|group|both` をファイルパスの前に追加してください。指定なしの場合はオプション不要です。
 
 コマンドが成功したら、メッセージを送信した旨をユーザーに報告してください。
 

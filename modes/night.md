@@ -111,4 +111,4 @@
    - **ステップ2をスキップした場合**: 本モードの送信は **`aoi.md` の共通ステップ：LINE送信**（`send_line_text`）に委ねてください。
    - **送信失敗時**: 使用した `send_line_*` スキルの Firestore 退避（`line_undelivered`）に従う（[手順](../.claude/docs/line_send_fallback.md)）。
 
-複数行のメッセージは、改行を `\n` に置換してコマンドを1行に収めてください。
+メッセージ本文は `tmp/line_message.txt` に保存し、そのパスを引数に渡します（使用する `send_line_*` スキルの手順に従う）。改行はそのまま改行として書いてよく、`\n` への置換は不要です。

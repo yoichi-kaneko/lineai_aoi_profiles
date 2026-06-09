@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
+import { readTextFile } from "./client";
 
 // プロジェクトルートの .env を読み込む
 // src/mureka/ -> src/ -> project root
@@ -23,18 +24,17 @@ function getApiKey(): string {
 }
 
 async function main() {
-  const rawLyrics = process.argv[2];
-  const rawPrompt = process.argv[3];
+  const lyricsFilePath = process.argv[2];
+  const promptFilePath = process.argv[3];
 
-  if (!rawLyrics || !rawPrompt) {
-    console.error("使用方法: npx tsx src/mureka/generate_song.ts <歌詞> <プロンプト>");
-    console.error('例: npx tsx src/mureka/generate_song.ts "[Verse]\\n歌詞テキスト" "明るいポップス調"');
+  if (!lyricsFilePath || !promptFilePath) {
+    console.error("使用方法: npx tsx src/mureka/generate_song.ts <lyricsFilePath> <promptFilePath>");
+    console.error('例: npx tsx src/mureka/generate_song.ts "tmp/mureka_song_lyrics.txt" "tmp/mureka_song_prompt.txt"');
     process.exit(1);
   }
 
-  // \\n をリテラル改行に戻す
-  const lyrics = rawLyrics.replace(/\\n/g, "\n");
-  const prompt = rawPrompt.replace(/\\n/g, "\n");
+  const lyrics = readTextFile(lyricsFilePath);
+  const prompt = readTextFile(promptFilePath);
 
   if (lyrics.length > MAX_LYRICS_LENGTH) {
     console.error(`歌詞が長すぎます: ${lyrics.length}文字（上限: ${MAX_LYRICS_LENGTH}文字）`);

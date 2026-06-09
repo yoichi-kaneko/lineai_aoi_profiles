@@ -55,7 +55,7 @@ tags: Ethereal, Introspective, Hopeful, Warm, Nocturnal
 description: The song opens with a gentle piano motif and a translucent synth pad, creating a quiet space for Aoi's clear Japanese vocal. The verse stays intimate and reflective, while the chorus gradually expands with soft harmonies and a restrained cinematic lift. The arrangement should feel delicate, luminous, and emotionally sincere, leaving a calm afterglow.
 ```
 
-このコードブロック内の文字列全体（`instrument:` / `genres:` / `tags:` / `description:` と3つの改行を含む）が、`generate_mureka_song` の `prompt` として渡される最終形です。生成前にこの最終形で1024文字以内であることを必ず確認してください。
+このコードブロック内の文字列全体（`instrument:` / `genres:` / `tags:` / `description:` と3つの改行を含む）が、`tmp/mureka_song_prompt.txt` に書き込まれる最終形です。生成前にこの最終形で1024文字以内であることを必ず確認し、ファイルに保存してから `generate_mureka_song` スキルを実行してください。
 
 ### instrument
 

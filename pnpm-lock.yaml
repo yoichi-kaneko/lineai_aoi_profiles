@@ -17,6 +17,9 @@ importers:
       '@line/bot-sdk':
         specifier: ^10.6.0
         version: 10.8.0
+      '@playwright/browser-chromium':
+        specifier: 1.58.2
+        version: 1.58.2
       cheerio:
         specifier: ^1.2.0
         version: 1.2.0
@@ -462,6 +465,10 @@ packages:
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
+
+  '@playwright/browser-chromium@1.58.2':
+    resolution: {integrity: sha512-/HHFVVP2pzEtqBVOFRoWlDtBoO8bzIWOqS62APdm3OhYbE2+kVUs/ALpkevvAKKfY0DMDVezYN22bDBh77UQ9Q==}
+    engines: {node: '>=18'}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -2423,6 +2430,10 @@ snapshots:
       - debug
 
   '@opentelemetry/api@1.9.1': {}
+
+  '@playwright/browser-chromium@1.58.2':
+    dependencies:
+      playwright-core: 1.58.2
 
   '@protobufjs/aspromise@1.1.2': {}
 

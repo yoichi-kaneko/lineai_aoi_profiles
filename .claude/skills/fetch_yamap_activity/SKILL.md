@@ -32,7 +32,7 @@ https://yamap.com/activities/{ID}
 ```bash
 cd {プロジェクトルートの絶対パス}
 pnpm install
-pnpm exec playwright install chromium
+pnpm run setup:browsers
 ```
 
 ## 実行方法

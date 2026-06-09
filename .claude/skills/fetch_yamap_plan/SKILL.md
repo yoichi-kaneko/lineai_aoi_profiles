@@ -33,7 +33,7 @@ https://yamap.com/plans/code/{CODE}/printing  # 末尾の /printing は自動的
 ```bash
 cd {プロジェクトルートの絶対パス}
 pnpm install
-pnpm exec playwright install chromium
+pnpm run setup:browsers
 ```
 
 ## 実行方法

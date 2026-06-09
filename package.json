@@ -4,8 +4,12 @@
     "workspaces": [
         "functions"
     ],
+    "scripts": {
+        "setup:browsers": "playwright install chromium"
+    },
     "dependencies": {
         "@doist/todoist-sdk": "^9.1.0",
+        "@playwright/browser-chromium": "1.58.2",
         "@google/genai": "^1.0.1",
         "@line/bot-sdk": "^10.6.0",
         "cheerio": "^1.2.0",
@@ -29,7 +33,9 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "@firebase/util",
+            "@playwright/browser-chromium",
             "esbuild",
+            "playwright",
             "protobufjs"
         ]
     },

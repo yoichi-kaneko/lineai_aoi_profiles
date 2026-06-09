@@ -10,7 +10,41 @@
 LINE AI「碧衣」のキャラクター設定や応答プロファイルを管理するリポジトリです。
 プロファイルの定義・更新・バージョン管理を行います。
 
-## 3. アクティビティ駆動フレームワークについて
+## 3. 開発環境のセットアップ
+
+ローカルでスキルを実行する場合（対話モードの `run_aoi_daily`、手動での `pnpm exec tsx` 実行など）は、プロジェクトルートで以下の手順を行ってください。
+
+### 前提条件
+
+- [Node.js](https://nodejs.org/)（LTS 推奨）
+- [pnpm](https://pnpm.io/) 10.x（`package.json` の `packageManager` に合わせる）
+
+### 手順
+
+```bash
+# 1. リポジトリをクローンしたらプロジェクトルートへ移動
+cd lineai_aoi_profiles
+
+# 2. npm パッケージをインストール
+pnpm install
+
+# 3. Playwright の Chromium ブラウザをインストール
+#    @playwright/browser-chromium により pnpm install 時に自動取得されるが、
+#    未取得の場合や Windows 移行後は明示的に実行する
+pnpm run setup:browsers
+
+# 4. 環境変数を設定
+cp .env.example .env
+# .env を編集して各 API キー・認証情報を設定
+```
+
+### スキル実行時の注意
+
+- 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
+- `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
+- YAMAP スクレイピング（`fetch_yamap_activity` / `fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。
+
+## 4. アクティビティ駆動フレームワークについて
 
 碧衣の設計は、以下の2層で捉えると理解しやすくなります。
 
@@ -36,7 +70,7 @@ LINE AI「碧衣」のキャラクター設定や応答プロファイルを管�
 - Firestore を用いてモード間で情報を引き継ぎ、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
 - 上記のプロセス全体を、自律的なプロンプトフローとして実行する
 
-## 4. ファイル構成について
+## 5. ファイル構成について
 
 ```
 lineai_aoi_profiles/
@@ -79,7 +113,7 @@ lineai_aoi_profiles/
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 
-## 5. 実行モードについて
+## 6. 実行モードについて
 
 碧衣は、日次の定期モードと登山・創作に関する特別モードを持ちます。各モードの詳細手順は `modes/*.md` に記載されています。
 
@@ -96,7 +130,7 @@ lineai_aoi_profiles/
 
 対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の日本標準時（JST）からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
 
-## 6. 連携しているサービスについて
+## 7. 連携しているサービスについて
 
 外部サービスへのアクセスは、Fetch MCP Server を除きすべて Claude スキルを通じて行います。
 
@@ -246,7 +280,7 @@ lineai_aoi_profiles/
 | 役割 | Web ページを取得する MCP ツール。Claude 標準の fetch よりも性能が高いため導入 |
 | MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
 
-## 7. 二重実行防止・タイムアウト・リトライについて
+## 8. 二重実行防止・タイムアウト・リトライについて
 
 ### 二重実行防止（run_logs チェック）
 
@@ -275,7 +309,7 @@ lineai_aoi_profiles/
 | ツールがエラーを返す（APIエラー、認証失敗など） | Claudeルールに基づきスキップして続行 |
 | 一時的な障害（API瞬断など） | シェルリトライ + Claudeルールによるスキップ |
 
-## 8. ライセンスについて
+## 9. ライセンスについて
 
 本プロジェクトは MIT License のもとで公開されています。
 

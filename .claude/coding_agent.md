@@ -121,7 +121,12 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 ```bash
 # 依存インストール（ルートディレクトリで実行）
 pnpm install
+
+# Playwright Chromium（YAMAP スクレイピング用。初回・環境移行時）
+pnpm run setup:browsers
 ```
+
+`@playwright/browser-chromium` により `pnpm install` 時に Chromium が自動取得されるが、未取得時は `setup:browsers` を明示的に実行する。
 
 新しい依存パッケージを追加する場合:
 ```bash

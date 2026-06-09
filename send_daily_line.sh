@@ -25,7 +25,7 @@ ALLOWED_TOOLS=(
 ALLOWED_TOOLS_STR=$(IFS=,; echo "${ALLOWED_TOOLS[*]}")
 
 # 2. 日本時間 (JST) で日付を取得
-TARGET_DATE=$(TZ='Asia/Tokyo' date +%Y-%m-%d)
+TARGET_DATE=$(TZ='JST-9' date +%Y-%m-%d)
 
 # 3. モードに応じてトリガーを分岐
 if [ "$MODE" = "night" ]; then

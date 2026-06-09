@@ -60,21 +60,19 @@ pnpm exec tsx src/cloudinary/upload_image.ts "{画像ファイルパス}"
 
 2. 出力JSONから `originalUrl` と `previewUrl` を取得してください。
 
-3. **LINE送信（画像+テキスト）**: 取得したURLとテキスト本文を使って以下のコマンドを実行してください。
+3. **テキスト本文の保存**: 添えるテキスト本文を、そのまま `tmp/line_message.txt` に保存してください（Write ツールで書き込み。改行はそのまま改行として書き、`\n` への置換はしない）。
+
+4. **LINE送信（画像+テキスト）**: 取得したURLと本文ファイルのパスを使って以下のコマンドを実行してください。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/line/send_image.ts {destination_option} "{originalUrl}" "{previewUrl}" "{message}"
+pnpm exec tsx src/line/send_image.ts {destination_option} "{originalUrl}" "{previewUrl}" "tmp/line_message.txt"
 ```
 
+- テキスト本文は引数で直接渡さず、`tmp/line_message.txt` 経由で受け渡します。スクリプトがファイルを読み込み、**書いた内容（実際の改行を含む）をそのまま**送信します。`\n` への置換やクォート処理は不要です。
 - destination が指定されている場合は `--destination user|group|both` を先頭に追加してください。指定なしの場合はオプション不要です。
 
-> **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
->
-> 改行を含むメッセージは `\n` に置換して、コマンドを必ず1行に収めてください。
-> スクリプト内部で `\n`（リテラル2文字）を実際の改行文字に変換します。
-
-4. コマンドが成功したら、画像とテキストを送信した旨をユーザーに報告してください。
+5. コマンドが成功したら、画像とテキストを送信した旨をユーザーに報告してください。
 
 **画像送信のあとに `send_line_text` を別途呼び出さないでください。** テキストは本スキルに含めて送ります。
 

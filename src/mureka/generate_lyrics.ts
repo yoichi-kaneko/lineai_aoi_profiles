@@ -9,6 +9,16 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
+/** Mureka API が返す歌詞・タイトル中のリテラルエスケープや記号混入を正規化する */
+function normalizeMurekaLyrics(text: string): string {
+  return text
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\[([^\]]+)\]["',]+/g, "[$1]");
+}
+
 function getApiKey(): string {
   const key = process.env.MUREKA_API_KEY;
   if (!key) {
@@ -50,8 +60,8 @@ async function main() {
 
   console.log(JSON.stringify({
     prompt,
-    title: data.title,
-    lyrics: data.lyrics,
+    title: normalizeMurekaLyrics(data.title),
+    lyrics: normalizeMurekaLyrics(data.lyrics),
   }, null, 2));
 }
 

@@ -94,7 +94,7 @@ lineai_aoi_profiles/
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
-対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の Asia/Tokyo 時刻からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
+対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の日本標準時（JST）からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
 
 ## 6. 連携しているサービスについて
 

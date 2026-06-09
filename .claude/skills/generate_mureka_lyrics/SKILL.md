@@ -28,17 +28,20 @@ pnpm install
 MUREKA_API_KEY="your_api_key"
 ```
 
+## プロンプトの受け渡し方法（ファイル経由）
+
+プロンプトは**コマンド引数で直接渡さず**、一時ファイル `tmp/mureka_lyrics_prompt.txt` に保存し、そのパスを引数で渡します。スクリプトはファイルを読み込んでプロンプトとして使用します。これにより、改行を含むプロンプトでもシェルのエスケープ事故が起きません。
+
+> **改行の扱い**: ファイルに書いた内容（実際の改行を含む）が**そのまま**プロンプトとして使われます。`\n` への置換やクォート処理は不要です。
+
 ## 実行方法
+
+1. プロンプトを `tmp/mureka_lyrics_prompt.txt` に保存する（Write ツールで本文をそのまま書き込む。改行はそのまま改行として書いてよい）。
+2. ファイルパスを引数に渡してスクリプトを実行する。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/mureka/generate_lyrics.ts "{プロンプト}"
-```
-
-例:
-
-```bash
-pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"
+pnpm exec tsx src/mureka/generate_lyrics.ts "tmp/mureka_lyrics_prompt.txt"
 ```
 
 ## 出力
@@ -59,21 +62,15 @@ pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマに�
 
 ### 手順
 
-1. 以下のコマンドを実行してください。
+1. プロンプトを、そのまま `tmp/mureka_lyrics_prompt.txt` に保存してください（改行はそのまま改行として書き込み、`\n` への置換はしない）。
+
+2. 以下のコマンドを実行してください。
 
 ```bash
 cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/mureka/generate_lyrics.ts "{プロンプト}"
+pnpm exec tsx src/mureka/generate_lyrics.ts "tmp/mureka_lyrics_prompt.txt"
 ```
 
-   **注意:** プロンプトが複数行に渡る場合、改行を `\n` に置き換えて1行の文字列として渡してください。
+3. コマンドの出力から `title` と `lyrics` を取得してください。
 
-   例:
-
-   ```bash
-   pnpm exec tsx src/mureka/generate_lyrics.ts "夏の海をテーマに。\n明るく元気なポップス調で。"
-   ```
-
-2. コマンドの出力から `title` と `lyrics` を取得してください。
-
-3. 生成されたタイトルと歌詞をユーザーに提示してください。
+4. 生成されたタイトルと歌詞をユーザーに提示してください。

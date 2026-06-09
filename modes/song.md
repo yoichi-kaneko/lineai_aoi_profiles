@@ -45,7 +45,7 @@
 
 **`generate_mureka_lyrics`** スキルを実行し、ステップ2の下書きをMurekaフォーマットに最適化した歌詞を生成してください。
 
-スキルへ渡すプロンプトは以下の構成で作成してください。
+スキルへ渡すプロンプトは以下の構成で作成し、**`tmp/mureka_lyrics_prompt.txt` に保存**してからスキルを実行してください（改行はそのまま改行として書いてよく、`\n` への置換は不要。`generate_mureka_lyrics` スキルの手順に従う）。
 
 ```text
 【曲の概要】
@@ -61,12 +61,12 @@
 
 **`generate_mureka_song`** スキルを実行し、楽曲生成を開始してください。
 
-スキルへ渡す引数は以下の通りです。
+スキルへ渡す内容は以下の通りです。いずれも**一時ファイルに保存**してからスキルを実行してください（改行はそのまま改行として書いてよく、`\n` への置換は不要。`generate_mureka_song` スキルの手順に従う）。
 
-- **`prompt`**: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください
-- **`lyrics`**: ステップ4で生成した最適化済みの歌詞
+- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください
+- **`lyrics`** → `tmp/mureka_song_lyrics.txt`: ステップ4で生成した最適化済みの歌詞
 
-`prompt` は以下の形式で `generate_mureka_song` に渡されるため、この最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。
+`prompt` は以下の形式で `tmp/mureka_song_prompt.txt` に書き込まれる最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。
 
 ```text
 instrument: （使用する楽器・音色）

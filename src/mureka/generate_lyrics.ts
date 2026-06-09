@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
+import { readTextFile } from "./client";
 
 // プロジェクトルートの .env を読み込む
 // src/mureka/ -> src/ -> project root
@@ -18,16 +19,15 @@ function getApiKey(): string {
 }
 
 async function main() {
-  const rawPrompt = process.argv[2];
+  const promptFilePath = process.argv[2];
 
-  if (!rawPrompt) {
-    console.error("使用方法: npx tsx src/mureka/generate_lyrics.ts <プロンプト>");
-    console.error('例: npx tsx src/mureka/generate_lyrics.ts "夏の海と青空をテーマにした明るいポップソング"');
+  if (!promptFilePath) {
+    console.error("使用方法: npx tsx src/mureka/generate_lyrics.ts <promptFilePath>");
+    console.error('例: npx tsx src/mureka/generate_lyrics.ts "tmp/mureka_lyrics_prompt.txt"');
     process.exit(1);
   }
 
-  // \\n をリテラル改行に戻す
-  const prompt = rawPrompt.replace(/\\n/g, "\n");
+  const prompt = readTextFile(promptFilePath);
 
   const apiKey = getApiKey();
 

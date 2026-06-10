@@ -21,7 +21,7 @@ lineai_aoi_profiles/
 ├── assets/
 │   ├── image_guideline.md  # 画像生成ガイドライン（衣装・プロンプト定義）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
-│   └── images/             # キャラクター設定画像（資料1〜4）
+│   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
 ├── modes/
 │   ├── morning.md          # 暁モード定義
 │   ├── noon.md             # 望モード定義

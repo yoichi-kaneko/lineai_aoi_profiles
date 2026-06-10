@@ -60,18 +60,10 @@ async function main() {
     return;
   }
 
-  const results: object[] = [];
-
-  const batch = db.batch();
-  for (const doc of snapshot.docs) {
-    const data = doc.data();
-    results.push({ id: doc.id, ...data });
-    batch.update(doc.ref, { isRead: true });
-  }
-  await batch.commit();
+  const results = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   console.log(JSON.stringify(results, null, 2));
-  console.log(`\n${results.length} 件取得し、isRead を true に更新しました。`);
+  console.log(`\n${results.length} 件取得しました。`);
 }
 
 main().catch((error) => {

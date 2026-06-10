@@ -4,6 +4,8 @@
 
 ### ステップ1：登山情報の収集
 
+Firestore ドキュメントの `type` ごとの意味は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。
+
 #### 1-1. カレンダー取得と登山計画の確定
 
 **`get_google_calendar_events`** を呼び出してください。
@@ -16,7 +18,7 @@
 多くの場合、その日の登山予定は1件です。1件だけ見つかった場合は、その予定について山名、入山日、下山予定日、コース概要を確定し、次のステップへ進んでください。
 
 - **登山予定が複数件ある場合**: 末尾の「例外的なケース」セクションを参照してください。
-- **登山予定が見つからなかった場合**: 以下のメッセージを **`send_line_text` スキルで `user`** 宛てに送信してモードを終了してください。送信失敗時は `line_undelivered` へ退避（[手順](../.claude/docs/line_send_fallback.md)）。
+- **登山予定が見つからなかった場合**: 以下のメッセージを **`send_line_text` スキルで `user`** 宛てに送信してモードを終了してください（送信手順は `send_line_text` スキルの SKILL.md に従う）。
   > 登山のご出発を承りましたが、カレンダーで計画を確認できませんでした。ご確認をお願いします。
 
 #### 1-2. Firestoreメモの取得と位置情報URLの保有
@@ -70,8 +72,7 @@
 
 - **destination**: `group`
 - **message**: ステップ2で作成したメッセージ本文のみ。
-- メッセージ本文は `tmp/line_message.txt` に保存し、そのパスを引数に渡します（`send_line_text` スキルの手順に従う）。改行はそのまま改行として書いてよく、`\n` への置換は不要です。
-- **送信失敗時**: [`send_line_text` スキル](../.claude/skills/send_line_text/SKILL.md) の Firestore 退避（`line_undelivered`）に従う。本モード末尾の `up_mountain` 記録とは別。
+- 送信手順は [`send_line_text` スキル](../.claude/skills/send_line_text/SKILL.md) の SKILL.md に従う。
 
 ### ステップ3：Firestoreへの記録
 
@@ -84,7 +85,7 @@
 - **任意で添えるとよいもの**（後続モードの判断に役立つ範囲で簡潔に）:
   - 天気予報で伝えた要点、ステップ1-2で保持した位置情報URLの有無、計画書（YAMAP）の参照の有無
   - 帰灯（`off_mountain.md`）・`noon.md`・`night.md` などに伝えた方がよいと判断したトピック
-- **type**: 第3引数に `up_mountain`（定義: [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) の `NOTE_TYPE.UP_MOUNTAIN` と同値）を必ず指定してください。後続が門灯モードの記録と識別できるようにします。
+- **type**: 第3引数に `up_mountain`（`NOTE_TYPE.UP_MOUNTAIN` と同値）を必ず指定してください。後続が門灯モードの記録と識別できるようにします。
 
 ---
 

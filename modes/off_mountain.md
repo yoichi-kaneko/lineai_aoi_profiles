@@ -4,13 +4,26 @@
 
 ### ステップ1：情報の収集と分析
 
-#### 1-0. カレンダー取得と登山日程の確定（先行処理）
-後続の取得範囲を決定するために、まず **`get_google_calendar_events`** を単独で実行してください。
+#### 1-0. カレンダー取得・Firestore確認と登山日程の確定（先行処理）
+後続の取得範囲を決定するために、まず以下を**並列で**実行してください。
 
-- `dateFrom`: 2日前の日付（YYYY-MM-DD）
-- `dateTo`: 翌日の日付（YYYY-MM-DD）
+- **`get_google_calendar_events`**
+  - `dateFrom`: 2日前の日付（YYYY-MM-DD）
+  - `dateTo`: 翌日の日付（YYYY-MM-DD）
+- **`get_firestore_docs`**: `dateFrom`・`dateTo` ともに本日の日付（YYYY-MM-DD）を指定
 
-取得した予定の中から、`https://yamap.com/plans/code/${CODE}/printing` の形式のURLを含む登山予定を探し、**`fetch_yamap_plan` スキル（計画書URL用）**に渡して登山計画の詳細（山名、入山日、下山日、コースなど）を取得してください。
+取得結果をもとに、登山日程を次の優先順位で確定してください。
+
+**（A）門灯モードの `up_mountain` 記録がある場合（計画書 fetch を省略）**
+
+本日の Firestore に `type` = `up_mountain` の記録があり、かつ備考の交互運用に照らして**まだ対応する `off_mountain` がない最新の `up_mountain`** が特定できる場合は、その記録に含まれる山名・コース・下山予定日などを「登山日程」として採用し、**`fetch_yamap_plan` は実行しない**でください。カレンダー上の予定と食い違う場合のみ、照合のために計画書 fetch を行ってください。
+
+- 日帰りの場合: 入山日・下山日ともに本日（1日分）
+- 一泊以上の場合: 入山予定日〜下山予定日（2日以上）
+
+**（B）上記に該当しない場合（従来どおり計画書 fetch）**
+
+カレンダーの予定の中から、`https://yamap.com/plans/code/${CODE}/printing` の形式のURLを含む登山予定を探し、**`fetch_yamap_plan` スキル（計画書URL用）**に渡して登山計画の詳細（山名、入山日、下山日、コースなど）を取得してください。
 
 - **登山予定が見つかった場合**: 計画書から入山予定日と下山予定日を確定し、この日程を「登山日程」として後続の処理に使用します。
   - 日帰りの場合: 入山日・下山日ともに本日（1日分）
@@ -83,9 +96,7 @@
   5. **帰路・移動について（任意）**: Googleカレンダーの予定から帰りの移動ルート・経路が読み取れる場合のみ、それについて簡素に触れる。カレンダー記載の時刻と実際の行動がずれることはよくあるため、断定や詳細な時刻表現は避け、短い一文程度でよい。
   6. **結びの言葉**: 碧衣ならではの、静かな結びの一言。
 
-メッセージ本文は `tmp/line_message.txt` に保存し、そのパスを引数に渡します（`send_line_image` スキルの手順に従う）。改行はそのまま改行として書いてよく、`\n` への置換は不要です。宛先ごと（`group` / `user`）に本文が異なるため、送信のたびに該当の本文でファイルを上書きしてから実行してください。
-
-送信失敗時は [`send_line_image` スキル](../.claude/skills/send_line_image/SKILL.md) の Firestore 退避（`line_undelivered`）に従う。ステップ5の `off_mountain` 記録とは別。
+送信手順は [`send_line_image` スキル](../.claude/skills/send_line_image/SKILL.md) の SKILL.md に従う。宛先ごと（`group` / `user`）に本文が異なるため、送信のたびに該当の本文で `tmp/line_message.txt` を上書きしてから実行する。
 
 ### ステップ4：報告内容の作成（ユーザー宛て）
 
@@ -99,7 +110,7 @@
   - **明日の予告**: 翌日の予定がGoogle Calendarにあれば、一つだけ静かに告知してください。
   - **結びの言葉**: 下山後の身体の回復を願う、碧衣ならではの結びの一言。
 
-ユーザー宛て送信も失敗時は同様に `line_undelivered` へ退避する（`[destination:user]`）。
+ユーザー宛て送信も [`send_line_image` スキル](../.claude/skills/send_line_image/SKILL.md) の SKILL.md に従う。
 
 ### ステップ5：Firestoreへの記録
 報告内容の送信後、**`put_firestore_doc` スキル**を使用し、午後・夜のモードへ引き継ぐ情報を記録してください。
@@ -110,4 +121,4 @@
   - 家族グループ向け・ユーザー向けに、それぞれ画像+下山報告テキストを `send_line_image` で送ったこと
   - 山行中のFirestore記録から読み取れた印象（天候・景観など）
   - noon.md や night.md に伝えた方がよいと判断したトピックがあれば、任意で添えてください。
-- **type**: 第3引数に `off_mountain`（定義: [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) の `NOTE_TYPE.OFF_MOUNTAIN` と同値）を必ず指定してください。noon.md・night.md が帰灯モードの記録と確実に識別するために使用します。
+- **type**: 第3引数に `off_mountain`（`NOTE_TYPE.OFF_MOUNTAIN` と同値）を必ず指定してください。noon.md・night.md が帰灯モードの記録と確実に識別するために使用します。

@@ -81,17 +81,7 @@ description: （楽曲全体の構成・特徴・感情的な弧）
 
 ステップ5で記録した `task_id` を引数に、**`download_mureka_audio`** を**最大3回**まで試行してください（初回＋失敗時の再試行は最大2回）。各試行の直前に **`sleep 300`** を実行し、試行1〜試行3はいずれも「`sleep 300` → `download_mureka_audio(task_id)`」の順です。ダウンロード試行どうしの待機だけで最大 `sleep 300 × 3 = 900` 秒かかります。ステップ5の生成待ちと合わせると `send_daily_line.sh` の `TIMEOUT_SEC=2700` に近づくことがある点に留意してください。
 
-#### `sleep 300` の実行方法（重要）
-
-Claude Code ハーネスのポリシーにより、長時間（おおむね2分以上）の `sleep` を Bash ツールでフォアグラウンド実行するとブロックされます。`sleep 300` は必ず以下のいずれかの方法で実行してください。
-
-- **推奨：バックグラウンド実行 + 完了待ち**
-  - Bash ツールを `run_in_background: true` で起動し、`sleep 300` を投入する
-  - 返却された `bash_id` に対して `BashOutput` ツールを呼び出し、`status` が `completed` になるまでポーリングする（数十秒間隔で十分）
-- **代替：until ループで分割スリープ**
-  - どうしてもフォアグラウンドで待ちたい場合は、`sleep 60` を5回ループする等、1回あたり2分未満に分割する
-
-`sleep` 完了後に `download_mureka_audio(task_id)` を呼び出してください。**直接 `sleep 300` をフォアグラウンドで実行しないこと。**
+`sleep 300` の実行方法は実行環境に依存するため、[長時間 sleep の実行方法](../.claude/docs/long_sleep_execution.md) を参照してください。`sleep` 完了後に `download_mureka_audio(task_id)` を呼び出してください。
 
 #### 失敗時の挙動
 
@@ -99,7 +89,7 @@ Claude Code ハーネスのポリシーにより、長時間（おおむね2分�
 
 ### ステップ7：楽曲とメッセージの送信
 
-ステップ6でダウンロードした楽曲ファイルと、以下の構成で作成したテキストを、**`send_line_audio` スキル**で**1回のリクエスト**にまとめてLINEへ送信してください（表示順: 音声 → テキスト）。**`send_line_text` は別途呼び出さない**でください。送信失敗時は `line_undelivered` へ退避（[手順](../.claude/docs/line_send_fallback.md)）。
+ステップ6でダウンロードした楽曲ファイルと、以下の構成で作成したテキストを、**`send_line_audio` スキル**で**1回のリクエスト**にまとめてLINEへ送信してください（表示順: 音声 → テキスト）。**`send_line_text` は別途呼び出さない**でください。送信手順は `send_line_audio` スキルの SKILL.md に従う。
 
 メッセージ構成：
 

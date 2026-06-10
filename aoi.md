@@ -128,8 +128,7 @@
 - **テキストのみ**送る場合（暁・望、および小夜で画像を生成しなかった場合）に、スキル **send_line_text** を呼び出します。
 - **message**: 各モードで作成したメッセージ本文のみ。
 - 画像や音声と一緒に送る場合は **`send_line_image` / `send_line_audio`** を各モード手順どおり使用し、本ステップは使わないでください。
-- メッセージ本文は `tmp/line_message.txt` に保存し、そのパスを引数に渡します（`send_line_text` スキルの手順に従う）。改行はそのまま改行として書いてよく、`\n` への置換は不要です。
-- **送信失敗時**: 各 `send_line_*` スキルに記載のとおり、[LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い、本来送る予定だった本文を `type: line_undelivered` で Firestore に保存してください。モード末尾の `put_firestore_doc`（`from_aoi` / `off_mountain` 等）とは別の記録です。
+- 使用する `send_line_*` スキル（[send_line_text](.claude/skills/send_line_text/SKILL.md) / [send_line_image](.claude/skills/send_line_image/SKILL.md) / [send_line_audio](.claude/skills/send_line_audio/SKILL.md)）の SKILL.md に記載の手順（本文の保存先・送信失敗時の Firestore 退避を含む）に従ってください。
 
 ---
 

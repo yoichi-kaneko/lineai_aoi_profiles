@@ -7,7 +7,7 @@
 
 - **`get_firestore_docs`**: `dateFrom`・`dateTo` ともに本日の日付（YYYY-MM-DD）を指定して、暁・望モードから引き継いだ情報を取得する
 - **`get_google_calendar_events`**: `dateFrom` に本日の `YYYY-MM-DD`、`dateTo` に翌日の `YYYY-MM-DD` を指定して取得する（本日の予定は振り返りに、翌日の予定は「明日の予告」のために使用）
-- **`get_swarm_checkins`**: `start_date`, `end_date` ともに本日の日付を指定して、施設や場所へのチェックイン履歴を取得する
+- **`get_swarm_checkins`**: `start_date`, `end_date` ともに本日の日付を指定して、施設や場所へのチェックイン履歴を取得する（前日分は暁モードで取得・分析済みのため、振り返りの主題である本日分のみとする）
 - **`get_todoist_completed_tasks`**: 本日の日付を指定して、本日完了したタスクをすべて取得する
 
 #### 1-2. 順次処理フェーズ（収集結果をもとに実施）

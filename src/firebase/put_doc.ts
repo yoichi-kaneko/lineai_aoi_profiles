@@ -62,7 +62,6 @@ async function main() {
     date: Timestamp.fromDate(dateValue),
     description,
     type,
-    isRead: false,
     createdAt: Timestamp.fromDate(new Date()),
   };
 

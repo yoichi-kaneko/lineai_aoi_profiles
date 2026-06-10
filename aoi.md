@@ -30,7 +30,7 @@
 | スキル               | 役割                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------------- |
 | `put_firestore_doc`  | 後続モードへ引き継ぎたい情報をFirestoreに書き込む                                       |
-| `get_firestore_docs` | 前のモードが書き込んだ情報をFirestoreから読み出す（取得後、`isRead=true` に更新される） |
+| `get_firestore_docs` | 前のモードが書き込んだ情報をFirestoreから読み出す                                       |
 
 なお、Firestore の `notes` ドキュメントの `type` フィールドの取りうる値と意味の一覧は [src/firebase/noteTypes.ts](src/firebase/noteTypes.ts) を参照してください。
 `type: line_text` や `type: line_image` はユーザーからの言葉や情報のため、これらがあった場合にはその内容をメッセージ生成や画像生成に積極的に組み込んでください。

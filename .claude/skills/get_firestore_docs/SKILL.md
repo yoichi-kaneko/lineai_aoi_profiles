@@ -1,6 +1,6 @@
 ---
 name: get_firestore_docs
-description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得し、isRead=trueに更新して返す。
+description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得して返す。
 ---
 
 # get_firestore_docs
@@ -12,7 +12,7 @@ description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一�
 - **コレクション**: `notes`
 - **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用
 - **引数**: `dateFrom`（YYYY-MM-DD）と `dateTo`（YYYY-MM-DD）の2つ
-- **動作**: `dateFrom` の0:00:00 〜 `dateTo` の23:59:59 の範囲に一致するドキュメントを全件取得し、取得後に `isRead: true` へ更新する
+- **動作**: `dateFrom` の0:00:00 〜 `dateTo` の23:59:59.999 の範囲に一致するドキュメントを全件取得する
 
 ## ドキュメント構造
 
@@ -23,7 +23,6 @@ description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一�
 | date        | Timestamp | ドキュメントの日付             |
 | description | string    | 説明文                       |
 | type        | string    | 上記 `noteTypes.ts` の定義に従う |
-| isRead      | boolean   | 既読フラグ（取得後 `true` に更新）|
 | createdAt   | Timestamp | 登録日時                      |
 
 ## 事前準備

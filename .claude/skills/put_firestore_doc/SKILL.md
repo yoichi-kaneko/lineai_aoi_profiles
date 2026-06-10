@@ -1,6 +1,6 @@
 ---
 name: put_firestore_doc
-description: Firestoreのnotesにdocを追加する。引数は日付(YYYY-MM-DD)・説明文・任意のtype（許可値・省略時既定はsrc/firebase/noteTypes.tsのNOTE_TYPE参照）。未定義のtypeはCLIがエラー。isRead=false固定。
+description: Firestoreのnotesにdocを追加する。引数は日付(YYYY-MM-DD)・説明文・任意のtype（許可値・省略時既定はsrc/firebase/noteTypes.tsのNOTE_TYPE参照）。未定義のtypeはCLIがエラー。
 ---
 
 # put_firestore_doc
@@ -24,7 +24,6 @@ LINE 送信失敗時の退避では `line_undelivered` を指定します。手�
 | date        | Timestamp | 引数の日付（Date型）           |
 | description | string    | 引数の説明文                  |
 | type        | string    | 第3引数（省略時は `from_aoi`）。許可値は `noteTypes.ts` |
-| isRead      | boolean   | `false` 固定（作成時）        |
 | createdAt   | Timestamp | 登録日時（秒まで）             |
 
 ## 事前準備

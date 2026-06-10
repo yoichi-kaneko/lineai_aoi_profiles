@@ -68,7 +68,6 @@ functions.http("receiveLineMessage", async (req, res) => {
         date: Timestamp.fromDate(dateValue),
         description: message.text,
         type: NOTE_TYPE.LINE_TEXT,
-        isRead: false,
         createdAt: Timestamp.fromDate(new Date()),
       });
 
@@ -93,7 +92,6 @@ functions.http("receiveLineMessage", async (req, res) => {
         date: Timestamp.fromDate(dateValue),
         description: JSON.stringify({ id: message.id }),
         type: NOTE_TYPE.LINE_IMAGE,
-        isRead: false,
         createdAt: Timestamp.fromDate(new Date()),
       });
     } else {

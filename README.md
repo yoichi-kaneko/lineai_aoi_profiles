@@ -67,7 +67,7 @@ cp .env.example .env
 
 - 複数のサードパーティサービス（Google Calendar / Todoist / Swarm / YAMAP / OpenWeatherMap など）を横断的に集約する
 - 集約した情報を、人格（ペルソナ）を持ったエージェントが解釈し、メッセージ・画像・楽曲として還元する
-- Firestore を用いてモード間で情報を引き継ぎ、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
+- Firestore を用いてモード間で情報を引き継ぎ、前日の夜から翌朝への日跨ぎ引き継ぎ（`night_handover`）を含め、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
 - 上記のプロセス全体を、自律的なプロンプトフローとして実行する
 
 ## 5. ファイル構成について
@@ -119,9 +119,9 @@ lineai_aoi_profiles/
 
 | モード名 | 入力トリガー形式 | 主な役割 |
 |---|---|---|
-| 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
+| 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 前日の振り返り（`night_handover`）、朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
 | 望（のぞみ） | `daily message (望): YYYY-MM-DD` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
-| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成する |
+| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成し、翌朝の暁へ `night_handover` で引き継ぐ |
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
@@ -217,7 +217,7 @@ lineai_aoi_profiles/
 | 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
 | スキル | `get_firestore_docs` / `put_firestore_doc` |
-| `type` 定義 | `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする |
+| `type` 定義 | `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`） |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する |

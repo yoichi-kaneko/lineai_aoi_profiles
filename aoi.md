@@ -34,7 +34,7 @@
 
 なお、Firestore の `notes` ドキュメントの `type` フィールドの取りうる値と意味の一覧は [src/firebase/noteTypes.ts](src/firebase/noteTypes.ts) を参照してください。
 `type: line_text` や `type: line_image` はユーザーからの言葉や情報のため、これらがあった場合にはその内容をメッセージ生成や画像生成に積極的に組み込んでください。
-`type: line_undelivered` は LINE 送信に失敗し Firestore に退避した碧衣発の本文（および必要ならメディア URL）です。後続モードでは、ユーザーに届くはずだった連絡として内容を把握し、必要に応じて報告に活かしてください（`from_aoi` の引き継ぎ要約とは別物です）。
+`type: line_undelivered` は LINE 送信に失敗し Firestore に退避した碧衣発の本文（および必要ならメディア URL）です。後続モードでは、ユーザーに届くはずだった連絡として内容を把握してください。**再送は行わず**、届かなかった内容の要旨を当該モードの報告に自然に織り込んでください（`from_aoi` の引き継ぎ要約とは別物です）。
 
 ### 受け渡しの流れ
 
@@ -42,23 +42,33 @@
 暁モード（morning）
   └─ put_firestore_doc ──→ Firestore
        ・天気予報の概要（取得地点・当日の天候傾向）
+       ・登山予定の分析結果（対象日・山名・計画書URLの有無）
        ・任意：午後・夜に伝えたいトピック
 
+門灯モード（up_mountain）  ※登山日のみ・入山直前に実行
+  └─ put_firestore_doc ──→ Firestore（type: up_mountain）
+       ・入山連絡の旨、山名・コース・下山予定日
+       ・任意：位置情報URLの有無
+
 帰灯モード（off_mountain）  ※登山日のみ実行。実行タイミングは下山時刻に依存し、望モードの前後いずれにもなりうる
-  ├─ get_firestore_docs ──→ 入山日〜下山日のFirestore記録（山行中のLINEテキスト・画像など）を受け取る
+  ├─ get_firestore_docs ──→ 入山日〜下山日のFirestore記録（up_mountain・山行中のLINEテキスト・画像など）を受け取る
   └─ put_firestore_doc ──→ Firestore
        ・下山報告の旨、山名・コースの概要
        ・山行中の記録から読み取れた印象（天候・景観など）
 
 望モード（noon）
-  ├─ get_firestore_docs ──→ 暁・帰灯（先行実行時）からの情報を受け取り、報告内容に組み込む
+  ├─ get_firestore_docs ──→ 暁・門灯・帰灯（先行実行時）からの情報を受け取り、報告内容に組み込む
   └─ put_firestore_doc ──→ Firestore（任意）
-       ・小夜に伝えたいトピックがある場合のみ
+       ・状況判定ラベル＋特記1行（小夜に伝えるべき内容がある場合のみ）
 
 小夜モード（night）
-  └─ get_firestore_docs ──→ 暁・望・帰灯からの情報を受け取る
+  └─ get_firestore_docs ──→ 暁・望・門灯・帰灯からの情報を受け取る
        ・天気予報情報 → ステップ2の画像生成で情景の参考にする
+       ・望の任意記録 → 状況判定ラベルと特記事項の参考にする
        ・その他 → 報告内容に組み込む
+
+調べモード（song）  ※週1回・独立実行
+  └─ get_firestore_docs ──→ 過去7日分のFirestore記録を参照（楽曲のインスピレーション用）
 ```
 
 この仕組みにより、朝に収集した天気予報や気づきを、午後・夜のメッセージ生成まで一貫して活かすことができます。

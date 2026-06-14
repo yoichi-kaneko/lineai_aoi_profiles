@@ -159,7 +159,7 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 ## 注意事項
 
 - `.env` はGit管理外（`.gitignore`に含まれる）。直接編集・コミットしないこと
-- `tmp/` は一時ファイル置き場。コミット不要
+- `tmp/` は各処理（モード）内でのみ使う揮発的な一時ファイル置き場。コミット不要。処理開始時に前回の残骸があっても内容を確認・参照せず、固定名ファイルは上書きして使う（本番フローでは `send_daily_line.sh` が起動ごとに `refresh_tmp.sh` で掃除する）
 - `send_line_*`（`send_line_text` / `send_line_image` / `send_line_audio`）はメッセージ本文を引数で直接渡さず、`tmp/line_message.txt` に保存してそのパスを引数に渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要（各スキルの SKILL.md 参照）
 - `generate_mureka_lyrics` / `generate_mureka_song` も同様に、複数行テキストを引数で直接渡さず `tmp/` 配下の一時ファイル経由で受け渡す方式（`tmp/mureka_lyrics_prompt.txt`、`tmp/mureka_song_lyrics.txt`、`tmp/mureka_song_prompt.txt`）。各スキルの SKILL.md 参照
 - 画像生成スキルは `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` に設定された参照画像を自動添付する

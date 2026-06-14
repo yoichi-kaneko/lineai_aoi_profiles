@@ -42,6 +42,14 @@ else
   TRIGGER_PROMPT="daily message (暁): ${TARGET_DATE}"
 fi
 
+# 3-2. モードに応じて effort レベルを決定
+# 画像・楽曲などファイル生成を伴うモード（小夜・帰灯・調べ）は xhigh、それ以外は medium に抑える
+if [ "$MODE" = "night" ] || [ "$MODE" = "off_mountain" ] || [ "$MODE" = "song" ]; then
+  EFFORT="xhigh"
+else
+  EFFORT="medium"
+fi
+
 # 4. morning / noon / night は run_logs を確認し、実行済みならスキップ
 if [ "$MODE" = "morning" ] || [ "$MODE" = "noon" ] || [ "$MODE" = "night" ]; then
   HAS_LOG_OUTPUT=$(pnpm exec tsx src/firebase/has_log.ts "$TARGET_DATE" "$MODE")
@@ -71,8 +79,13 @@ fi
 EXIT_CODE=0
 
 for i in $(seq 1 $MAX_RETRIES); do
+  # 各試行の冒頭で tmp/ を掃除し、前プロセス・前試行の残骸を残さない
+  # （碧衣が古い一時ファイルを検知・内容確認する無駄を防ぐ）
+  bash refresh_tmp.sh >&2
+
   timeout $TIMEOUT_SEC /home/ec2-user/.local/bin/claude \
     -p "$TRIGGER_PROMPT" \
+    --effort "$EFFORT" \
     --allowed-tools "$ALLOWED_TOOLS_STR" \
     --permission-mode bypassPermissions
   EXIT_CODE=$?

@@ -75,7 +75,7 @@
 
 ステップ1での情報収集・分析を踏まえ、本日の情景を表現した碧衣の画像を生成します（LINE送信はステップ3で画像と報告文をまとめて行います）。
 
-1. **ガイドラインの確認**: [assets/image_guideline.md](../assets/image_guideline.md) を読み、プロンプト生成のガイドラインとサンプルを把握してください。
+1. **ガイドラインの確認**: [assets/image_guideline.md](../assets/image_guideline.md) を読み、プロンプト生成のフレームワーク（核／彩りの2層・構成5セクション）を把握してください。記述粒度に迷うときや、描くシーンに近い手本が欲しいときは [assets/image_guideline_samples.md](../assets/image_guideline_samples.md)（6パターンの詳細な記述例）も参照してください（全文を読む必要はなく、必要なサンプルだけ拾えば十分です）。
 
 2. **プロンプトと添付画像ファイルリストの生成**: ガイドラインの構成フレームワークに従い、ステップ1で収集・分析した情報をもとに、**画像生成プロンプト本文** と **`generate_gpt_image` に渡す添付画像ファイルリスト（カンマ区切り）** の2点をセットで生成してください。
    - **時間配分について**: 添付画像の選定・Read・内容解析を経てプロンプトを練る工程となるため、このステップは時間がかかって構いません。性急に省略せず、画像内容を踏まえた構成を優先してください。
@@ -114,17 +114,14 @@
 ### ステップ4：画像生成ログの記録（image_logs）
 **実行条件**: ステップ2で画像を生成した場合のみ実施してください（スキップした場合はこのステップも省略）。
 
-生成した1枚の情報を、Firestoreの専用コレクション `image_logs` に1ドキュメント記録します。これは構図・情景の偏り（似た画像が続いていないか）を主観でなく集計で検知するための客観的な土台で、後日のレビュー（`review_image_feedback`）でのみ参照されます。日々の各モードのコンテキストには流入しません。
+生成した1枚を専用コレクション `image_logs` に1ドキュメント記録します。手順・スキーマ・記録コマンド（`--collection image_logs` と `type=image_log` の指定、`type` 省略は CLI エラー）は **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**で記録してください。本モードでの値は次のとおり：
 
-- スキーマ・記録コマンドは **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**で記録してください。記録時は **`--collection image_logs` と `type=image_log`（第2位置引数）を必ず併せて指定**してください（`type` を省略すると CLI がエラーになります）。
-- 記録する値は、ステップ1・2で決定した内容をそのまま反映します。
-  - `mode`: `night`
-  - `cloudinary_url`: ステップ3の `send_line_image` アップロード出力の `originalUrl`
-  - `shot_size` / `camera_direction`: ステップ2で `random_choice` により抽選した構図軸（スキーマの正規化値で記録）
-  - `outfit`: 採用した衣装（outfit_a〜d）
-  - `scene_category` / `time_of_day` / `companions` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
-- `date` は本日の日付（YYYY-MM-DD）を指定してください。
-- LINE送信自体が失敗していても、画像のアップロード（`originalUrl` 取得）が成功していれば記録してください。アップロードにも失敗してURLが得られなかった場合は、このステップをスキップして構いません。
+- `mode`: `night` ／ `date`: 本日（YYYY-MM-DD）
+- `cloudinary_url`: ステップ3の `send_line_image` アップロード出力の `originalUrl`
+- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
+- `outfit`: 採用した衣装（outfit_a〜d）
+- `scene_category` / `time_of_day` / `companions` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
+- LINE送信が失敗していても `originalUrl` が取得できていれば記録する。アップロードも失敗してURLが無い場合はスキップしてよい。
 
 ### ステップ5：翌朝への引き継ぎ記録
 ステップ3の報告送信の後（LINE送信が失敗した場合でも）、**`put_firestore_doc` スキル**を使用し、翌朝の暁モードへ引き継ぐ情報を記録してください。

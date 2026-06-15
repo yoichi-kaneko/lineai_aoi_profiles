@@ -19,7 +19,8 @@ lineai_aoi_profiles/
 ├── .env                    # 環境変数（Git管理外）
 ├── .env.example            # 環境変数テンプレート
 ├── assets/
-│   ├── image_guideline.md  # 画像生成ガイドライン（核／彩りの2層・衣装・プロンプト定義）
+│   ├── image_guideline.md         # 画像生成ガイドライン本体（核／彩りの2層・衣装・プロンプト構成フレームワーク）
+│   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（6パターン・オンデマンド参照）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
 │   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
 ├── modes/
@@ -98,7 +99,8 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `modes/morning.md` | 暁モードの実行手順・判断ロジック |
 | `modes/noon.md` | 望モードの実行手順・判断ロジック |
 | `modes/night.md` | 小夜モードの実行手順・判断ロジック |
-| `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト |
+| `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト・構成フレームワーク本体 |
+| `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（6パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |
 
 ### 2. スキルの実装

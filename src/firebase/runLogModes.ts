@@ -36,8 +36,8 @@ function getTokyoTimeInMinutes(now: Date): number {
  * 該当する時間帯がない場合は null を返す。
  *
  * - 03:00-08:59 → morning
- * - 12:00-13:59 → noon
- * - 20:00-22:59 → night
+ * - 12:00-14:59 → noon
+ * - 20:00-23:59 → night
  */
 export function resolveDailyRunLogModeFromTokyoTime(now: Date = new Date()): RunLogMode | null {
   const timeInMinutes = getTokyoTimeInMinutes(now);
@@ -45,10 +45,10 @@ export function resolveDailyRunLogModeFromTokyoTime(now: Date = new Date()): Run
   if (timeInMinutes >= 3 * 60 && timeInMinutes < 9 * 60) {
     return RUN_LOG_MODE.MORNING;
   }
-  if (timeInMinutes >= 12 * 60 && timeInMinutes < 14 * 60) {
+  if (timeInMinutes >= 12 * 60 && timeInMinutes < 15 * 60) {
     return RUN_LOG_MODE.NOON;
   }
-  if (timeInMinutes >= 20 * 60 && timeInMinutes < 23 * 60) {
+  if (timeInMinutes >= 20 * 60 && timeInMinutes < 24 * 60) {
     return RUN_LOG_MODE.NIGHT;
   }
 

@@ -19,7 +19,7 @@ lineai_aoi_profiles/
 ├── .env                    # 環境変数（Git管理外）
 ├── .env.example            # 環境変数テンプレート
 ├── assets/
-│   ├── image_guideline.md  # 画像生成ガイドライン（衣装・プロンプト定義）
+│   ├── image_guideline.md  # 画像生成ガイドライン（核／彩りの2層・衣装・プロンプト定義）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
 │   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
 ├── modes/
@@ -28,7 +28,7 @@ lineai_aoi_profiles/
 │   └── night.md            # 小夜モード定義
 ├── src/                    # 各スキルの処理実装
 │   ├── cloudinary/         # Cloudinary 画像・音声アップロード
-│   ├── firebase/           # Firebase / Firestore アクセス（run_logs を含む）
+│   ├── firebase/           # Firebase / Firestore アクセス（run_logs・--collection で専用コレクションも）
 │   ├── gemini/             # Google Gemini 画像生成
 │   ├── google_calendar/    # Google Calendar 予定取得・OAuth認証
 │   ├── google_drive/       # Google Drive ファイルダウンロード・OAuth認証
@@ -47,6 +47,11 @@ lineai_aoi_profiles/
 │   │   ├── aoi_user_profile.md # ユーザーに関する基本情報
 │   │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
 │   │   └── aoi_constraints.md  # 注意事項（口調など）
+│   ├── docs/               # 補助ドキュメント（Firestore スキーマ・退避運用など）
+│   │   ├── image_log_schema.md       # image_logs（柱A）のスキーマ・記録コマンド
+│   │   ├── image_feedback_schema.md  # image_feedback（柱B）のスキーマ・パース仕様
+│   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
+│   │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
 │       ├── download_google_drive_file/
 │       ├── download_image/
@@ -69,6 +74,7 @@ lineai_aoi_profiles/
 │       ├── put_firestore_doc/
 │       ├── put_todoist_task/
 │       ├── random_choice/
+│       ├── review_image_feedback/
 │       ├── run_aoi_daily/
 │       ├── send_line_audio/
 │       ├── send_line_image/
@@ -165,3 +171,4 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 - `put_firestore_doc` も同様に、本文（`description`）を引数で直接渡さず `tmp/firestore_doc.txt` に保存して `--description-file` で渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要（SKILL.md 参照）
 - `generate_gpt_image` も同様に、プロンプトを引数で直接渡さず `tmp/gpt_image_prompt.txt` に保存し、そのパスを第一引数に渡す方式（第二引数は参考画像ファイル名）。改行はそのまま改行として書けばよく、`\n` への置換は不要（SKILL.md 参照）
 - 画像生成スキルは `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` に設定された参照画像を自動添付する
+- 画像生成フィードバック機構（issue #43）の `image_logs` / `image_feedback` / `image_feedback_reviews` は、`notes` とは別の**専用コレクション**に隔離されている。`get_firestore_docs` / `put_firestore_doc` の `--collection` オプションで読み書きし（デフォルトは `notes` で後方互換）、`notes` 以外では `NOTE_TYPE` 検証をバイパスして `type` をコレクション内識別用の任意値（`image_log` / `image_feedback` / `review_marker`）として扱う。日々の各モードのコンテキストには流入させず、`review_image_feedback` スキル（柱C）でのみ参照する。スキーマは [`.claude/docs/image_log_schema.md`](docs/image_log_schema.md) / [`image_feedback_schema.md`](docs/image_feedback_schema.md) を参照

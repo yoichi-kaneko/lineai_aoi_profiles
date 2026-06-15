@@ -53,8 +53,16 @@ function getModel(): string {
 
 /** プロンプトを保存したファイル（プロジェクトルート相対）を読み込んで返す */
 function readPromptFile(filePath: string): string {
+  // プロジェクトルート外への参照（絶対パスや ../ による脱出）を拒否する
+  const resolvedPath = resolve(PROJECT_ROOT, filePath);
+  if (resolvedPath !== PROJECT_ROOT && !resolvedPath.startsWith(PROJECT_ROOT + path.sep)) {
+    console.error(
+      `プロンプトファイルはプロジェクトルート内のパスを指定してください: ${filePath}`,
+    );
+    process.exit(1);
+  }
   try {
-    return readFileSync(resolve(PROJECT_ROOT, filePath), "utf-8");
+    return readFileSync(resolvedPath, "utf-8");
   } catch (error) {
     console.error(
       `プロンプトファイルを読み込めませんでした: ${filePath}`,

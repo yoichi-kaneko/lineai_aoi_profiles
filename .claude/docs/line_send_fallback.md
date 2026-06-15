@@ -26,7 +26,7 @@
 
 1行目から次のメタデータ行を付け、その直後に空行を挟んで本文またはメディア情報を書きます。
 
-```
+```text
 [destination:user]
 [media:text]
 
@@ -49,7 +49,7 @@
 
 `put_firestore_doc` スキルと同様、本文（メタデータ行＋メディア情報＋本文）を **`tmp/firestore_doc.txt` に Write ツールで保存**してから、`--description-file` で渡します。改行はそのまま改行として書けばよく、`\n` への置換は不要です。
 
-```
+```text
 [destination:user]
 [media:text]
 

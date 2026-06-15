@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { resolve } from "path";
+import { resolve, sep } from "path";
 import { fileURLToPath } from "url";
 
 // プロジェクトルートの .env を読み込む
@@ -80,8 +80,16 @@ async function main() {
 
   if (descriptionFile) {
     typeArg = positionals[1];
+    // プロジェクトルート外への参照（絶対パスや ../ による脱出）を拒否する
+    const resolvedPath = resolve(projectRoot, descriptionFile);
+    if (resolvedPath !== projectRoot && !resolvedPath.startsWith(projectRoot + sep)) {
+      console.error(
+        `--description-file はプロジェクトルート内のパスを指定してください: ${descriptionFile}`
+      );
+      process.exit(1);
+    }
     try {
-      description = readFileSync(resolve(projectRoot, descriptionFile), "utf-8");
+      description = readFileSync(resolvedPath, "utf-8");
     } catch (error) {
       console.error(
         `--description-file の読み込みに失敗しました: ${descriptionFile}`,

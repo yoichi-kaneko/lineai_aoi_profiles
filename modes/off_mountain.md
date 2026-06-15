@@ -115,7 +115,7 @@
 ### ステップ5：画像生成ログの記録（image_logs）
 ステップ2で生成した1枚の情報を、Firestoreの専用コレクション `image_logs` に1ドキュメント記録します。これは構図・情景の偏り（似た画像が続いていないか）を主観でなく集計で検知するための客観的な土台で、後日のレビュー（`review_image_feedback`）でのみ参照されます。日々の各モードのコンテキストには流入しません。
 
-- スキーマ・記録コマンドは **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**（`--collection image_logs`）で記録してください。
+- スキーマ・記録コマンドは **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**で記録してください。記録時は **`--collection image_logs` と `type=image_log`（第2位置引数）を必ず併せて指定**してください（`type` を省略すると CLI がエラーになります）。
 - このモードは家族グループ・ユーザーへ**同じ画像**を送るため、ログは**1件のみ**記録します。`cloudinary_url` にはステップ3／4の `send_line_image` アップロード出力の `originalUrl` を入れてください（同一画像のため宛先ごとに分ける必要はありません）。
 - 記録する値は、ステップ2で決定した内容をそのまま反映します。
   - `mode`: `off_mountain`

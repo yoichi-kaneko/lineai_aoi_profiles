@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   writeFileSync,
+  readFileSync,
   createReadStream,
 } from "fs";
 import path from "path";
@@ -48,6 +49,19 @@ function getModel(): string {
     process.exit(1);
   }
   return model;
+}
+
+/** プロンプトを保存したファイル（プロジェクトルート相対）を読み込んで返す */
+function readPromptFile(filePath: string): string {
+  try {
+    return readFileSync(resolve(PROJECT_ROOT, filePath), "utf-8");
+  } catch (error) {
+    console.error(
+      `プロンプトファイルを読み込めませんでした: ${filePath}`,
+      error instanceof Error ? error.message : String(error),
+    );
+    process.exit(1);
+  }
 }
 
 function parseReferenceFileNames(rawFileNames: string): string[] {
@@ -143,21 +157,21 @@ function saveGeneratedImages(
 }
 
 async function main() {
-  const rawPrompt = process.argv[2];
+  const promptFilePath = process.argv[2];
   const rawFileNames = process.argv[3];
 
-  if (!rawPrompt || !rawFileNames) {
+  if (!promptFilePath || !rawFileNames) {
     console.error(
-      "使用方法: npx tsx src/openai/generate_image.ts <プロンプト> <参照画像ファイル名[,参照画像ファイル名...]>",
+      "使用方法: npx tsx src/openai/generate_image.ts <プロンプトファイルパス> <参照画像ファイル名[,参照画像ファイル名...]>",
     );
     console.error(
-      '例: npx tsx src/openai/generate_image.ts "青い空と白い雲" "reference.png,style.webp"',
+      '例: npx tsx src/openai/generate_image.ts "tmp/gpt_image_prompt.txt" "reference.png,style.webp"',
     );
     process.exit(1);
   }
 
-  // リテラルの \n を実際の改行文字に変換する（他スキルと同様の受け渡し方式）
-  const prompt = rawPrompt.replace(/\\n/g, "\n");
+  // プロンプトは一時ファイル経由で受け渡す（他スキルと同様。改行はそのまま使われる）
+  const prompt = readPromptFile(promptFilePath);
 
   const apiKey = getApiKey();
   const modelName = getModel();

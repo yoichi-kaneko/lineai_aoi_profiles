@@ -1,18 +1,18 @@
 ---
 name: get_firestore_docs
-description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得して返す。
+description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一致するFirestoreのnotesコレクションのドキュメントを取得して返す。--collectionで専用コレクション（image_logs等）も取得可能。
 ---
 
 # get_firestore_docs
 
-環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションから指定日付範囲のドキュメントを取得するスタンドアロン CLI スクリプトです。
+環境変数 `FIREBASE_CONFIG_PATH` に設定されたサービスアカウントを使って、Firestoreの `notes` コレクションから指定日付範囲のドキュメントを取得するスタンドアロン CLI スクリプトです。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `image_feedback` / `image_feedback_reviews` など）も取得できます。
 
 ## 概要
 
-- **コレクション**: `notes`
+- **コレクション**: 既定は `notes`（`--collection <name>` で変更可能）
 - **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用
-- **引数**: `dateFrom`（YYYY-MM-DD）と `dateTo`（YYYY-MM-DD）の2つ
-- **動作**: `dateFrom` の0:00:00 〜 `dateTo` の23:59:59.999 の範囲に一致するドキュメントを全件取得する
+- **引数**: `dateFrom`（YYYY-MM-DD）と `dateTo`（YYYY-MM-DD）の2つ。任意で `--collection <name>`
+- **動作**: `dateFrom` の0:00:00 〜 `dateTo` の23:59:59.999 の範囲（`date` フィールド）に一致するドキュメントを全件取得する
 
 ## ドキュメント構造
 
@@ -48,6 +48,13 @@ cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/firebase/get_docs.ts "2026-03-21" "2026-03-21"
 ```
 
+専用コレクションを対象にする場合は `--collection` を付けます。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+pnpm exec tsx src/firebase/get_docs.ts "2026-06-01" "2026-06-21" --collection image_logs
+```
+
 ## Claudeへの指示
 
 以下のコマンドをプロジェクトルートから実行してください。
@@ -59,6 +66,7 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}"
 
 ARGUMENTS として渡された `dateFrom` と `dateTo`（どちらも YYYY-MM-DD形式）をそのまま引数に使用してください。
 同日を指定する場合は `dateFrom` と `dateTo` に同じ日付を渡してください。
+`notes` 以外のコレクション（`image_logs` など）を取得したい場合は、末尾に `--collection {コレクション名}` を付けてください。
 
 コマンドが成功したら、取得したドキュメントの一覧（ID・内容）をユーザーに報告してください。
 一致するドキュメントがなかった場合もその旨を報告してください。

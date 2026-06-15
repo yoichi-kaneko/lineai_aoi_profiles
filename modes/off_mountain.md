@@ -60,7 +60,7 @@
 ### ステップ2：画像の生成
 登山の情景を表現した碧衣の画像を生成します（LINE送信はステップ3・4で、宛先ごとに画像と報告文をまとめて行います）。
 
-1. **ガイドラインの確認**: [assets/image_guideline.md](../assets/image_guideline.md) を読み、プロンプト生成のガイドラインとサンプルを把握してください。
+1. **ガイドラインの確認**: [assets/image_guideline.md](../assets/image_guideline.md) を読み、プロンプト生成のフレームワーク（核／彩りの2層・構成5セクション）を把握してください。記述粒度に迷うときや手本が欲しいときは [assets/image_guideline_samples.md](../assets/image_guideline_samples.md) も参照してください。本モードは登山シーンが基本のため、特に**サンプル1（登山シーン）**が参考になります（全文を読む必要はなく、必要なサンプルだけ拾えば十分です）。
 
 2. **プロンプトと添付画像ファイルリストの生成**: このモードでは**登山中・下山直後のシーン**を描写することを基本とします。ガイドラインの構成フレームワークに従い、ステップ1で収集・分析した情報をもとに、**画像生成プロンプト本文** と **`generate_gpt_image` に渡す添付画像ファイルリスト（カンマ区切り）** の2点をセットで生成してください。
    - **時間配分について**: 添付画像の選定・Read・内容解析を経てプロンプトを練る工程となるため、このステップは時間がかかって構いません。性急に省略せず、画像内容を踏まえた構成を優先してください。
@@ -112,7 +112,18 @@
 
 ユーザー宛て送信も [`send_line_image` スキル](../.claude/skills/send_line_image/SKILL.md) の SKILL.md に従う。
 
-### ステップ5：Firestoreへの記録
+### ステップ5：画像生成ログの記録（image_logs）
+ステップ2で生成した1枚を専用コレクション `image_logs` に1ドキュメント記録します。手順・スキーマ・記録コマンド（`--collection image_logs` と `type=image_log` の指定、`type` 省略は CLI エラー）は **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**で記録してください。本モードは家族グループ・ユーザーへ**同じ画像**を送るため、ログは**1件のみ**記録します。本モードでの値は次のとおり：
+
+- `mode`: `off_mountain` ／ `date`: 本日（YYYY-MM-DD）
+- `cloudinary_url`: ステップ3／4の `send_line_image` アップロード出力の `originalUrl`（同一画像のため宛先ごとに分けない）
+- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
+- `outfit`: 採用した衣装（登山シーンが基本のため通常は `outfit_b`）
+- `scene_category`: 山行のため通常は `hike`
+- `time_of_day` / `companions` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
+- LINE送信が失敗していても `originalUrl` が取得できていれば記録する。アップロードも失敗してURLが無い場合はスキップしてよい。
+
+### ステップ6：Firestoreへの記録
 報告内容の送信後、**`put_firestore_doc` スキル**を使用し、午後・夜のモードへ引き継ぐ情報を記録してください。
 
 - **日付**: 本日の日付（YYYY-MM-DD）

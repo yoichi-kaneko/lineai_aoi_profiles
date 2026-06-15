@@ -20,13 +20,52 @@ function getFirebaseConfigPath(): string {
   return configPath;
 }
 
+/**
+ * `--key value` / `--key=value` 形式のオプションを抽出し、残りを位置引数として返す。
+ */
+function parseArgs(argv: string[]): { positionals: string[]; flags: Record<string, string> } {
+  const positionals: string[] = [];
+  const flags: Record<string, string> = {};
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg.startsWith("--")) {
+      const eq = arg.indexOf("=");
+      if (eq !== -1) {
+        flags[arg.slice(2, eq)] = arg.slice(eq + 1);
+      } else {
+        const key = arg.slice(2);
+        const next = argv[i + 1];
+        if (next !== undefined && !next.startsWith("--")) {
+          flags[key] = next;
+          i++;
+        } else {
+          flags[key] = "";
+        }
+      }
+    } else {
+      positionals.push(arg);
+    }
+  }
+
+  return { positionals, flags };
+}
+
 async function main() {
-  const dateFrom = process.argv[2];
-  const dateTo = process.argv[3];
+  const { positionals, flags } = parseArgs(process.argv.slice(2));
+
+  const collection = flags["collection"] || "notes";
+  const dateFrom = positionals[0];
+  const dateTo = positionals[1];
 
   if (!dateFrom || !dateTo) {
-    console.error("使用方法: npx tsx src/firebase/get_docs.ts <dateFrom(YYYY-MM-DD)> <dateTo(YYYY-MM-DD)>");
+    console.error(
+      "使用方法: npx tsx src/firebase/get_docs.ts <dateFrom(YYYY-MM-DD)> <dateTo(YYYY-MM-DD)> [--collection <name>]"
+    );
     console.error('例: npx tsx src/firebase/get_docs.ts "2026-03-21" "2026-03-21"');
+    console.error(
+      '例: npx tsx src/firebase/get_docs.ts "2026-06-01" "2026-06-21" --collection image_logs'
+    );
     process.exit(1);
   }
 
@@ -50,20 +89,22 @@ async function main() {
   const endDate = new Date(toYear, toMonth - 1, toDay, 23, 59, 59, 999);
 
   const snapshot = await db
-    .collection("notes")
+    .collection(collection)
     .where("date", ">=", Timestamp.fromDate(startDate))
     .where("date", "<=", Timestamp.fromDate(endDate))
     .get();
 
   if (snapshot.empty) {
-    console.log(`dateFrom=${dateFrom}, dateTo=${dateTo} に一致するドキュメントはありませんでした。`);
+    console.log(
+      `dateFrom=${dateFrom}, dateTo=${dateTo}（コレクション: ${collection}）に一致するドキュメントはありませんでした。`
+    );
     return;
   }
 
   const results = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   console.log(JSON.stringify(results, null, 2));
-  console.log(`\n${results.length} 件取得しました。`);
+  console.log(`\nコレクション: ${collection} から ${results.length} 件取得しました。`);
 }
 
 main().catch((error) => {

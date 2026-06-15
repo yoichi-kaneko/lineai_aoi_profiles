@@ -110,6 +110,11 @@ lineai_aoi_profiles/
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
+    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用など）
+    │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ
+    │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
+    │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
+    │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 
@@ -121,9 +126,9 @@ lineai_aoi_profiles/
 |---|---|---|
 | 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 前日の振り返り（`night_handover`）、朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
 | 望（のぞみ） | `daily message (望): YYYY-MM-DD` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
-| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成し、翌朝の暁へ `night_handover` で引き継ぐ |
+| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成し、翌朝の暁へ `night_handover` で引き継ぐ。画像を生成した場合は構図・情景を `image_logs` に1件記録する |
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
-| 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する |
+| 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
@@ -216,13 +221,26 @@ lineai_aoi_profiles/
 | サービス名 | Firebase / Firestore |
 | 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
-| スキル | `get_firestore_docs` / `put_firestore_doc` |
-| `type` 定義 | `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`） |
-| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する |
+| スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） |
+| `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` 等）の `type` はコレクション内識別用の別系統 |
+| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
-| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
+| `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
+| `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
+| `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が2〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
+
+#### 画像生成フィードバック・サイクル（image_logs / image_feedback）
+
+碧衣の画像生成（小夜・帰灯）を継続的に改善するため、次の3本柱で「生成ログの蓄積 → フィードバック収集 → 定期レビュー」を回します。いずれも専用コレクションに隔離し、日々のモードのコンテキストへは流入させません（混入すると小夜モードがフィードバック文を「ユーザーの言葉」として誤取込する副作用が出るため）。
+
+1. **柱A：`image_logs`** — 画像生成直後に構図・情景・衣装などを1件記録し、「似た構図が続いていないか」を主観でなく集計で測る客観的土台にする（[image_log_schema.md](.claude/docs/image_log_schema.md)）。
+2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
+3. **柱C：`review_image_feedback` スキル** — 2〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
+
+「安定した生成を維持したい」「ガイドラインに縛られず自由に生成したい」という相反する要望は、ガイドラインを**核（安定・変更は慎重）／彩り（意図的に多様化）**の2層に分けることで、別層の指摘として両立させます。
 
 ### AWS Systems Manager
 

@@ -18,7 +18,7 @@
 
 ## 本文の粒度
 
-- **テキスト**: LINE に送る予定だった本文と**同一**（改行は `\n` リテラルで `put_firestore_doc` に渡す）
+- **テキスト**: LINE に送る予定だった本文と**同一**（改行はそのまま。`put_firestore_doc` の作法どおり一時ファイル経由で渡す）
 - **画像+テキスト**: 添えるテキストは同一。Cloudinary の `originalUrl` / `previewUrl` も `description` に含める（アップロード済みの場合）
 - **音声+テキスト**: 添えるテキストは同一。Cloudinary の `url` と `duration` も `description` に含める（アップロード済みの場合）
 
@@ -26,7 +26,7 @@
 
 1行目から次のメタデータ行を付け、その直後に空行を挟んで本文またはメディア情報を書きます。
 
-```
+```text
 [destination:user]
 [media:text]
 
@@ -47,12 +47,22 @@
 
 ## put_firestore_doc の実行例
 
-```bash
-cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/firebase/put_doc.ts "{YYYY-MM-DD}" "[destination:user]\n[media:text]\n\n1行目\n2行目" "line_undelivered"
+`put_firestore_doc` スキルと同様、本文（メタデータ行＋メディア情報＋本文）を **`tmp/firestore_doc.txt` に Write ツールで保存**してから、`--description-file` で渡します。改行はそのまま改行として書けばよく、`\n` への置換は不要です。
+
+```text
+[destination:user]
+[media:text]
+
+1行目
+2行目
 ```
 
-複数行は `put_firestore_doc` スキルと同様、引数内で `\n` に置換して **コマンドを 1 行**に収めてください。
+```bash
+cd {プロジェクトルートの絶対パス}
+pnpm exec tsx src/firebase/put_doc.ts "{YYYY-MM-DD}" "line_undelivered" --description-file tmp/firestore_doc.txt
+```
+
+`both` で宛先ごとに 2 件退避する場合は、宛先ごとに `tmp/firestore_doc.txt` を上書きしてから 1 件ずつ実行してください。
 
 ## 報告
 

@@ -112,7 +112,21 @@
 
 ユーザー宛て送信も [`send_line_image` スキル](../.claude/skills/send_line_image/SKILL.md) の SKILL.md に従う。
 
-### ステップ5：Firestoreへの記録
+### ステップ5：画像生成ログの記録（image_logs）
+ステップ2で生成した1枚の情報を、Firestoreの専用コレクション `image_logs` に1ドキュメント記録します。これは構図・情景の偏り（似た画像が続いていないか）を主観でなく集計で検知するための客観的な土台で、後日のレビュー（`review_image_feedback`）でのみ参照されます。日々の各モードのコンテキストには流入しません。
+
+- スキーマ・記録コマンドは **[画像生成ログ（image_logs）スキーマ](../.claude/docs/image_log_schema.md)** に従い、**`put_firestore_doc` スキル**で記録してください。記録時は **`--collection image_logs` と `type=image_log`（第2位置引数）を必ず併せて指定**してください（`type` を省略すると CLI がエラーになります）。
+- このモードは家族グループ・ユーザーへ**同じ画像**を送るため、ログは**1件のみ**記録します。`cloudinary_url` にはステップ3／4の `send_line_image` アップロード出力の `originalUrl` を入れてください（同一画像のため宛先ごとに分ける必要はありません）。
+- 記録する値は、ステップ2で決定した内容をそのまま反映します。
+  - `mode`: `off_mountain`
+  - `shot_size` / `camera_direction`: ステップ2で `random_choice` により抽選した構図軸（スキーマの正規化値で記録）
+  - `outfit`: 採用した衣装（登山シーンが基本のため通常は `outfit_b`）
+  - `scene_category`: 山行のため通常は `hike`
+  - `time_of_day` / `companions` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
+- `date` は本日の日付（YYYY-MM-DD）を指定してください。
+- LINE送信自体が失敗していても、画像のアップロード（`originalUrl` 取得）が成功していれば記録してください。アップロードにも失敗してURLが得られなかった場合は、このステップをスキップして構いません。
+
+### ステップ6：Firestoreへの記録
 報告内容の送信後、**`put_firestore_doc` スキル**を使用し、午後・夜のモードへ引き継ぐ情報を記録してください。
 
 - **日付**: 本日の日付（YYYY-MM-DD）

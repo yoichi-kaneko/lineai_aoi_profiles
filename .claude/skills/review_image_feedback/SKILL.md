@@ -18,6 +18,7 @@ description: 2〜3週間サイクルで画像生成ログ（image_logs）とフ�
 ## 使うもの
 
 - 取得: **get_firestore_docs** スキル（`--collection` で専用コレクションを指定）
+- 画像の現物確認（任意）: **download_image** スキル（`image_logs` の `cloudinary_url` を `tmp/` に保存して内容を参照）
 - マーカー記録: **put_firestore_doc** スキル（`--collection image_feedback_reviews`）
 - 参照: [image_logs スキーマ](../../docs/image_log_schema.md) / [image_feedback スキーマ](../../docs/image_feedback_schema.md) / [画像生成ガイドライン](../../../assets/image_guideline.md)
 
@@ -52,6 +53,10 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
 ```
 
 - 各ドキュメントの `description` は JSON 文字列です。パースして構造化データとして扱ってください（スキーマは上記スキーマ docを参照）。
+- **実際の画像を見たいとき**: `image_logs` の `description.cloudinary_url`（[image_logs スキーマ](../../docs/image_log_schema.md)参照）には、生成・送信した画像の公開 URL が入っています。ラベル（`shot_size` などの正規化値）だけでは判断しづらい指摘（例：「背景が寂しい」「顔が前と違う」）を検証したいときは、**download_image** スキルでその URL を `tmp/` にダウンロードし、画像の中身を参照してください。認証不要の公開 URL なので、そのまま取得できます。なお偏り集計（ステップ3）は正規化ラベルだけで足りるため、現物確認は限られた枚数に絞って構いません。選定の目安は次の通りです。
+  - **確認する**: ステップ2で**複数回**現れた懸念（例：「背景が寂しい」が3件）。代表として該当 `target_date` の画像を**2〜3枚**ほど見て、ラベルに表れない共通要因がないか確かめます。
+  - **確認しなくてよい**: 1回だけの指摘、`shot_size` などラベルで既に裏が取れる指摘、`kind=rating` のスコアだけで傾向が明らかなもの。
+  - 複数種類の懸念が併存する場合も、現物確認は1サイクルあたり**合計5枚程度まで**を目安に、優先度の高い懸念から絞り込んでください。
 - どちらかが空でも処理は続行します（ログだけ／FBだけのレビューも成立します）。両方空なら、その旨を伝えて終了します（マーカーは更新しない）。
 - 取得件数（image_logs の N、image_feedback の件数）を控えておきます。
 

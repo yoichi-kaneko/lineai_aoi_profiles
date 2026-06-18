@@ -14,7 +14,7 @@
 
 ## 使用する type
 
-[src/firebase/noteTypes.ts](../../src/firebase/noteTypes.ts) の **`line_undelivered`**（`NOTE_TYPE.LINE_UNDELIVERED`）を第3引数に指定してください。
+[src/firebase/noteTypes.ts](../../src/firebase/noteTypes.ts) の **`line_undelivered`**（`NOTE_TYPE.LINE_UNDELIVERED`）を type 引数に指定してください。
 
 ## 本文の粒度
 

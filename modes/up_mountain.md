@@ -85,7 +85,8 @@ Firestore ドキュメントの `type` ごとの意味は [../src/firebase/noteT
   - 登山した（する）山名・コース・下山予定日などの概要（ステップ1-1の計画書・確定した情報に基づく）
 - **任意で添えるとよいもの**:
   - ステップ1-2で保持した位置情報URLの有無（後続の望モードが【山中・休息】判定時に参照する）
-- **type**: 第3引数に `up_mountain`（`NOTE_TYPE.UP_MOUNTAIN` と同値）を必ず指定してください。後続が門灯モードの記録と識別できるようにします。
+- **type**: type 引数に `up_mountain`（`NOTE_TYPE.UP_MOUNTAIN` と同値）を必ず指定してください。後続が門灯モードの記録と識別できるようにします。
+- **記録手順**: 記録内容の本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" "up_mountain" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。
 
 ---
 

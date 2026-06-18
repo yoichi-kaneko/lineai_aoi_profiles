@@ -91,6 +91,8 @@ description: （楽曲全体の構成・特徴・感情的な弧）
 
 3回すべて失敗した場合は、**`put_firestore_doc`** スキルを使用し、本日の日付でダウンロード失敗を記録してから処理を中断してください。記録内容には、Mureka楽曲のダウンロードが3回失敗したこと、対象の `task_id`、必要であれば再試行や手動確認が必要である旨を含めてください。成功した場合は取得したファイルのパスを記録し、次のステップへ進んでください。
 
+記録する場合は、本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。
+
 ### ステップ7：楽曲とメッセージの送信
 
 ステップ6でダウンロードした楽曲ファイルと、以下の構成で作成したテキストを、**`send_line_audio` スキル**で**1回のリクエスト**にまとめてLINEへ送信してください（表示順: 音声 → テキスト）。**`send_line_text` は別途呼び出さない**でください。送信手順は `send_line_audio` スキルの SKILL.md に従う。

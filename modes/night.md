@@ -133,4 +133,4 @@
   - **就寝場所の推察**: 今夜が自宅での就寝か、出先での外泊か（暁モードの外泊判定の材料となるため必須）
   - **翌日の最重要予定**: ステップ1で特定した翌日の最重要予定1件（「明日の予告」と同内容）
   - **特記事項**（任意）: 翌朝に触れてほしいことがあれば1行程度で添える
-- 記録内容は、`put_firestore_doc` の SKILL.md に記載のとおり `tmp/firestore_doc.txt` に保存して渡してください（改行はそのまま。`\n` への置換は不要）。
+- **記録手順**: 記録内容の本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" "night_handover" --description-file tmp/firestore_doc.txt` の形式で実行してください。改行はそのままでよく、`\n` への置換は不要です。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。

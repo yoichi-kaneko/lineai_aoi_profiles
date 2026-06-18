@@ -58,3 +58,5 @@
 
 ### ステップ5：Firestoreへの記録（任意）
 ステップ2で確定した**状況判定ラベル**（【山中・休息】/【計画中】/【平穏】）と、小夜モードに伝えるべき**特記事項が1行分ある**場合のみ、**`put_firestore_doc` スキル**を使用して記録してください。形式は「状況判定ラベル＋特記1行」に限定し、詳細な分析や天気予報の再掲は含めないでください。特記事項がなければ、このステップはスキップして構いません。
+
+- **記録手順**: 記録する場合は、本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。

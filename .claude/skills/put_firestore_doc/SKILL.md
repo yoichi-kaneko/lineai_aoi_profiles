@@ -72,6 +72,7 @@ pnpm exec tsx src/firebase/put_doc.ts "{date}" "{type}" --description-file tmp/f
 
 - `{date}` は YYYY-MM-DD 形式で渡してください。
 - 本文は引数で直接渡さず、`tmp/firestore_doc.txt` 経由で受け渡します。スクリプトがファイルを読み込み、**書いた内容（実際の改行を含む）をそのまま** `description` に保存します。
+- `tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。必ず `--description-file tmp/firestore_doc.txt` を指定してください。
 - `{type}` は省略可能です。既定値の詳細は [src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts) の `NOTE_TYPE.FROM_AOI` を参照してください。`{type}` に空文字を渡すと CLI がエラーになるため、省略するか許可された値のみを渡してください。
 
 3. コマンドが成功したら、追加したドキュメントのIDと内容をユーザーに報告してください。

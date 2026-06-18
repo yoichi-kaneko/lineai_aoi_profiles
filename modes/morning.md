@@ -86,3 +86,4 @@
   - **天気予報の概要**: 予報を取得した地点名（住所・山名など）と、当日のおおよその天気予報（天候・気温の傾向など）
   - **登山予定の分析結果**: ステップ1で確認した当日・翌日・5日以内それぞれについて、登山予定の有無と、該当する場合は対象日・山名（または山域）・計画書URL（`https://yamap.com/plans/code/.../printing`）の有無
   - noon.md や night.md に伝えた方がよいと判断したトピックがあれば、任意で添えてください。
+- **記録手順**: 記録内容の本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。

@@ -54,15 +54,29 @@ function parseArgs(argv: string[]): { positionals: string[]; flags: Record<strin
   return { positionals, flags };
 }
 
+function looksLikeDescriptionFilePath(value: string): boolean {
+  const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
+  const knownTempDescriptionFiles = ["tmp/firestore_doc.txt", "tmp/image_log.json"];
+
+  return knownTempDescriptionFiles.some(
+    (path) => normalized === path || normalized.endsWith(`/${path}`)
+  );
+}
+
 function printUsage() {
   console.error(
-    "使用方法: npx tsx src/firebase/put_doc.ts <date(YYYY-MM-DD)> <description> [type] [--collection <name>] [--description-file <path>]"
+    "使用方法: npx tsx src/firebase/put_doc.ts <date(YYYY-MM-DD)> [type] [--collection <name>] --description-file <path>"
   );
-  console.error('例: npx tsx src/firebase/put_doc.ts "2026-03-21" "今日のメモ"');
-  console.error('例: npx tsx src/firebase/put_doc.ts "2026-03-21" "下山報告" "off_mountain"');
+  console.error(
+    '例: npx tsx src/firebase/put_doc.ts "2026-03-21" --description-file tmp/firestore_doc.txt'
+  );
+  console.error(
+    '例: npx tsx src/firebase/put_doc.ts "2026-03-21" "off_mountain" --description-file tmp/firestore_doc.txt'
+  );
   console.error(
     '例: npx tsx src/firebase/put_doc.ts "2026-03-21" "image_log" --collection image_logs --description-file tmp/image_log.json'
   );
+  console.error("互換形式: --description-file 未指定時のみ、第2位置引数を本文として扱います。");
 }
 
 async function main() {
@@ -104,6 +118,13 @@ async function main() {
 
   if (!date || !description) {
     printUsage();
+    process.exit(1);
+  }
+
+  if (!descriptionFile && looksLikeDescriptionFilePath(description)) {
+    console.error(
+      `description に一時ファイルパス "${description}" が直接渡されています。本文をファイルに保存した場合は --description-file を指定してください。`
+    );
     process.exit(1);
   }
 

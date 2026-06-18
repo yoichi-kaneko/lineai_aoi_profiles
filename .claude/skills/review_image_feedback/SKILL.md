@@ -20,7 +20,7 @@ description: 2〜3週間サイクルで画像生成ログ（image_logs）とフ�
 - 取得: **get_firestore_docs** スキル（`--collection` で専用コレクションを指定）
 - 画像の現物確認（任意）: **download_image** スキル（`image_logs` の `cloudinary_url` を `tmp/` に保存して内容を参照）
 - 設定資料画像の確認（任意）: **Read** ツールで `assets/images/` 配下の該当 PNG（base.png / outfit_*.png / room.png / ruri.png / hotaru.png）を直接読み込む。索引はガイドライン セクション5。
-- 修正要望の記録: **put_firestore_doc** スキル（`--collection image_asset_requests`）― 設定資料画像そのものへの修正要望を残す
+- 修正要望の記録: **put_todoist_task** スキル ― 設定資料画像そのものへの修正要望を Todoist タスクとして残す（内容確認・返信・完了の管理がしやすいため）
 - マーカー記録: **put_firestore_doc** スキル（`--collection image_feedback_reviews`）
 - 参照: [image_logs スキーマ](../../docs/image_log_schema.md) / [image_feedback スキーマ](../../docs/image_feedback_schema.md) / [画像生成ガイドライン](../../../assets/image_guideline.md)
 
@@ -103,37 +103,30 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
   - 核の引き締め：混入したラベル文字対策の文言を末尾注意文（セクション8⑤）に補強。
 - 各案には**根拠**（ステップ2の評価件数・ステップ3の分布数値）を添えます。
 - **ユーザーが承認した項目だけ** `assets/image_guideline.md` を Edit で反映します。未承認・保留の項目は反映しません。何も承認されなければガイドラインは変更しません。
-- ここで扱うのは**文言（テキスト）で是正できる**修正だけです。原因が `assets/images/` の設定資料画像そのものにあると判断した指摘は、文言を直しても解決しないため、次のステップ6で修正要望として記録します。
+- ここで扱うのは**文言（テキスト）で是正できる**修正だけです。原因が `assets/images/` の設定資料画像そのものにあると判断した指摘は、文言を直しても解決しないため、次のステップ6で Todoist タスクとして記録します。
 
 ### ステップ6：設定資料画像（assets/images）への修正要望の記録
 
-ステップ2の評価・ステップ4の仕分けで、原因が `assets/image_guideline.md` の**文言ではなく設定資料画像そのもの**（`assets/images/` 配下の PNG）にあると判断した指摘を、ここで扱います。設定資料画像は碧衣が直接編集できないため、修正そのものは行わず、**「どう直されるとよいと感じたか」を記録として残し**、後日に資料を管理するユーザーが参照して対応できるようにします。資料側の修正要望が何も無ければ、このステップはスキップします（記録は作りません）。
+ステップ2の評価・ステップ4の仕分けで、原因が `assets/image_guideline.md` の**文言ではなく設定資料画像そのもの**（`assets/images/` 配下の PNG）にあると判断した指摘を、ここで扱います。設定資料画像は碧衣が直接編集できないため、修正そのものは行わず、**「どう直されるとよいと感じたか」を Todoist タスクとして残し**、後日に資料を管理するユーザーが内容を確認・対応し、完了管理できるようにします。資料側の修正要望が何も無ければ、このステップはスキップします（タスクは作りません）。
+
+> Firestore ではなく Todoist に残すのは、設定資料画像の修正要望が「内容を確認し、対応し、完了させる」性質のタスクであり、状態管理・返信・完了チェックは Todoist の方が扱いやすいためです。
 
 1. **該当資料の確認**: ガイドライン セクション5（参考資料の索引）を手がかりに、対象の設定資料画像を **Read** ツールで直接読み込み、FB の指摘が資料のどこに由来するかを確かめます。`assets/images/` 配下の PNG は Read でそのまま画像として読めます（ダウンロード不要）。
    - 例：「顔が前回と違う」が複数件 → base.png の表情集・顔の基準を確認。「ゴーグルが分かりづらい」→ ruri.png を確認。「望むコーデが無い」→ 該当 outfit_*.png を確認。
    - 確認の結果、文言（ガイドライン）側で吸収できると分かった場合はステップ5に戻し、ここでは記録しません。資料そのものの修正が望ましいと判断したものだけを次へ進めます。
 
-2. **修正要望の記録**: 対象資料ごとに、本文を `tmp/firestore_doc.txt` に Write し、`image_asset_requests` コレクションへ put_firestore_doc で記録します。本文（JSON）の目安:
-
-   ```json
-   {
-     "asset_file": "base.png",
-     "concern": "「顔が前回と違う」という指摘が3件。表情集の中で同一性の基準となる顔が読み取りづらい可能性",
-     "request": "正面・無表情の基準カットを1点、顔の同一性が分かりやすい形で追加してほしい",
-     "evidence": { "feedback_count": 3, "target_dates": ["2026-06-05", "2026-06-11"] }
-   }
-   ```
+2. **修正要望の記録（put_todoist_task）**: 対象資料ごとに、**put_todoist_task** スキルで Todoist にタスクを1件作成します。一目で要望と分かるよう、タイトルに対象資料名を含めてください。
+   - **content（タイトル）の目安**: `[画像要望] base.png：顔の同一性の基準を追加` のように、`[画像要望]` プレフィックス＋対象資料名＋要望の要約。
+   - **description（詳細）の目安**: 現状の懸念（FB の根拠・件数）、どう直されるとよいか、根拠となった対象日などを記載します。**改行は `\n` に置換して1行に収めてください**（put_todoist_task の注意事項に従う）。
 
    ```bash
    cd {プロジェクトルートの絶対パス}
-   pnpm exec tsx src/firebase/put_doc.ts "{今日}" "asset_revision_request" --collection image_asset_requests --description-file tmp/firestore_doc.txt
+   pnpm exec tsx src/todoist/put_task.ts "[画像要望] base.png：顔の同一性の基準を追加" "懸念: 「顔が前回と違う」という指摘が3件。表情集の中で同一性の基準となる顔が読み取りづらい可能性。\n要望: 正面・無表情の基準カットを1点、顔の同一性が分かりやすい形で追加してほしい。\n根拠: feedback 3件 / 対象日 2026-06-05, 2026-06-11"
    ```
 
-   - 第2位置引数 `"asset_revision_request"` が `type`（コレクション内識別用）。`--collection` 指定時は NOTE_TYPE 検証はバイパスされます。
-   - `date` には記録日（今日・JST）を渡します。
-   - 対象資料が複数に分かれる場合は、ファイル単位で複数件に分けて記録して構いません。
+   - 対象資料が複数に分かれる場合は、ファイル単位で複数件のタスクに分けて作成して構いません。
 
-3. 記録した要望（対象資料・ドキュメント ID）を控え、最終報告とステップ7のマーカーに反映します。
+3. 作成したタスク（対象資料・タスクタイトル・件数）を控え、最終報告とステップ7のマーカーに反映します。
 
 ### ステップ7：レビュー区切りマーカーの記録
 
@@ -154,7 +147,7 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
    }
    ```
 
-   - `asset_requests` には、ステップ6で `image_asset_requests` に記録した設定資料画像への修正要望の件数を入れます（無ければ `0`）。
+   - `asset_requests` には、ステップ6で Todoist に作成した設定資料画像への修正要望タスクの件数を入れます（無ければ `0`）。
 
 2. `date` には対象期間の末日（`period_to`）を渡して記録します。
 
@@ -178,5 +171,5 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
 3. 偏り集計の分布表（特に `shot_size` / `camera_direction`）と、立った偏りフラグ。
 4. 核 / 彩りの仕分け結果（衝突があればその判断ポイント）。
 5. 提示したガイドライン修正案と、承認・反映の有無。
-6. 設定資料画像（assets/images）への修正要望を記録した場合は、その対象資料・件数・ドキュメント ID。
+6. 設定資料画像（assets/images）への修正要望を Todoist に登録した場合は、その対象資料・件数・タスクタイトル。
 7. 記録したレビューマーカー（期間・ID）。

@@ -19,6 +19,8 @@ description: 2〜3週間サイクルで画像生成ログ（image_logs）とフ�
 
 - 取得: **get_firestore_docs** スキル（`--collection` で専用コレクションを指定）
 - 画像の現物確認（任意）: **download_image** スキル（`image_logs` の `cloudinary_url` を `tmp/` に保存して内容を参照）
+- 設定資料画像の確認（任意）: **Read** ツールで `assets/images/` 配下の該当 PNG（base.png / outfit_*.png / room.png / ruri.png / hotaru.png）を直接読み込む。索引はガイドライン セクション5。
+- 修正要望の記録: **put_firestore_doc** スキル（`--collection image_asset_requests`）― 設定資料画像そのものへの修正要望を残す
 - マーカー記録: **put_firestore_doc** スキル（`--collection image_feedback_reviews`）
 - 参照: [image_logs スキーマ](../../docs/image_log_schema.md) / [image_feedback スキーマ](../../docs/image_feedback_schema.md) / [画像生成ガイドライン](../../../assets/image_guideline.md)
 
@@ -90,6 +92,7 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
 - **核への指摘**（キャラクター同一性・品質の床・ラベル文字混入など。例：「顔が前回と違う」「線が荒い」「ラベルが写り込んだ」）→ 核を**締める**方向。
 - **彩りへの指摘**（構図・情景・衣装・時間帯の偏りや、もっと自由に等。例：「バストアップ正面が続く」「もっと大胆な構図を」）→ 彩りを**広げる／配分し直す**方向。
 - **衝突判定ルール（このスキルが正本）**: 2つのFBが本当に矛盾するのは**同じ層の同じ属性**を指すときだけです。「顔が違う（核）」と「同じ構図（彩り）」は別層なので両立し、両方対応します。「安定して描いて」（核）と「自由に描いて」（彩り）も、別の層を指している限り矛盾しません。矛盾が生じるのは「正面を基本に」対「正面が多すぎる」のように**同じ彩りの同じ属性**へ相反要望が当たったときだけで、その場合のみ、どちらを採るか／配分をどう取るかの判断ポイントとして明示します。
+- **テキストで直せない指摘の退避**: 仕分けの過程で、ガイドラインの文言修正（ステップ5）では届かず、`assets/images/` の**設定資料画像そのもの**に起因すると思われる指摘（例：base.png の顔・表情の基準が読み取りづらい、ruri.png のゴーグルや尾羽が伝わりにくい、outfit_*.png に望むバリエーションが無い等）に気づいた場合は、ステップ6（設定資料画像への修正要望）で扱います。ここでは「これは資料側の問題かもしれない」と当たりを付けるところまでで構いません。
 
 ### ステップ5：ガイドライン修正差分案の提示（承認 → 反映）
 
@@ -100,8 +103,39 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
   - 核の引き締め：混入したラベル文字対策の文言を末尾注意文（セクション8⑤）に補強。
 - 各案には**根拠**（ステップ2の評価件数・ステップ3の分布数値）を添えます。
 - **ユーザーが承認した項目だけ** `assets/image_guideline.md` を Edit で反映します。未承認・保留の項目は反映しません。何も承認されなければガイドラインは変更しません。
+- ここで扱うのは**文言（テキスト）で是正できる**修正だけです。原因が `assets/images/` の設定資料画像そのものにあると判断した指摘は、文言を直しても解決しないため、次のステップ6で修正要望として記録します。
 
-### ステップ6：レビュー区切りマーカーの記録
+### ステップ6：設定資料画像（assets/images）への修正要望の記録
+
+ステップ2の評価・ステップ4の仕分けで、原因が `assets/image_guideline.md` の**文言ではなく設定資料画像そのもの**（`assets/images/` 配下の PNG）にあると判断した指摘を、ここで扱います。設定資料画像は碧衣が直接編集できないため、修正そのものは行わず、**「どう直されるとよいと感じたか」を記録として残し**、後日に資料を管理するユーザーが参照して対応できるようにします。資料側の修正要望が何も無ければ、このステップはスキップします（記録は作りません）。
+
+1. **該当資料の確認**: ガイドライン セクション5（参考資料の索引）を手がかりに、対象の設定資料画像を **Read** ツールで直接読み込み、FB の指摘が資料のどこに由来するかを確かめます。`assets/images/` 配下の PNG は Read でそのまま画像として読めます（ダウンロード不要）。
+   - 例：「顔が前回と違う」が複数件 → base.png の表情集・顔の基準を確認。「ゴーグルが分かりづらい」→ ruri.png を確認。「望むコーデが無い」→ 該当 outfit_*.png を確認。
+   - 確認の結果、文言（ガイドライン）側で吸収できると分かった場合はステップ5に戻し、ここでは記録しません。資料そのものの修正が望ましいと判断したものだけを次へ進めます。
+
+2. **修正要望の記録**: 対象資料ごとに、本文を `tmp/firestore_doc.txt` に Write し、`image_asset_requests` コレクションへ put_firestore_doc で記録します。本文（JSON）の目安:
+
+   ```json
+   {
+     "asset_file": "base.png",
+     "concern": "「顔が前回と違う」という指摘が3件。表情集の中で同一性の基準となる顔が読み取りづらい可能性",
+     "request": "正面・無表情の基準カットを1点、顔の同一性が分かりやすい形で追加してほしい",
+     "evidence": { "feedback_count": 3, "target_dates": ["2026-06-05", "2026-06-11"] }
+   }
+   ```
+
+   ```bash
+   cd {プロジェクトルートの絶対パス}
+   pnpm exec tsx src/firebase/put_doc.ts "{今日}" "asset_revision_request" --collection image_asset_requests --description-file tmp/firestore_doc.txt
+   ```
+
+   - 第2位置引数 `"asset_revision_request"` が `type`（コレクション内識別用）。`--collection` 指定時は NOTE_TYPE 検証はバイパスされます。
+   - `date` には記録日（今日・JST）を渡します。
+   - 対象資料が複数に分かれる場合は、ファイル単位で複数件に分けて記録して構いません。
+
+3. 記録した要望（対象資料・ドキュメント ID）を控え、最終報告とステップ7のマーカーに反映します。
+
+### ステップ7：レビュー区切りマーカーの記録
 
 次サイクルの起点を残すため、`image_feedback_reviews` コレクションにマーカーを1件記録します。
 
@@ -115,9 +149,12 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
      "image_log_count": 18,
      "feedback_count": 5,
      "guideline_updated": true,
-     "summary": "正面バストアップ過多を是正。背景の寂しさ指摘を彩りで対応。核は変更なし。"
+     "asset_requests": 1,
+     "summary": "正面バストアップ過多を是正。背景の寂しさ指摘を彩りで対応。核は変更なし。base.png の顔基準を1件 asset_requests に登録。"
    }
    ```
+
+   - `asset_requests` には、ステップ6で `image_asset_requests` に記録した設定資料画像への修正要望の件数を入れます（無ければ `0`）。
 
 2. `date` には対象期間の末日（`period_to`）を渡して記録します。
 
@@ -141,4 +178,5 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
 3. 偏り集計の分布表（特に `shot_size` / `camera_direction`）と、立った偏りフラグ。
 4. 核 / 彩りの仕分け結果（衝突があればその判断ポイント）。
 5. 提示したガイドライン修正案と、承認・反映の有無。
-6. 記録したレビューマーカー（期間・ID）。
+6. 設定資料画像（assets/images）への修正要望を記録した場合は、その対象資料・件数・ドキュメント ID。
+7. 記録したレビューマーカー（期間・ID）。

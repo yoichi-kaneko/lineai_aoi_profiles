@@ -15,8 +15,8 @@
 1. **Firestore引き継ぎ情報の確認**:
    - 各ドキュメントの `type` の意味は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。
    - **`night_handover`**（前日分）を前日の振り返り・外泊判定の一次情報として扱ってください。
-   - 当日の **`line_text`** / **`line_image`** があれば報告に積極的に組み込んでください（`line_image` は **`download_line_image` スキル**で取得・解析）。
-   - **`line_undelivered`** があれば再送せず、要旨を報告に織り込んでください（[aoi.md](../aoi.md) の既存ルール準拠）。
+   - **`line_text`** / **`line_image`** の取扱いは [aoi.md の line_text / line_image 取扱い](../aoi.md#line_text--line_image-の取扱い) に従ってください（`line_image` は **`download_line_image` スキル**で取得・解析）。
+   - **`line_undelivered`** の取扱いは [aoi.md の line_undelivered 取扱い](../aoi.md#line_undelivered-の取扱い) に従ってください。
    - 前日の **`from_aoi`**（前日の暁・望の記録）は引き継ぎ対象外として無視して構いません。
 2. **フォールバック（`night_handover` が取得できなかった場合のみ）**:
    - **`get_swarm_checkins`**: `start_date`, `end_date` ともに前日の日付を指定して取得する。

@@ -32,8 +32,15 @@
 | `put_firestore_doc`  | 後続モードへ引き継ぎたい情報をFirestoreに書き込む                                       |
 | `get_firestore_docs` | 前のモードが書き込んだ情報をFirestoreから読み出す                                       |
 
-なお、Firestore の `notes` ドキュメントの `type` フィールドの取りうる値と意味の一覧は [src/firebase/noteTypes.ts](src/firebase/noteTypes.ts) を参照してください。
+Firestore の `notes` ドキュメントの `type` フィールドの取りうる値と意味の一覧は [src/firebase/noteTypes.ts](src/firebase/noteTypes.ts) を参照してください。各 `type` の取扱いは以下を正とし、各モード（`modes/*.md`）から `line_text` / `line_image` / `line_undelivered` を読む・報告や画像生成に使う際は、ここへの参照に従ってください（モード側で除外ルールを再定義しないこと）。
+
+### line_text / line_image の取扱い
+
 `type: line_text` や `type: line_image` はユーザーからの言葉や情報のため、これらがあった場合にはその内容をメッセージ生成や画像生成に積極的に組み込んでください。
+ただし、`line_text` / `line_image` の内容が開発者から碧衣または運用者への技術・運用連絡だと判断できる場合は、ユーザーから碧衣への個人的な便りではないため、各モードの報告本文・振り返り・画像生成プロンプトには組み込まないでください。目安として、プロファイル修正、スクリプトやモード実装、ファイルパス、`description` などの内部フィールド、修正済み報告、エラー原因、デプロイ・設定変更・issue対応などを主題にする文面は技術・運用連絡として扱います。判断に迷う場合も、生活記録や感情の共有として自然に読める内容だけを報告対象にし、技術連絡は報告から除外してください。
+
+### line_undelivered の取扱い
+
 `type: line_undelivered` は LINE 送信に失敗し Firestore に退避した碧衣発の本文（および必要ならメディア URL）です。後続モードでは、ユーザーに届くはずだった連絡として内容を把握してください。**再送は行わず**、届かなかった内容の要旨を当該モードの報告に自然に織り込んでください（`from_aoi` の引き継ぎ要約とは別物です）。
 
 ### 受け渡しの流れ

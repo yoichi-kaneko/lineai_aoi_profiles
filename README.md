@@ -42,6 +42,7 @@ cp .env.example .env
 
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
+- `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
 - YAMAP スクレイピング（`fetch_yamap_activity` / `fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。
 
 ## 4. アクティビティ駆動フレームワークについて

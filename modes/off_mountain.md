@@ -49,7 +49,7 @@
 1. **【重点】Firestore引き継ぎ情報の確認**:
    Firestoreの取得結果はこのモードの情報分析の中核です。以下の点を重点的に確認してください。
    - **登録日時の把握**: ドキュメントは通常、時系列に沿って送信されます。各ドキュメントの登録日時を確認し、山行の時間的な流れを把握してください。
-   - **各ドキュメントの `type` の意味**: [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。**`line_text`** / **`line_image`** の取扱い（技術・運用連絡の除外を含む）は [aoi.md の line_text / line_image 取扱い](../aoi.md#line_text--line_image-の取扱い) に従ってください。画像を扱う場合は **`download_line_image` スキル**で取得し、解析してください。
+   - **各ドキュメントの `type` の意味**: [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) を参照してください。**`line_text`** / **`line_image`** の取扱い（技術・運用連絡のぼかし言及を含む）は [aoi.md の line_text / line_image 取扱い](../aoi.md#line_text--line_image-の取扱い) に従ってください。画像を扱う場合は **`download_line_image` スキル**で取得し、解析してください。
    - **複数の登山予定がある場合**: ドキュメントの内容（山名・場所の言及など）と、`up_mountain` / `off_mountain` の交互運用の前提から、どの登山予定に対する記録かを判断してください。判断が曖昧な場合は **`user` 宛**に確認し、誤った山行を下山済みとして家族へ報告しないでください。
 
 2. **Swarm写真のダウンロード**: Swarmの取得結果にphotosが含まれるチェックインがあった場合、その中から1件を **`download_image` スキル**で取得し、場所の雰囲気や状況を読み取る材料として解析してください。

@@ -1,6 +1,6 @@
 ---
 name: review_image_feedback
-description: 2〜3週間サイクルで画像生成ログ（image_logs）とフィードバック（image_feedback）を集計し、構図の偏りと評価を分析して assets/image_guideline.md の修正案を提示する（人手承認で反映）。ユーザーが手動起動するバッチレビュー（柱C）。
+description: 1〜3週間サイクルで画像生成ログ（image_logs）とフィードバック（image_feedback）を集計し、構図の偏りと評価を分析して assets/image_guideline.md の修正案を提示する（人手承認で反映）。ユーザーが手動起動するバッチレビュー（柱C）。
 ---
 
 # review_image_feedback

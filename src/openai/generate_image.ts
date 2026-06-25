@@ -16,7 +16,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
-const IMAGE_SIZE = "1024x1024" as const;
+const IMAGE_SIZE = "1536x1024" as const;
 const IMAGE_QUALITY = "medium" as const;
 const IMAGE_OUTPUT_FORMAT = "png" as const;
 

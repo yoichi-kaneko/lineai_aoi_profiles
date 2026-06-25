@@ -20,7 +20,7 @@ description: 1〜3週間サイクルで画像生成ログ（image_logs）とフ�
 
 - 取得: **get_firestore_docs** スキル（`--collection` で専用コレクションを指定）
 - 画像の現物確認（任意）: **download_image** スキル（`image_logs` の `cloudinary_url` を `tmp/` に保存して内容を参照）
-- 設定資料画像の確認（任意）: **Read** ツールで `assets/images/` 配下の該当 PNG（base.png / outfit_*.png / room.png / ruri.png / hotaru.png）を直接読み込む。索引はガイドライン セクション5。
+- 設定資料画像の確認（任意）: **Read** ツールで `assets/images/` 配下の該当 PNG（base.png / outfit_*.png / room_*.png / ruri.png / hotaru.png）を直接読み込む。索引はガイドライン セクション5。
 - 修正要望の記録: **put_todoist_task** スキル ― 設定資料画像そのものへの修正要望（ステップ6）や、構図2軸の偏り強化要望（ステップ4の注釈）を Todoist タスクとして残す（内容確認・返信・完了の管理がしやすいため）
 - マーカー記録: **put_firestore_doc** スキル（`--collection image_feedback_reviews`）
 - 参照: [image_logs スキーマ](../../docs/image_log_schema.md) / [image_feedback スキーマ](../../docs/image_feedback_schema.md) / [画像生成ガイドライン](../../../assets/image_guideline.md)

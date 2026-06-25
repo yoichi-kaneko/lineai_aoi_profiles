@@ -1,6 +1,6 @@
 # 画像生成フィードバック（image_feedback）スキーマ
 
-ユーザーが LINE 返信で寄せた画像生成へのフィードバックを、Firestore の **専用コレクション `image_feedback`** に1件ずつ蓄積します。`receiveLineMessage` Webhook が入方向テキストを振り分け、`評価` / `傾向` で始まるものをこのコレクションへ保存します。蓄積されたフィードバックは、2〜3週間サイクルのレビュー（`review_image_feedback`、柱C）でのみ読まれます。
+ユーザーが LINE 返信で寄せた画像生成へのフィードバックを、Firestore の **専用コレクション `image_feedback`** に1件ずつ蓄積します。`receiveLineMessage` Webhook が入方向テキストを振り分け、`評価` / `傾向` で始まるものをこのコレクションへ保存します。蓄積されたフィードバックは、1〜3週間サイクルのレビュー（`review_image_feedback`、柱C）でのみ読まれます。
 
 > **なぜ専用コレクションか**: `notes` は `get_firestore_docs` が日付範囲だけで `type` 無差別に全件返すため、暁・望・小夜・帰灯・調べの各モードが毎日読み込みます。フィードバックを `notes`（`line_text`）に入れると、その夜の小夜モードがフィードバック文を「ユーザーの言葉」として画像・本文へ誤取込する副作用が出ます。読み手はレビュースキル1つだけなので、`image_feedback` に隔離します（柱A の [image_logs](image_log_schema.md) と同じ思想）。
 

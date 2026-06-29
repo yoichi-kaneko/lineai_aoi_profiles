@@ -105,6 +105,7 @@ if [ "$MODE" = "song" ]; then
   DOWNLOAD_INTERVAL=300
 
   TASK_ID_FILE="tmp/song_task_id.txt"
+  MESSAGE_FILE="tmp/song_message.txt"
   AUDIO_PATH_FILE="tmp/song_audio_path.txt"
   SENT_MARKER="tmp/song_sent.ok"
 
@@ -123,17 +124,17 @@ if [ "$MODE" = "song" ]; then
       continue
     fi
 
-    if [ -s "$TASK_ID_FILE" ]; then
+    if [ -s "$TASK_ID_FILE" ] && [ -s "$MESSAGE_FILE" ]; then
       PHASE_A_OK=true
       break
     fi
 
-    echo "[WARN] song Phase A attempt $i produced no task_id (${TASK_ID_FILE}). Retrying..." >&2
+    echo "[WARN] song Phase A attempt $i missing Phase B prerequisites (${TASK_ID_FILE} and/or ${MESSAGE_FILE}). Retrying..." >&2
     [ $i -lt $PHASE_A_RETRIES ] && sleep 30
   done
 
   if [ "$PHASE_A_OK" != "true" ]; then
-    echo "[ERROR] song Phase A failed (no task_id after ${PHASE_A_RETRIES} attempts). MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    echo "[ERROR] song Phase A failed (missing task_id or message after ${PHASE_A_RETRIES} attempts). MODE=${MODE}, DATE=${TARGET_DATE}" >&2
     exit 1
   fi
 
@@ -168,7 +169,8 @@ if [ "$MODE" = "song" ]; then
       echo "対象日: ${TARGET_DATE}"
       echo "再試行または手動確認が必要です。"
     } > tmp/firestore_doc.txt
-    pnpm exec tsx src/firebase/put_doc.ts "$TARGET_DATE" --description-file tmp/firestore_doc.txt >&2 \
+    pnpm exec tsx src/firebase/put_doc.ts "$TARGET_DATE" "song_download_failed" \
+      --collection operation_logs --description-file tmp/firestore_doc.txt >&2 \
       || echo "[WARN] Firestore への楽曲ダウンロード失敗記録に失敗しました。" >&2
     exit 1
   fi

@@ -52,14 +52,14 @@ lineai_aoi_profiles/
 │   │   ├── image_log_schema.md       # image_logs（柱A）のスキーマ・記録コマンド
 │   │   ├── image_feedback_schema.md  # image_feedback（柱B）のスキーマ・パース仕様
 │   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
-│   │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
+│   │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
+│   │   └── yamap_activity_pdf_guide.md # YAMAP 活動記録PDF の重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
 │       ├── download_google_drive_file/
 │       ├── download_image/
 │       ├── download_line_image/
 │       ├── download_mureka_audio/
 │       ├── download_todoist_attachment/
-│       ├── fetch_yamap_activity/
 │       ├── fetch_yamap_plan/
 │       ├── generate_gemini_image/
 │       ├── generate_gpt_image/

@@ -43,7 +43,7 @@ cp .env.example .env
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
-- YAMAP スクレイピング（`fetch_yamap_activity` / `fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。
+- YAMAP 計画書スクレイピング（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお活動記録はスクレイピングを廃止し、PDF 添付を読み解く運用です（[ガイド](.claude/docs/yamap_activity_pdf_guide.md)）。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -213,7 +213,7 @@ lineai_aoi_profiles/
 | サービス名 | YAMAP |
 | 役割 | ユーザーの登山計画・活動記録を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://yamap.com/ |
-| スキル | `fetch_yamap_plan` / `fetch_yamap_activity`（Web スクレイピング） |
+| スキル | `fetch_yamap_plan`（計画書の Web スクレイピング）／活動記録は PDF 添付を `download_todoist_attachment` で取得し読み解く（[ガイド](.claude/docs/yamap_activity_pdf_guide.md)） |
 
 ### Firebase / Firestore
 

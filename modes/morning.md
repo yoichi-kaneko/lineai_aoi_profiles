@@ -19,7 +19,7 @@
    - **`line_undelivered`** の取扱いは [aoi.md の line_undelivered 取扱い](../aoi.md#line_undelivered-の取扱い) に従ってください。
    - 前日の **`from_aoi`**（前日の暁・望の記録）は引き継ぎ対象外として無視して構いません。
 2. **フォールバック（`night_handover` やその他の Firestore ドキュメントだけでは前日のコンテキストが十分に補えない場合）**:
-   - 前日の振り返り・外泊判定は、第一に `night_handover` を一次情報とします。ただし `night_handover` が欠落していても、前日が登山日で `off_mountain`（帰灯）・`up_mountain`（門灯）・`stay_mountain`（継灯）の記録が残っており、前日の下山・宿泊・外泊コンテキストを十分に補完できる場合は、このフォールバックは不要です（前日の `stay_mountain` 記録は「前夜は山小屋泊で、本日も山行が続いている」ことを示します）。
+   - 前日の振り返り・外泊判定は、第一に `night_handover` を一次情報とします。ただし `night_handover` が欠落していても、前日が登山日で `off_mountain`（帰灯）・`up_mountain`（門灯）・`stay_mountain`（継灯）の記録が残っており、前日の下山・宿泊・外泊コンテキストを十分に補完できる場合は、このフォールバックは不要です（前日の `stay_mountain` 記録は「前夜は山中泊で、本日も山行が続いている」ことを示します）。
    - `night_handover` が取得できず、**かつ前日の `off_mountain` / `up_mountain` / `stay_mountain` 等の代替記録も存在しない（またはそれらだけでは前日の状況が判断できない）場合に限り**、以下を実施してください。
      - **`get_swarm_checkins`**: `start_date`, `end_date` ともに前日の日付を指定して取得する。
      - **Swarm写真のダウンロード**: 取得結果にphotosが含まれるチェックインがあった場合、その中から1件を **`download_image` スキル**で取得し、場所の雰囲気や状況を読み取る材料として解析してください。

@@ -5,7 +5,7 @@ import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 import { parseImageFeedback } from "./parseImageFeedback";
 
-type TriggerMode = "off_mountain" | "up_mountain";
+type TriggerMode = "off_mountain" | "up_mountain" | "stay_mountain";
 
 /** image_feedback コレクション内識別用の type（`notes` の NOTE_TYPE とは別系統）。 */
 const IMAGE_FEEDBACK_TYPE = "image_feedback";
@@ -13,6 +13,7 @@ const IMAGE_FEEDBACK_TYPE = "image_feedback";
 const TRIGGER_MODE_MAP: { keywords: string[]; mode: TriggerMode }[] = [
   { keywords: ["下山", "無事下山"], mode: "off_mountain" },
   { keywords: ["登山開始"], mode: "up_mountain" },
+  { keywords: ["山小屋"], mode: "stay_mountain" },
 ];
 
 function findTriggerMode(text: string): TriggerMode | null {

@@ -81,7 +81,7 @@ lineai_aoi_profiles/
 ├── package.json           # pnpm パッケージ管理（ルート）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
-├── modes/                 # モード別設定（morning / noon / night / up_mountain / off_mountain / song）
+├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song）
 ├── assets/                # 画像素材・ガイドライン
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
@@ -129,10 +129,11 @@ lineai_aoi_profiles/
 | 望（のぞみ） | `daily message (望): YYYY-MM-DD` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
 | 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録、登山レポートをもとに夜の報告と画像を生成し、翌朝の暁へ `night_handover` で引き継ぐ。画像を生成した場合は構図・情景を `image_logs` に1件記録する |
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
+| 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
 
-`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
 対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の日本標準時（JST）からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
 
@@ -226,7 +227,7 @@ lineai_aoi_profiles/
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
-| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)） |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |

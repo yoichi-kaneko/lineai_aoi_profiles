@@ -9,6 +9,8 @@ export const NOTE_TYPE = {
   OFF_MOUNTAIN: "off_mountain",
   /** 門灯モードが入山連絡（家族グループへの送信）後に残す記録。後続モードが山行コンテキストを把握するために参照する。 */
   UP_MOUNTAIN: "up_mountain",
+  /** 継灯モードが山小屋到着連絡（家族グループへの送信）後に残す記録。まだ下山しておらず翌日も山行が続くことを示し、小夜モードが山中泊コンテキストを把握するために参照する。 */
+  STAY_MOUNTAIN: "stay_mountain",
   /** ユーザーが LINE から送信したテキストメッセージを Webhook で記録したもの。 */
   LINE_TEXT: "line_text",
   /** ユーザーが LINE から送信した画像メッセージを Webhook で記録したもの（description に messageId 等）。 */

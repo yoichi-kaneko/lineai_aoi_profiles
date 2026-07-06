@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 LINE AIアシスタント「碧衣（あおい）」の設定・スキル管理リポジトリ。
-朝（暁）・昼（望）・夜（小夜）の3モードで、カレンダー確認・登山計画・日次振り返りなどをLINEに自動送信するシステム。
+朝（暁）・昼（望）・夜（小夜）の3つの定期モードに加え、登山イベントでトリガーされる特別モード（門灯＝入山・継灯＝山小屋到着・帰灯＝下山）と楽曲を届ける調べモードを持ち、カレンダー確認・登山計画・日次振り返りなどをLINEに自動送信するシステム。
 
 ## ディレクトリ構成
 
@@ -26,7 +26,11 @@ lineai_aoi_profiles/
 ├── modes/
 │   ├── morning.md          # 暁モード定義
 │   ├── noon.md             # 望モード定義
-│   └── night.md            # 小夜モード定義
+│   ├── night.md            # 小夜モード定義
+│   ├── up_mountain.md      # 門灯モード定義（入山通知）
+│   ├── stay_mountain.md    # 継灯モード定義（山小屋到着通知）
+│   ├── off_mountain.md     # 帰灯モード定義（下山通知）
+│   └── song.md             # 調べモード定義（楽曲生成）
 ├── src/                    # 各スキルの処理実装
 │   ├── cloudinary/         # Cloudinary 画像・音声アップロード
 │   ├── firebase/           # Firebase / Firestore アクセス（run_logs・--collection で専用コレクションも）
@@ -99,6 +103,10 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `modes/morning.md` | 暁モードの実行手順・判断ロジック |
 | `modes/noon.md` | 望モードの実行手順・判断ロジック |
 | `modes/night.md` | 小夜モードの実行手順・判断ロジック |
+| `modes/up_mountain.md` | 門灯モード（入山通知）の実行手順・判断ロジック |
+| `modes/stay_mountain.md` | 継灯モード（山小屋到着通知）の実行手順・判断ロジック |
+| `modes/off_mountain.md` | 帰灯モード（下山通知）の実行手順・判断ロジック |
+| `modes/song.md` | 調べモード（楽曲生成）の実行手順・判断ロジック |
 | `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト・構成フレームワーク本体 |
 | `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（6パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |

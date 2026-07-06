@@ -15,11 +15,17 @@ LINE Webhook からのリクエストを受け取る HTTP 関数。
 
 #### EC2 コマンドのトリガー
 
-`src/receiveLineMessage/index.ts` の冒頭で定義された `EC2_TRIGGER_KEYWORDS` のいずれかに前方一致するテキストメッセージを受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
+`src/receiveLineMessage/index.ts` の冒頭で定義された `TRIGGER_MODE_MAP` のいずれかのキーワードに前方一致するテキストメッセージを受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
 
-現在のトリガーキーワード: `"下山"`, `"無事下山"`
+現在のトリガーキーワードとモード:
 
-実行されるコマンドの内容は環境変数 `EC2_COMMAND`（`.env.yaml`）で設定します。
+| キーワード | モード |
+|---|---|
+| `下山`, `無事下山` | `off_mountain`（帰灯） |
+| `登山開始` | `up_mountain`（門灯） |
+| `山小屋` | `stay_mountain`（継灯） |
+
+実行されるコマンドの内容は環境変数 `EC2_COMMAND_TEMPLATE`（`.env.yaml`）で設定します。テンプレート中の `{MODE}` プレースホルダが上記のモード名に置換されます。
 
 ## デプロイ
 
@@ -39,7 +45,7 @@ cd functions
 | `LINE_USER_ID` | LINEのユーザーID |
 | `AWS_REGION` | AWS リージョン |
 | `EC2_INSTANCE_ID` | SSM コマンドの送信先 EC2 インスタンス ID |
-| `EC2_COMMAND` | EC2 上で実行するシェルコマンド |
+| `EC2_COMMAND_TEMPLATE` | EC2 上で実行するシェルコマンドのテンプレート（`{MODE}` をモード名に置換） |
 
 ### シークレット（`.secrets` / Secret Manager）
 

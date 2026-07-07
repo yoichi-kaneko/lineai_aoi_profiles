@@ -1,6 +1,83 @@
+# 楽曲生成ガイドライン：サンプル集
+
 ## 概要
 
-このファイルは、MurekaのAPIにより、既存楽曲の要素をテキストで説明したものになります。
+このファイルは [songs_guideline.md](songs_guideline.md) から参照される、楽曲プロンプト4要素（instrument / genres / tags / description）の参考例集です。以下の二部で構成されます。
+
+- **第1部：パッケージ別記述例（手本）**: スタイルパッケージD〜Gについて、碧衣の固定要素（`Lead Vocal (Female, Clear, Japanese)`、`Piano` / `Crystal-like Synth Pad`）との両立を織り込んで手書きした、完成形のプロンプト例です。記述の粒度に迷うとき、または選んだパッケージに近い手本が欲しいときに、該当する1例だけ拾えば十分です（全文を読む必要はありません）。
+- **第2部：Mureka解析サンプル（raw output）**: MurekaのAPIが既存楽曲の要素をテキストで説明したものです。これ自体をそのまま使う事はありませんが、キーワード指定の方法、descriptionの書き方について参考としてください。
+
+### パッケージとサンプルの対応表
+
+[songs_guideline.md](songs_guideline.md) セクション4のスタイルパッケージと、本ファイルの各例の対応です。
+
+| パッケージ | 系統 | 記述例（第1部） | 系統の近い解析サンプル（第2部） |
+|---|---|---|---|
+| A：叙事詩 | Symphonic / Epic | —（解析サンプルを直接参考に） | サンプル1・4・5 |
+| B：静謐 | Ambient / Folk | — | サンプル8 |
+| C：躍動 | J-Pop / Electronic | — | サンプル2・9・12 |
+| D：郷愁 | Lo-fi / Chillhop | 記述例D | サンプル11 |
+| E：幻想 | Celtic / Fantasy Folk | 記述例E | サンプル3・10 |
+| F：和風 | Shakuhachi / Koto フュージョン | 記述例F | サンプル6・10 |
+| G：残響 | Shoegaze / Dream Pop | 記述例G | サンプル7 |
+
+パッケージA〜Cの解析サンプルはいずれも女性ボーカル入りで碧衣の固定要素とそのまま両立するため、手本は解析サンプルで代替できます。D〜Gは系統元の解析サンプルとの間に読み替えが必要（例：サンプル11はインストゥルメンタル、サンプル10は架空言語の詠唱）なため、両立済みの完成形を第1部に用意しています。
+
+---
+
+## 第1部：パッケージ別記述例（手本）
+
+各記述例は、`tmp/mureka_song_prompt.txt` に書き込む **ラベル込みの最終形** で掲載しています（いずれもラベル・改行込みで700文字程度）。そのまま雛形にするのではなく、週のインスピレーションに合わせて情景・形容詞を差し替えてください。その際、固定要素 `Lead Vocal (Female, Clear, Japanese)` と `Piano` / `Crystal-like Synth Pad` は必ず残し、差し替え後も最終形の文字数を確認してください。
+
+### 記述例D：郷愁（Lo-fi / Chillhop）
+
+**参考点**: インストゥルメンタル系統（サンプル11）へのボーカルの組み込み方。コアは `Crystal-like Synth Pad` で担保し、`Electric Piano (Jazzy Chords)` がピアノの響きを引き継ぐ。劇的な展開に頼らない循環型のdescription。
+
+```text
+instrument: Lead Vocal (Female, Clear, Japanese), Electric Piano (Jazzy Chords, Mellow), Crystal-like Synth Pad (Warm, Atmospheric), Electronic Drum Kit (Lo-fi, Punchy), Synth Bass (Sub-bass, Soft)
+genres: Lo-fi Hip Hop, Chillhop, Ambient Pop
+tags: Nostalgic, Relaxing, Dreamy, Jazzy, Introspective
+description: The track opens with jazzy electric piano chords over a warm, crystal-like synth pad, setting a nostalgic rainy-day mood. A relaxed lo-fi beat and soft sub-bass settle into a gentle, cyclical groove, and Aoi's clear Japanese vocal floats just above it, soft and conversational. Rather than dramatic shifts, the chorus blooms subtly with light vocal layers as the textures slowly evolve, closing with the piano alone and a calm, wistful afterglow.
+```
+
+### 記述例E：幻想（Celtic / Fantasy Folk）
+
+**参考点**: フルートとボーカルの掛け合いを軸にした物語的なdescription。架空言語の詠唱（サンプル10）は採らず、日本語ボーカルに置き換える。`Piano` が導入と結びの受け皿を担う。
+
+```text
+instrument: Lead Vocal (Female, Clear, Japanese), Piano (Delicate, Melodic), Flute (Irish-style, Agile), Acoustic Guitar (Nylon-string, Arpeggiated), Percussion (Traditional, Rhythmic), String Section (Orchestral, Lush)
+genres: Celtic Folk, Fantasy Folk, Symphonic Folk
+tags: Mystical, Enchanting, Epic, Dynamic, Storytelling
+description: The song opens with a delicate piano figure and an agile Irish-style flute melody, setting a misty, mystical mood. Aoi's clear Japanese vocal enters softly over intricate nylon-string arpeggios, as if beginning an ancient tale, while traditional percussion builds quiet momentum. In the chorus, lush orchestral strings swell and the vocal soars into a vast, mythical landscape. The interplay between flute and vocal is the heart of the track, closing on a soft reprise of the piano.
+```
+
+### 記述例F：和風（Shakuhachi / Koto フュージョン）
+
+**参考点**: 和楽器群と `Piano` / `Crystal-like Synth Pad` の共存（サンプル6のSynth Padの役割を引き継ぐ）。尺八のカウンターメロディと、静と動の対比の描き方。
+
+```text
+instrument: Lead Vocal (Female, Clear, Japanese), Piano (Warm, Melodic), Crystal-like Synth Pad (Ethereal, Sustained), Shakuhachi (Haunting, Breathy), Koto (Plucked, Intricate), Taiko Drums (Ceremonial)
+genres: Traditional Japanese Music, Anime Soundtrack, J-Rock
+tags: Haunting, Atmospheric, Fusion, Dynamic, Cinematic
+description: The track opens with a haunting shakuhachi phrase and delicate koto plucking over an ethereal synth pad, evoking a mist-veiled mountain shrine. Aoi's clear Japanese vocal enters with quiet dignity, warm piano chords bridging the traditional and modern textures. Taiko drums bring a ceremonial pulse, and the chorus blooms into a sweeping fusion where the shakuhachi weaves counter-melodies around the soaring vocal, before a single koto note fades into silence.
+```
+
+### 記述例G：残響（Shoegaze / Dream Pop）
+
+**参考点**: 轟音の壁にボーカルが埋もれないよう、descriptionで「vocal clear and forward in the mix」を明示する例。`Piano` / `Crystal-like Synth Pad` は静のセクションの錨として使う。
+
+```text
+instrument: Lead Vocal (Female, Clear, Japanese), Piano (Clean, Reflective), Crystal-like Synth Pad (Lush, Dreamy), Clean Electric Guitar (Arpeggiated), Distorted Electric Guitar (Wall of Sound), Drum Kit (Driving)
+genres: Shoegaze, Dream Pop, Alternative Rock
+tags: Dreamy, Melancholic, Yearning, Cathartic, Atmospheric
+description: The song opens with a reflective piano motif and clean guitar arpeggios drifting over a lush synth pad. Aoi's clear Japanese vocal enters softly, carrying a quiet yearning through the dreamy, spacious verses. The chorus then erupts into a dense wall of layered, distorted guitars and driving drums; keep the vocal clear and forward in the mix so it soars above the noise. In the outro the distortion falls away, leaving the piano and a long reverb tail as a fragile afterglow.
+```
+
+---
+
+## 第2部：Mureka解析サンプル（raw output）
+
+以下は、MurekaのAPIにより、既存楽曲の要素をテキストで説明したものになります。
 これ自体をそのまま使う事はありませんが、キーワード指定の方法、descriptionの書き方について参考としてください。
 
 `instrument` / `genres` / `tags` / `description` は、Mureka 側の出力を観察するための **raw output に近い参考例** です。とくに `tags` の大文字・小文字やハイフン有無はサンプルごとに揺れる場合がありますが、ここでは API 出力の雰囲気を残すため、元の表記をそのまま掲載しています。

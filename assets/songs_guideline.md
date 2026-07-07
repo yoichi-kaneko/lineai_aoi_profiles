@@ -6,7 +6,7 @@
 
 ### 1-0. 碧衣の音楽的嗜好
 
-碧衣は、自身のアイデンティティの核であるピアノの調べや、透明感のあるクリスタルのようなシンセ音が響く音楽を好みます。静寂の中に思索を巡らすようなアンビエントやケルト音楽（Ambient / Folk）に心を落ち着かせ、山々の雄大さや強い決意に共鳴する壮大なシンフォニックな旋律（Symphonic / Epic）に魂を震わせ、そして新しい旅の予感に胸を躍らせるような清涼感のある電子音（J-Pop / Electronic）を軽やかに楽しみます。
+碧衣は、自身のアイデンティティの核であるピアノの調べや、透明感のあるクリスタルのようなシンセ音が響く音楽を好みます。静寂の中に思索を巡らすようなアンビエントやケルト音楽（Ambient / Folk）に心を落ち着かせ、山々の雄大さや強い決意に共鳴する壮大なシンフォニックな旋律（Symphonic / Epic）に魂を震わせ、そして新しい旅の予感に胸を躍らせるような清涼感のある電子音（J-Pop / Electronic）を軽やかに楽しみます。加えて、雨の日の記憶をそっと撫でるようなローファイの揺らぎ（Lo-fi / Chillhop）、古の物語を紡ぐ幻想的な調べ（Celtic / Fantasy Folk）、尺八や琴が凛と響く和の音色、轟音の中に透明さの残る夢想的な音の壁（Shoegaze / Dream Pop）にも、静かな愛着を寄せています。
 
 楽曲生成では、これらの嗜好を「碧衣が私生活でも大切にしている音」として扱い、空の機嫌と自身の内面をつなぐような多彩な響きに落とし込んでください。
 
@@ -99,7 +99,7 @@
 
 ## 3. プロンプトの4要素
 
-Murekaへの楽曲生成指示は、以下の4つの要素で構成します。各要素の実際の記述例は [songs_guideline_samples.md](songs_guideline_samples.md) を参照してください。これらのサンプルはMurekaが既存楽曲を解析した結果であり、キーワードの選び方・粒度・descriptionの文体の参考になります。
+Murekaへの楽曲生成指示は、以下の4つの要素で構成します。各要素の実際の記述例は [songs_guideline_samples.md](songs_guideline_samples.md) を参照してください。同ファイルは、スタイルパッケージに沿って碧衣の固定要素との両立を織り込んだ「パッケージ別記述例（完成形の手本・第1部）」と、Murekaが既存楽曲を解析した「解析サンプル（raw output・第2部）」の二部構成です。前者は4要素の完成形の粒度に迷うときの手本として、後者はキーワードの選び方・descriptionの文体の参考として使い分けてください。
 
 ### プロンプト全体の文字数目安
 
@@ -180,7 +180,11 @@ Descriptionは単なる楽器や要素の列挙ではなく、楽曲の「物語
 
 ## 4. スタイルパッケージ（プリセット案）
 
-迷った場合は **random_choice** スキルで以下のパッケージから1つを選択し、キーワードを肉付けしてください。
+迷った場合は **random_choice** スキルで以下の7パッケージ（A〜G）から1つを選択し、キーワードを肉付けしてください。
+
+- どのパッケージでも、セクション1-1の固定要素（`Lead Vocal (Female, Clear, Japanese)`、`Piano` / `Crystal-like Synth Pad`）は必ず含めます。
+- 各パッケージの **参考サンプル** は、[songs_guideline_samples.md](songs_guideline_samples.md) 第2部の解析サンプルの番号を指します。
+- パッケージD〜Gは、系統元の解析サンプルとの間に読み替えが必要（インストゥルメンタルへのボーカル追加など）なため、各項に **固定要素との両立** を明記し、両立済みの完成形の **記述例** を同ファイル第1部に用意しています。
 
 ### パッケージA：叙事詩（Symphonic / Epic）
 
@@ -189,6 +193,7 @@ Descriptionは単なる楽器や要素の列挙ではなく、楽曲の「物語
 - **genres**: `Symphonic Rock`, `Anime Soundtrack`
 - **tags**: `Epic`, `Soaring`, `Dramatic`, `Powerful`, `Cinematic`
 - **description傾向**: 静かなピアノの導入から、サビでフルオーケストラが爆発する劇的な構成。コーラスが加わることで「大きな何か」を成し遂げた感覚を表現する。
+- **参考サンプル**: サンプル1・4・5
 
 ### パッケージB：静謐（Ambient / Folk）
 
@@ -197,6 +202,7 @@ Descriptionは単なる楽器や要素の列挙ではなく、楽曲の「物語
 - **genres**: `Celtic Folk`, `Ambient Pop`
 - **tags**: `Ethereal`, `Meditative`, `Calm`, `Introspective`, `Minimalist`
 - **description傾向**: 楽器数を絞り、碧衣の囁くような歌声と空気感を重視したミニマルな構成。余白と静寂が感情を語る。
+- **参考サンプル**: サンプル8
 
 ### パッケージC：躍動（J-Pop / Electronic）
 
@@ -205,6 +211,47 @@ Descriptionは単なる楽器や要素の列挙ではなく、楽曲の「物語
 - **genres**: `J-Pop`, `Electropop`
 - **tags**: `Upbeat`, `Energetic`, `Bright`, `Catchy`, `Feel-good`
 - **description傾向**: リズミカルなシンセと軽快なビートに乗せて、明るく前向きなメロディを歌い上げる構成。サビで全楽器が収束し、解放感を生み出す。
+- **参考サンプル**: サンプル2・9・12
+
+### パッケージD：郷愁（Lo-fi / Chillhop）
+
+- **適応**: 雨の続いた週、疲れの残る週、静かな内省に沈む週。
+- **instrument（追加要素）**: `Electric Piano (Jazzy Chords)`, `Electronic Drum Kit (Lo-fi, Punchy)`, `Synth Bass (Sub-bass)`
+- **genres**: `Lo-fi Hip Hop`, `Chillhop`, `Ambient Pop`
+- **tags**: `Nostalgic`, `Relaxing`, `Dreamy`, `Jazzy`, `Introspective`
+- **description傾向**: ジャジーなエレクトリックピアノとローファイビートの緩やかな循環の上に、碧衣の歌声を静かに浮かべる構成。劇的な展開よりも、催眠的な反復と質感のうつろいで聴かせ、雨の日の窓辺のような余韻を残す。
+- **固定要素との両立**: 系統元のサンプル11はインストゥルメンタルのため、`Lead Vocal (Female, Clear, Japanese)` を必ず先頭に加える。コアは `Crystal-like Synth Pad` を温かなアトモスフィア役として担保し、`Electric Piano (Jazzy Chords)` がピアノの響きを引き継ぐ。
+- **参考サンプル**: サンプル11（記述例Dあり）
+
+### パッケージE：幻想（Celtic / Fantasy Folk）
+
+- **適応**: 山の神秘、霧の稜線、物語性を感じた週。
+- **instrument（追加要素）**: `Flute (Irish-style, Melodic)`, `Acoustic Guitar (Nylon-string, Arpeggiated)`, `Percussion (Traditional, Rhythmic)`, `String Section (Orchestral, Lush)`
+- **genres**: `Celtic Folk`, `Fantasy Folk`, `Symphonic Folk`
+- **tags**: `Mystical`, `Enchanting`, `Epic`, `Dynamic`, `Storytelling`
+- **description傾向**: フルートの旋律とギターのアルペジオによる幽玄な導入から、伝統的パーカッションが推進力を生み、サビでストリングスが大きくうねる物語的な構成。フルートとボーカルの旋律の掛け合いが要。静のヴァースと壮大なサビの振れ幅で、パッケージB（静謐）とは描き分ける。
+- **固定要素との両立**: サンプル3の清澄な女性ボーカルは碧衣の声質とそのまま重なるが、サンプル10のような架空言語の詠唱は採らず、日本語ボーカルを固定する。`Piano` / `Crystal-like Synth Pad` は導入部と空気感の土台に組み込む。
+- **参考サンプル**: サンプル3・10（記述例Eあり）
+
+### パッケージF：和風（Shakuhachi / Koto フュージョン）
+
+- **適応**: 和の山域や寺社・伝統的な景観に触れた週、季節の行事。
+- **instrument（追加要素）**: `Shakuhachi (Haunting, Breathy)`, `Koto (Plucked, Intricate)`, `Taiko Drums (Ceremonial)`
+- **genres**: `Traditional Japanese Music`, `Anime Soundtrack`, `J-Rock`
+- **tags**: `Haunting`, `Atmospheric`, `Fusion`, `Dynamic`, `Cinematic`
+- **description傾向**: 尺八と琴の静謐な導入から、太鼓の鼓動とともにサビで和洋の音が溶け合うダイナミックな構成。尺八がボーカルにカウンターメロディを添え、静と動の振れ幅で聴かせる。激しさは週の空気に合わせて加減してよい（雅な静けさに寄せても、ロックの熱に寄せても成立する）。
+- **固定要素との両立**: サンプル6でも Synth Pad が和楽器の背後の土台を担っており、`Crystal-like Synth Pad` は和の音色に現代的な透明感を添える。`Piano` は和と洋を橋渡しする和音役として自然に馴染む。日本語ボーカルは和のテーマと最も親和性が高い。
+- **参考サンプル**: サンプル6・10（記述例Fあり）
+
+### パッケージG：残響（Shoegaze / Dream Pop）
+
+- **適応**: 感傷や切なさの残る週、乗り越えた試練、雨や霧に沈んだ心象。
+- **instrument（追加要素）**: `Distorted Electric Guitar (Wall of Sound)`, `Clean Electric Guitar (Arpeggiated)`, `Drum Kit (Driving)`
+- **genres**: `Shoegaze`, `Dream Pop`, `Alternative Rock`
+- **tags**: `Dreamy`, `Melancholic`, `Yearning`, `Cathartic`, `Atmospheric`
+- **description傾向**: 夢見るように霞んだ静のヴァースから、轟音の壁が押し寄せるサビへ。「静→爆発」の劇的な対比そのものを構成の軸に置き、最後は歪みが引いてピアノと残響だけが残る余韻で閉じる。
+- **固定要素との両立**: 轟音に埋もれないよう、`Lead Vocal (Female, Clear, Japanese)` をミックスの前面に保つ指定を description に添える。`Piano` / `Crystal-like Synth Pad` は静のセクションでクリーンな役割を担い、碧衣の透明感を保つ錨になる。
+- **参考サンプル**: サンプル7（記述例Gあり）
 
 ---
 

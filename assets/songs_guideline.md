@@ -27,7 +27,7 @@
 
 ## 2. プロンプトの4要素
 
-Murekaへの楽曲生成指示は、以下の4つの要素で構成します。各要素の実際の記述例は [audio_samples/sample_descriptions.md](audio_samples/sample_descriptions.md) を参照してください。これらのサンプルはMurekaが既存楽曲を解析した結果であり、キーワードの選び方・粒度・descriptionの文体の参考になります。
+Murekaへの楽曲生成指示は、以下の4つの要素で構成します。各要素の実際の記述例は [songs_guideline_samples.md](songs_guideline_samples.md) を参照してください。これらのサンプルはMurekaが既存楽曲を解析した結果であり、キーワードの選び方・粒度・descriptionの文体の参考になります。
 
 ### プロンプト全体の文字数目安
 

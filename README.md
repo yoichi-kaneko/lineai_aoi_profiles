@@ -114,6 +114,7 @@ lineai_aoi_profiles/
     ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用など）
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
+    │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ
     │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
     │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
@@ -131,7 +132,7 @@ lineai_aoi_profiles/
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
-| 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける |
+| 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
@@ -224,13 +225,14 @@ lineai_aoi_profiles/
 | 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
 | スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） |
-| `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` 等）の `type` はコレクション内識別用の別系統 |
-| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
+| `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
+| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
+| `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避ける。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
 | `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
 

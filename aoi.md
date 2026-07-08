@@ -161,7 +161,7 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 
 このモードは楽曲生成（非同期）の完了待ちを伴います。headless 実行（`claude -p`）でエージェント内に長時間待機を抱えると、待機後の送信が実行されないまま正常終了する silent failure に陥るため、処理を **2つのフェーズ** に分け、待機とダウンロードは `send_daily_line.sh`（シェル）が純粋な `sleep` で担当します。入力トリガーで実行するフェーズが決まります。
 
-- **`daily message (調べ): YYYY-MM-DD`（フェーズA）**: `modes/song.md` のステップ1〜6を実行します。情報収集〜作曲開始までを行い、`task_id` を `tmp/song_task_id.txt`、送信本文を `tmp/song_message.txt` に書き出して**終了**します。**待機・ダウンロード・送信は行いません**。
+- **`daily message (調べ): YYYY-MM-DD`（フェーズA）**: `modes/song.md` のステップ1〜6を実行します。情報収集〜作曲開始までを行い、`task_id` を `tmp/song_task_id.txt`、送信本文を `tmp/song_message.txt` に書き出し、生成内容を `song_logs` に記録し、成功時に成功マーカー `tmp/song_log.ok` を作成して**終了**します。**待機・ダウンロード・送信は行いません**。
 - **`daily message (調べ送信): YYYY-MM-DD`（フェーズB）**: `modes/song.md` の **ステップ7（フェーズB）のみ** を実行します。シェルがダウンロードした楽曲（`tmp/song_audio_path.txt`）と事前生成した本文（`tmp/song_message.txt`）を `send_line_audio` で送信し、成功時に成功マーカー `tmp/song_sent.ok` を作成します。
 
 > **注意**: このモードは `共通ステップ：LINE送信` を**使用しません**。音声とテキストの送信はフェーズBのステップ7で **`send_line_audio`**（音声+テキスト同梱）により完結します。

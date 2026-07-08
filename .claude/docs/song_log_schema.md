@@ -68,4 +68,4 @@ pnpm exec tsx src/firebase/put_doc.ts "{date}" "song_log" --collection song_logs
 - 第2位置引数の `"song_log"` が `type`（コレクション内識別用）。`--collection song_logs` のとき NOTE_TYPE 検証はバイパスされます。
 - `--description-file` 指定時、`description` はファイルから読み込まれ、位置引数は `[date, type]` の順に解釈されます。
 
-成功したら、追加したドキュメントの ID を報告してください。
+成功したら、追加したドキュメントの ID を報告し、Bash で `: > tmp/song_log.ok` を実行して**成功マーカー `tmp/song_log.ok`** を作成してください。このマーカーは `send_daily_line.sh` がフェーズAの完了を検証するために必須です（`song_logs` 記録失敗時に待機・ダウンロードへ進まないため）。**記録が成功した場合に限り作成**してください。

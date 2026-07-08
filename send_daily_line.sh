@@ -92,7 +92,7 @@ fi
 # ウェイクアップを待つ」パターンが silent failure（exit 0 で何も送られない）に
 # つながるため、楽曲生成完了の待機をエージェントの外（純粋な bash sleep）へ出す。
 #
-#   フェーズA（claude -p / 調べ）   : 情報収集〜作曲開始。task_id と送信本文を tmp/ へ書き出す
+#   フェーズA（claude -p / 調べ）   : 情報収集〜作曲開始。task_id・送信本文・song_logs を書き出す
 #   シェル待機                       : sleep 300 × 最大3回で楽曲をダウンロード
 #   フェーズB（claude -p / 調べ送信）: ダウンロード済み楽曲 + 本文を LINE 送信し成功マーカーを残す
 #   検証                             : 成功マーカーが無ければ非ゼロ終了（silent failure を検知）
@@ -109,9 +109,10 @@ if [ "$MODE" = "song" ]; then
   TASK_ID_FILE="tmp/song_task_id.txt"
   MESSAGE_FILE="tmp/song_message.txt"
   AUDIO_PATH_FILE="tmp/song_audio_path.txt"
+  LOG_MARKER="tmp/song_log.ok"
   SENT_MARKER="tmp/song_sent.ok"
 
-  # ---- フェーズA: 情報収集〜作曲開始（task_id と送信本文の生成） ----
+  # ---- フェーズA: 情報収集〜作曲開始（task_id・送信本文・song_logs の生成） ----
   PHASE_A_OK=false
   for i in $(seq 1 $PHASE_A_RETRIES); do
     # フェーズA再試行ごとに tmp/ を掃除（待機・送信へ進む前のみ。フェーズ間では掃除しない）
@@ -126,17 +127,17 @@ if [ "$MODE" = "song" ]; then
       continue
     fi
 
-    if [ -s "$TASK_ID_FILE" ] && [ -s "$MESSAGE_FILE" ]; then
+    if [ -s "$TASK_ID_FILE" ] && [ -s "$MESSAGE_FILE" ] && [ -f "$LOG_MARKER" ]; then
       PHASE_A_OK=true
       break
     fi
 
-    echo "[WARN] song Phase A attempt $i missing Phase B prerequisites (${TASK_ID_FILE} and/or ${MESSAGE_FILE}). Retrying..." >&2
+    echo "[WARN] song Phase A attempt $i missing Phase B prerequisites (${TASK_ID_FILE}, ${MESSAGE_FILE}, and/or ${LOG_MARKER}). Retrying..." >&2
     [ $i -lt $PHASE_A_RETRIES ] && sleep 30
   done
 
   if [ "$PHASE_A_OK" != "true" ]; then
-    echo "[ERROR] song Phase A failed (missing task_id or message after ${PHASE_A_RETRIES} attempts). MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    echo "[ERROR] song Phase A failed (missing task_id, message, or song_logs marker after ${PHASE_A_RETRIES} attempts). MODE=${MODE}, DATE=${TARGET_DATE}" >&2
     exit 1
   fi
 

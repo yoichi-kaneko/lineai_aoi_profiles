@@ -9,13 +9,24 @@
 LINE Webhook からのリクエストを受け取る HTTP 関数。
 
 - LINE の署名検証（`x-line-signature`）を行い、不正なリクエストを弾く
-- テキスト・画像メッセージを Firestore の `notes` に保存する（`type` は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) の `LINE_TEXT` / `LINE_IMAGE` と同値）
+- テキスト・画像メッセージを Firestore の `notes` に保存する（`type` は [../src/firebase/noteTypes.ts](../src/firebase/noteTypes.ts) の `LINE_TEXT` / `LINE_IMAGE` と同値）。ただしフィードバックのキーワードで始まるテキストは専用コレクションへ振り分ける（後述）
 - 未対応のメッセージタイプはエラーをスローする
 - テキストメッセージの内容が特定のキーワードで始まる場合、Firestore への保存後に EC2 コマンドを実行する（後述）
 
+#### フィードバックの振り分け
+
+以下のキーワードに前方一致するテキストメッセージは、碧衣の生成物へのフィードバックとして `notes` ではなく専用コレクションへ保存します。**`line_text` としては保存せず、EC2 コマンドのトリガーも発火しません**（日々のモードがフィードバック文を「ユーザーの言葉」として誤取込するのを防ぐため）。
+
+| キーワード | 保存先コレクション | 内容 |
+|---|---|---|
+| `評価`, `傾向` | `image_feedback` | 画像生成へのフィードバック（[スキーマ・パース仕様](../.claude/docs/image_feedback_schema.md)） |
+| `楽曲評価`, `音楽評価` | `song_feedback` | 楽曲生成へのフィードバック（[スキーマ・パース仕様](../.claude/docs/song_feedback_schema.md)） |
+
+パースの実体は `src/receiveLineMessage/parseImageFeedback.ts` / `parseSongFeedback.ts` です（日付・スコアの抽出は `parseRating.ts` を共用）。
+
 #### EC2 コマンドのトリガー
 
-`src/receiveLineMessage/index.ts` の冒頭で定義された `TRIGGER_MODE_MAP` のいずれかのキーワードに前方一致するテキストメッセージを受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
+`src/receiveLineMessage/index.ts` の冒頭で定義された `TRIGGER_MODE_MAP` のいずれかのキーワードに前方一致するテキストメッセージ（フィードバックの振り分けに該当しなかったもの）を受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
 
 現在のトリガーキーワードとモード:
 

@@ -56,6 +56,7 @@ lineai_aoi_profiles/
 │   │   ├── image_log_schema.md       # image_logs（柱A）のスキーマ・記録コマンド
 │   │   ├── image_feedback_schema.md  # image_feedback（柱B）のスキーマ・パース仕様
 │   │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ・記録コマンド
+│   │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
 │   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
 │   │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
 │   │   └── yamap_activity_pdf_guide.md # YAMAP 活動記録PDF の重点チェックガイド
@@ -81,6 +82,7 @@ lineai_aoi_profiles/
 │       ├── put_todoist_task/
 │       ├── random_choice/
 │       ├── review_image_feedback/
+│       ├── review_song_feedback/
 │       ├── run_aoi_daily/
 │       ├── send_line_audio/
 │       ├── send_line_image/
@@ -183,4 +185,5 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 - `generate_gpt_image` も同様に、プロンプトを引数で直接渡さず `tmp/gpt_image_prompt.txt` に保存し、そのパスを第一引数に渡す方式（第二引数は参考画像ファイル名）。改行はそのまま改行として書けばよく、`\n` への置換は不要（SKILL.md 参照）
 - 画像生成スキルは `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` に設定された参照画像を自動添付する
 - 画像生成フィードバック機構（issue #43）の `image_logs` / `image_feedback` / `image_feedback_reviews` は、`notes` とは別の**専用コレクション**に隔離されている。`get_firestore_docs` / `put_firestore_doc` の `--collection` オプションで読み書きし（デフォルトは `notes` で後方互換）、`notes` 以外では `NOTE_TYPE` 検証をバイパスして `type` をコレクション内識別用の任意値（`image_log` / `image_feedback` / `review_marker`）として扱う。日々の各モードのコンテキストには流入させず、`review_image_feedback` スキル（柱C）でのみ参照する。スキーマは [`.claude/docs/image_log_schema.md`](docs/image_log_schema.md) / [`image_feedback_schema.md`](docs/image_feedback_schema.md) を参照
-- 楽曲生成ログ（issue #68/#69）の `song_logs` も、`notes` とは別の**専用コレクション**に隔離する。調べモードのフェーズA完了時に `type: song_log` で記録し、次回以降の調べモードで直近2〜3件を参照してスタイルパッケージや主要モチーフの連続を避ける。楽曲レビュー機構は未実装のため、現時点の読み手は調べモードの重複回避のみ。スキーマは [`.claude/docs/song_log_schema.md`](docs/song_log_schema.md) を参照
+- 楽曲生成ログ（issue #68/#69）の `song_logs` も、`notes` とは別の**専用コレクション**に隔離する。調べモードのフェーズA完了時に `type: song_log` で記録し、次回以降の調べモードで直近2〜3件を参照してスタイルパッケージや主要モチーフの連続を避ける。スキーマは [`.claude/docs/song_log_schema.md`](docs/song_log_schema.md) を参照
+- 楽曲フィードバック機構（issue #71）の `song_feedback` / `song_feedback_reviews` も同様に**専用コレクション**に隔離する。`楽曲評価` / `音楽評価` で始まる LINE 返信を `receiveLineMessage` Webhook が `type: song_feedback` で保存し（画像側と異なり傾向フィードバックは持たない）、`song_logs` とあわせて `review_song_feedback` スキルが月次サイクルで参照して `assets/songs_guideline.md` の修正案を提示する（人手承認で反映）。スキーマは [`.claude/docs/song_feedback_schema.md`](docs/song_feedback_schema.md) を参照

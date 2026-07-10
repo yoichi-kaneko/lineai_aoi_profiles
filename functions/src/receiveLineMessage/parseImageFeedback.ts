@@ -14,6 +14,8 @@
  * （スコア欄が空でも、コメントだけのフィードバックとして保存できるようにするため）。
  */
 
+import { parseRatingBody } from "./parseRating";
+
 export type ImageFeedbackKind = "rating" | "trend";
 
 export interface ParsedImageFeedback {
@@ -28,45 +30,15 @@ export interface ParsedImageFeedback {
 
 const RATING_PREFIX = "評価";
 const TREND_PREFIX = "傾向";
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/**
- * 先頭トークン（空白区切り）と残りを返す。
- * JS の `\s` は全角空白（U+3000）も含むため、半角・全角どちらの区切りにも対応する。
- */
-function splitFirstToken(text: string): { head: string; rest: string } {
-  const m = text.match(/^(\S+)(?:\s+([\s\S]*))?$/);
-  if (!m) return { head: "", rest: "" };
-  return { head: m[1], rest: (m[2] ?? "").trim() };
-}
 
 export function parseImageFeedback(text: string): ParsedImageFeedback | null {
   const trimmed = text.trim();
 
   if (trimmed.startsWith(RATING_PREFIX)) {
-    let rest = trimmed.slice(RATING_PREFIX.length).trim();
-
-    // 任意の先頭日付トークン（YYYY-MM-DD）を抽出
-    let target_date: string | null = null;
-    {
-      const { head, rest: after } = splitFirstToken(rest);
-      if (DATE_RE.test(head)) {
-        target_date = head;
-        rest = after;
-      }
-    }
-
-    // 任意の先頭スコアトークン（1〜5）を抽出
-    let score: number | null = null;
-    {
-      const { head, rest: after } = splitFirstToken(rest);
-      if (/^[1-5]$/.test(head)) {
-        score = Number(head);
-        rest = after;
-      }
-    }
-
-    return { kind: "rating", score, comment: rest, target_date };
+    const { score, comment, target_date } = parseRatingBody(
+      trimmed.slice(RATING_PREFIX.length),
+    );
+    return { kind: "rating", score, comment, target_date };
   }
 
   if (trimmed.startsWith(TREND_PREFIX)) {

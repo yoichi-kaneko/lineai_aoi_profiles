@@ -9,6 +9,7 @@
 `receiveLineMessage`（`functions/src/receiveLineMessage/index.ts`）の振り分けロジック:
 
 - テキストが `評価` / `傾向` で始まる → `image_feedback` に保存し、**`line_text` には保存しない／EC2 トリガー（`execEc2Command`）も発火させない**。
+- テキストが `楽曲評価` / `音楽評価` で始まる → 楽曲フィードバックとして `song_feedback` に保存（同様に隔離。[song_feedback_schema.md](song_feedback_schema.md) を参照）。
 - 既存トリガー語（`下山` / `登山開始`）とは前方一致が衝突しないため安全。
 - それ以外のテキストは従来どおり `line_text` として `notes` に保存し、必要に応じて EC2 トリガーを発火。
 

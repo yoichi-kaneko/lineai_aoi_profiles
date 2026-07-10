@@ -115,6 +115,7 @@ lineai_aoi_profiles/
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
     │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ
+    │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
     │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
     │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
@@ -224,17 +225,19 @@ lineai_aoi_profiles/
 | サービス名 | Firebase / Firestore |
 | 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
-| スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） |
+| スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） / `review_song_feedback`（楽曲フィードバックの定期レビュー） |
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
-| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)） |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
-| `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避ける。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
+| `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
+| `song_feedback` コレクション | ユーザーが LINE 返信（`楽曲評価` / `音楽評価`）で寄せた楽曲フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: song_feedback`）。画像側と異なり傾向フィードバックは持たない（個別評価のみ）。形状・パース仕様は [song_feedback_schema.md](.claude/docs/song_feedback_schema.md) を正とする |
 | `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
+| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）
 
@@ -245,6 +248,14 @@ lineai_aoi_profiles/
 3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
 
 「安定した生成を維持したい」「ガイドラインに縛られず自由に生成したい」という相反する要望は、ガイドラインを**核（安定・変更は慎重）／彩り（意図的に多様化）**の2層に分けることで、別層の指摘として両立させます。
+
+#### 楽曲フィードバック・サイクル（song_logs / song_feedback）
+
+碧衣の楽曲生成（調べ）についても、画像側と同じ3本柱の仕組みを回します（issue #71）。
+
+1. **柱A：`song_logs`** — 調べモードのフェーズA完了時に曲調・題材などを1件記録する（[song_log_schema.md](.claude/docs/song_log_schema.md)）。
+2. **柱B：`song_feedback`** — ユーザーが `楽曲評価 <1-5> <コメント>`（`音楽評価` も同義）で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。画像側と異なり傾向フィードバックは設けない（[song_feedback_schema.md](.claude/docs/song_feedback_schema.md)）。
+3. **柱C：`review_song_feedback` スキル** — 月次サイクルでユーザーが手動起動。個別評価の集約とパッケージ・題材の傾向集計を行い、`assets/songs_guideline.md` への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `song_feedback_reviews` に記録し、次サイクルの起点とする。
 
 ### AWS Systems Manager
 

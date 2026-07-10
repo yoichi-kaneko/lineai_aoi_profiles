@@ -4,11 +4,15 @@ import { validateSignature, webhook } from "@line/bot-sdk";
 import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 import { parseImageFeedback } from "./parseImageFeedback";
+import { parseSongFeedback } from "./parseSongFeedback";
 
 type TriggerMode = "off_mountain" | "up_mountain" | "stay_mountain";
 
 /** image_feedback コレクション内識別用の type（`notes` の NOTE_TYPE とは別系統）。 */
 const IMAGE_FEEDBACK_TYPE = "image_feedback";
+
+/** song_feedback コレクション内識別用の type（`notes` の NOTE_TYPE とは別系統）。 */
+const SONG_FEEDBACK_TYPE = "song_feedback";
 
 const TRIGGER_MODE_MAP: { keywords: string[]; mode: TriggerMode }[] = [
   { keywords: ["下山", "無事下山"], mode: "off_mountain" },
@@ -37,6 +41,37 @@ function jstDateFromYmd(ymd: string): Date {
 }
 
 const firestore = new Firestore();
+
+/**
+ * フィードバックを専用コレクションへ保存する（image_feedback / song_feedback 共通）。
+ * `target_date` が明示されていればその日付、なければ投稿日に紐付ける。
+ */
+async function addFeedbackDoc(
+  collection: string,
+  type: string,
+  feedback: {
+    kind: string;
+    score: number | null;
+    comment: string;
+    target_date: string | null;
+  },
+  postedDate: Date,
+): Promise<void> {
+  const feedbackDate = feedback.target_date
+    ? jstDateFromYmd(feedback.target_date)
+    : postedDate;
+  await firestore.collection(collection).add({
+    date: Timestamp.fromDate(feedbackDate),
+    description: JSON.stringify({
+      kind: feedback.kind,
+      score: feedback.score,
+      comment: feedback.comment,
+      target_date: feedback.target_date,
+    }),
+    type,
+    createdAt: Timestamp.fromDate(new Date()),
+  });
+}
 
 functions.http("receiveLineMessage", async (req, res) => {
   const channelSecret = process.env.LINE_CHANNEL_SECRET ?? "";
@@ -75,25 +110,29 @@ functions.http("receiveLineMessage", async (req, res) => {
       const message = event.message as webhook.TextMessageContent;
       const dateValue = startOfJstDay(new Date(event.timestamp));
 
-      // 画像生成フィードバック（`評価` / `傾向`）は image_feedback コレクションへ隔離保存し、
-      // line_text としては保存しない。EC2 トリガーも発火させない（その夜の小夜モードが
+      // 画像生成フィードバック（`評価` / `傾向`）と楽曲フィードバック（`楽曲評価` / `音楽評価`）は
+      // それぞれ専用コレクション（image_feedback / song_feedback）へ隔離保存し、
+      // line_text としては保存しない。EC2 トリガーも発火させない（日々のモードが
       // フィードバック文を「ユーザーの言葉」として画像・本文へ誤取込するのを防ぐため）。
-      const feedback = parseImageFeedback(message.text);
-      if (feedback !== null) {
-        const feedbackDate = feedback.target_date
-          ? jstDateFromYmd(feedback.target_date)
-          : dateValue;
-        await firestore.collection("image_feedback").add({
-          date: Timestamp.fromDate(feedbackDate),
-          description: JSON.stringify({
-            kind: feedback.kind,
-            score: feedback.score,
-            comment: feedback.comment,
-            target_date: feedback.target_date,
-          }),
-          type: IMAGE_FEEDBACK_TYPE,
-          createdAt: Timestamp.fromDate(new Date()),
-        });
+      const imageFeedback = parseImageFeedback(message.text);
+      if (imageFeedback !== null) {
+        await addFeedbackDoc(
+          "image_feedback",
+          IMAGE_FEEDBACK_TYPE,
+          imageFeedback,
+          dateValue,
+        );
+        continue;
+      }
+
+      const songFeedback = parseSongFeedback(message.text);
+      if (songFeedback !== null) {
+        await addFeedbackDoc(
+          "song_feedback",
+          SONG_FEEDBACK_TYPE,
+          songFeedback,
+          dateValue,
+        );
         continue;
       }
 

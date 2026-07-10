@@ -24,7 +24,7 @@ description: 月次サイクルで楽曲生成ログ（song_logs）とフィー�
 - 取得: **get_firestore_docs** スキル（`--collection` で専用コレクションを指定）
 - 修正要望の記録: **put_todoist_task** スキル ― ガイドラインの文言で直せない指摘（ステップ6）や、抽選軸の偏り強化要望（ステップ4の注釈）を Todoist タスクとして残す
 - マーカー記録: **put_firestore_doc** スキル（`--collection song_feedback_reviews`）
-- 参照: [song_logs スキーマ](../../docs/song_log_schema.md) / [song_feedback スキーマ](../../docs/song_feedback_schema.md) / [楽曲生成ガイドライン](../../../assets/songs_guideline.md)（参考サンプル集は `assets/songs_guideline_samples.md`）
+- 参照: [song_logs スキーマ](../../docs/song_log_schema.md) / [song_feedback スキーマ](../../docs/song_feedback_schema.md) / [楽曲生成ガイドライン](../../../assets/songs_guideline.md)（参考サンプル集は `assets/songs_lyrics_samples.md`）
 
 ---
 

@@ -59,8 +59,9 @@ lineai_aoi_profiles/
 │   │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
 │   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
 │   │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
-│   │   └── yamap_activity_pdf_guide.md # YAMAP 活動記録PDF の重点チェックガイド
+│   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
+│       ├── crop_yamap_report/
 │       ├── download_google_drive_file/
 │       ├── download_image/
 │       ├── download_line_image/

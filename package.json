@@ -20,6 +20,8 @@
         "googleapis": "^171.4.0",
         "openai": "^6.34.0",
         "playwright": "1.58.2",
+        "sharp": "^0.34.5",
+        "tesseract.js": "^7.0.0",
         "type-fest": "^4.12.0"
     },
     "devDependencies": {
@@ -36,7 +38,9 @@
             "@playwright/browser-chromium",
             "esbuild",
             "playwright",
-            "protobufjs"
+            "protobufjs",
+            "sharp",
+            "tesseract.js"
         ]
     },
     "packageManager": "pnpm@10.0.0"

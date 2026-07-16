@@ -159,8 +159,8 @@ function computeBandStats(
   columnCount: number,
 ): BandStats {
   const colWidth = (rightCol - leftCol) / columnCount;
-  const colNonWhite = new Array(columnCount).fill(0);
-  const colTotal = new Array(columnCount).fill(0);
+  const colNonWhite = Array.from({ length: columnCount }, () => 0);
+  const colTotal = Array.from({ length: columnCount }, () => 0);
   let nonWhite = 0;
   let total = 0;
 

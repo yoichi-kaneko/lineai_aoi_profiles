@@ -74,7 +74,9 @@ async function main() {
   if (allFailed) {
     console.error("すべてのブロック切り出しに失敗しました:");
     for (const item of result.results) {
-      console.error(`  ${item.section}: ${item.reason}`);
+      if (item.status === "FAILED") {
+        console.error(`  ${item.section}: ${item.reason}`);
+      }
     }
     process.exit(1);
   }

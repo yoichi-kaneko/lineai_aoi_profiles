@@ -123,8 +123,7 @@ async function findActivityDataHeading(
   }
 
   if (scored.length === 0) {
-    const fallback = candidates[candidates.length - 1];
-    return fallback ? scaleBbox(fallback, scaleBack, scaleBack) : null;
+    return null;
   }
 
   scored.sort((a, b) => b.score - a.score);
@@ -237,7 +236,7 @@ async function detectSectionBoundaries(
     );
   }
 
-  const headerBottom = activityDataHeading?.y0 ?? checkpointHeading?.y0 ?? activityDetailHeading?.y0 ?? null;
+  const headerBottom = activityDataHeading?.y0 ?? null;
   const header = headerBottom != null && headerBottom > 0
     ? { top: 0, bottom: headerBottom }
     : null;

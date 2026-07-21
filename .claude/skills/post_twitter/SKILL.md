@@ -1,0 +1,61 @@
+---
+name: post_twitter
+description: Twitter（X）へ本文（＋任意で画像1枚）を投稿する。本文は一時ファイル(tmp/twitter_message.txt)に保存してそのパスを渡し、画像を添える場合は第2引数に画像パスを渡す。
+---
+
+# post_twitter
+
+Twitter（X）API を用いて、本文（＋任意で画像1枚）をツイートとして投稿するスキルです。
+綴葉（scribe）モードが SNS へ代筆投稿する際に使用します。
+
+## 事前準備
+
+依存パッケージはルートディレクトリで一元管理しています。
+初回のみ、プロジェクトルートで以下を実行してください。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+pnpm install
+```
+
+プロジェクトルートの `.env` に以下の環境変数が必要です（いずれも投稿用アカウントの OAuth 1.0a 認証情報）。
+
+```
+TWITTER_API_KEY="your_api_key"
+TWITTER_API_SECRET="your_api_secret"
+TWITTER_ACCESS_TOKEN="your_access_token"
+TWITTER_ACCESS_TOKEN_SECRET="your_access_token_secret"
+```
+
+## Claudeへの指示
+
+### 手順
+
+1. **本文の保存**: 投稿する本文を `tmp/twitter_message.txt` に保存してください。本文を引数で直接渡さず、必ずこの一時ファイル経由で渡します。改行はそのまま改行として書けばよく、`\n` への置換は不要です。
+
+2. **投稿の実行**: 以下のコマンドをプロジェクトルートから実行してください。
+
+   **画像を添える場合（推奨。綴葉モードでは生成画像を添付する）:**
+
+   ```bash
+   cd {プロジェクトルートの絶対パス}
+   pnpm exec tsx src/twitter/post.ts "tmp/twitter_message.txt" "{画像ファイルパス}"
+   ```
+
+   **本文のみの場合:**
+
+   ```bash
+   cd {プロジェクトルートの絶対パス}
+   pnpm exec tsx src/twitter/post.ts "tmp/twitter_message.txt"
+   ```
+
+   - 第1引数: 本文を保存した一時ファイルのパス（必須）。
+   - 第2引数: 添付する画像ファイルのパス（任意）。絶対パスまたはプロジェクトルートからの相対パスで指定する。画像は1枚まで。
+
+3. 標準出力に投稿結果の JSON（投稿された `id` / `text` など）が返ります。投稿された `id` を確認してください。
+
+## 注意事項
+
+- 本文が空の場合、コマンドは終了コード1で失敗します。
+- 投稿に失敗した場合の再試行方針は、呼び出し元モードの指示（[aoi_constraints.md](../../rules/aoi_constraints.md) の「ツール呼び出しのエラー処理」）に従ってください。
+- 本文の文字数上限・ハッシュタグの扱いなど、投稿内容そのものの条件は本スキルでは検証しません。呼び出し元モードのメッセージ作法に従って本文を用意してください。

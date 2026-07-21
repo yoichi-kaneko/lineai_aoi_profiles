@@ -25,6 +25,8 @@ export const NOTE_TYPE = {
   LINE_UNDELIVERED: "line_undelivered",
   /** 小夜モードが翌朝の暁モードへ残す一日の概要・引き継ぎメモ。`date` は振り返り対象日（前日）を指定する。 */
   NIGHT_HANDOVER: "night_handover",
+  /** 綴葉モードが同日の小夜モードへ残す引き継ぎメモ。SNS本文はユーザーの代筆のため、碧衣→ユーザー視点でのレポートの感想を含める。`date` は当日を指定する。 */
+  SCRIBE_HANDOVER: "scribe_handover",
 } as const;
 
 /** {@link NOTE_TYPE} の値の union。 */

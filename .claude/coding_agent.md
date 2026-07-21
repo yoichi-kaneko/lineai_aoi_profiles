@@ -22,6 +22,7 @@ lineai_aoi_profiles/
 │   ├── image_guideline.md         # 画像生成ガイドライン本体（核／彩りの2層・衣装・プロンプト構成フレームワーク）
 │   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（6パターン・オンデマンド参照）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
+│   ├── scribe_image_guideline.md  # SNS投稿画像ガイドライン（綴葉モード用。詳細はTODO・整備中）
 │   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
 ├── modes/
 │   ├── morning.md          # 暁モード定義
@@ -30,7 +31,8 @@ lineai_aoi_profiles/
 │   ├── up_mountain.md      # 門灯モード定義（入山通知）
 │   ├── stay_mountain.md    # 継灯モード定義（山小屋到着通知）
 │   ├── off_mountain.md     # 帰灯モード定義（下山通知）
-│   └── song.md             # 調べモード定義（楽曲生成）
+│   ├── song.md             # 調べモード定義（楽曲生成）
+│   └── scribe.md           # 綴葉モード定義（YAMAPレポートのSNS代筆投稿・手動起動のみ）
 ├── src/                    # 各スキルの処理実装
 │   ├── cloudinary/         # Cloudinary 画像・音声アップロード
 │   ├── firebase/           # Firebase / Firestore アクセス（run_logs・--collection で専用コレクションも）
@@ -44,6 +46,7 @@ lineai_aoi_profiles/
 │   ├── openweather/        # OpenWeatherMap 天気予報取得
 │   ├── swarm/              # Swarm チェックイン取得
 │   ├── todoist/            # Todoist タスク操作
+│   ├── twitter/            # Twitter（X）投稿
 │   ├── util/               # 汎用ユーティリティ
 │   └── yamap/              # YAMAP 登山情報スクレイピング
 ├── .claude/
@@ -79,12 +82,14 @@ lineai_aoi_profiles/
 │       ├── get_todoist_comments/
 │       ├── get_todoist_completed_tasks/
 │       ├── get_todoist_tasks/
+│       ├── post_twitter/
 │       ├── put_firestore_doc/
 │       ├── put_todoist_task/
 │       ├── random_choice/
 │       ├── review_image_feedback/
 │       ├── review_song_feedback/
 │       ├── run_aoi_daily/
+│       ├── run_aoi_scribe/
 │       ├── send_line_audio/
 │       ├── send_line_image/
 │       └── send_line_text/
@@ -111,9 +116,11 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `modes/stay_mountain.md` | 継灯モード（山小屋到着通知）の実行手順・判断ロジック |
 | `modes/off_mountain.md` | 帰灯モード（下山通知）の実行手順・判断ロジック |
 | `modes/song.md` | 調べモード（楽曲生成）の実行手順・判断ロジック |
+| `modes/scribe.md` | 綴葉モード（YAMAPレポートのSNS代筆投稿）の実行手順・判断ロジック |
 | `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト・構成フレームワーク本体 |
 | `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（6パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |
+| `assets/scribe_image_guideline.md` | 綴葉モードのSNS投稿画像ガイドライン（詳細はTODO・整備中） |
 
 ### 2. スキルの実装
 

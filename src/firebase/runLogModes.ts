@@ -1,11 +1,13 @@
 /**
  * Firestore の `run_logs` コレクションにおける `mode` フィールドの取りうる値。
- * `run_aoi_daily` スキルから保存されるのは morning / noon / night の3種のみ。
+ * `run_aoi_daily` スキルから保存されるのは morning / noon / night の3種。
+ * `scribe` は時間帯自動判定の対象外で、`run_aoi_scribe` スキル（手動起動）からのみ保存される。
  */
 export const RUN_LOG_MODE = {
   MORNING: "morning",
   NOON: "noon",
   NIGHT: "night",
+  SCRIBE: "scribe",
 } as const;
 
 /** {@link RUN_LOG_MODE} の値の union。 */

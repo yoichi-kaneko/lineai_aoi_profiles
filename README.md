@@ -81,7 +81,7 @@ lineai_aoi_profiles/
 ├── package.json           # pnpm パッケージ管理（ルート）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
-├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song）
+├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe）
 ├── assets/                # 画像素材・ガイドライン
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
@@ -134,10 +134,13 @@ lineai_aoi_profiles/
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
+| 綴葉（つづりは） | `daily message (綴葉): YYYY-MM-DD` | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、SNS（Twitter/X）へ**代筆投稿**する。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
-対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の日本標準時（JST）からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。
+`scribe`（綴葉）モードは `send_daily_line.sh` の対象外で、自動トリガーを持ちません。実行は `run_aoi_scribe` スキル（対話モードでの手動起動）経由のみです。
+
+対話モードでの起動には `run_aoi_daily` スキルを使用します。スキルは現在の日本標準時（JST）からモードを自動判定し、`aoi.md` の該当フローを現在のセッション内で実行します。綴葉（`scribe`）モードは時間帯自動判定の対象外のため、専用の `run_aoi_scribe` スキル（モードは `scribe` 固定）で手動起動します。
 
 ## 7. 連携しているサービスについて
 
@@ -231,7 +234,7 @@ lineai_aoi_profiles/
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
-| `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
+| `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
 | `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |

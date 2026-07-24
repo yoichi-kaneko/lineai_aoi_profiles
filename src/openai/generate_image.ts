@@ -72,6 +72,35 @@ function readPromptFile(filePath: string): string {
   }
 }
 
+const TMP_REFERENCE_PREFIX = "tmp/";
+
+/**
+ * 参照画像の指定をフルパスへ解決する。
+ * ファイル名のみ → 参照画像ディレクトリ（GENERATE_IMAGE_IMPORT_DIR）配下、
+ * `tmp/` 前置の相対パス → プロジェクトの tmp/ 配下（綴葉モードの代表写真など、実行時に取得したファイル用）
+ */
+function resolveReferenceImagePath(file: string, importDirPath: string): string {
+  if (file.startsWith(TMP_REFERENCE_PREFIX)) {
+    // tmp/ 配下以外への参照（../ による脱出など）を拒否する
+    const tmpDir = resolve(PROJECT_ROOT, "tmp");
+    const resolvedPath = resolve(PROJECT_ROOT, file);
+    if (!resolvedPath.startsWith(tmpDir + path.sep)) {
+      console.error(`tmp/ 配下のファイルパスを指定してください: ${file}`);
+      process.exit(1);
+    }
+    return resolvedPath;
+  }
+
+  if (file !== path.basename(file)) {
+    console.error(
+      `参照画像ディレクトリのファイル名のみ、または tmp/ 配下の相対パスを指定してください: ${file}`,
+    );
+    process.exit(1);
+  }
+
+  return path.join(importDirPath, file);
+}
+
 function parseReferenceFileNames(rawFileNames: string): string[] {
   const fileNames = rawFileNames
     .split(",")
@@ -103,10 +132,7 @@ function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
   const images: ReferenceImage[] = [];
 
   for (const file of files) {
-    if (file !== path.basename(file)) {
-      console.error(`ファイル名のみを指定してください: ${file}`);
-      process.exit(1);
-    }
+    const filePath = resolveReferenceImagePath(file, dirPath);
 
     const ext = path.extname(file).toLowerCase();
     const mimeType = IMAGE_MIME_TYPES[ext];
@@ -115,7 +141,6 @@ function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
       process.exit(1);
     }
 
-    const filePath = path.join(dirPath, file);
     if (!existsSync(filePath)) {
       console.error(`参照画像ファイルが存在しません: ${filePath}`);
       process.exit(1);

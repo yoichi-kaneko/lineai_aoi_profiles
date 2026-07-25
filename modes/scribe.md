@@ -63,7 +63,7 @@
 
 1. ステップ5で確定した投稿全文（本文・ハッシュタグ・URL を含む）を `tmp/twitter_message.txt` に保存してください（改行はそのまま改行として書けばよく、`\n` への置換は不要です）。
 2. **`post_twitter` スキル**（= [../src/twitter/post.ts](../src/twitter/post.ts)）を使用し、本文ファイルとステップ4で生成した画像を渡して投稿してください。投稿手順は [../.claude/skills/post_twitter/SKILL.md](../.claude/skills/post_twitter/SKILL.md) に従います。
-3. 投稿に失敗した場合は [aoi_constraints.md](../.claude/rules/aoi_constraints.md) に従い1回だけ再試行し、それでも失敗した場合はその旨を保持したうえで後続ステップ（LINE通知・引き継ぎ）に進んでください（投稿の成否は LINE通知・引き継ぎ内容に反映します）。
+3. 投稿に失敗した場合の扱いは [../.claude/skills/post_twitter/SKILL.md](../.claude/skills/post_twitter/SKILL.md) の「投稿失敗時の扱い」に従う。メッセージ長超過など再送で成功する見込みが薄いエラーでは、後続ステップへ進まず処理を中断し、経過をユーザーへ報告して終了する。一時的な障害で再試行しても失敗した場合のみ、その旨を保持したうえで後続ステップ（LINE通知・引き継ぎ）に進む（投稿の成否は LINE通知・引き継ぎ内容に反映する）。
 
 ### ステップ7：ユーザーへ LINE で通知する
 

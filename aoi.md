@@ -82,6 +82,7 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 綴葉モード（scribe）  ※手動起動のみ・小夜の前に実行
   ├─ get_todoist_completed_tasks / get_todoist_comments ──→ 当日の登山レポート（YAMAP）を特定・読解
   └─ put_firestore_doc ──→ Firestore（type: scribe_handover）
+       ・SNS 代筆投稿の成否（必須。一時障害で投稿失敗しても引き継ぎは残る）
        ・碧衣→ユーザー視点のレポートの感想（小夜の「登山レポートへの想い」の素材）
        ・レポートの要点・画像素材のヒント
 
@@ -89,7 +90,7 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
   ├─ get_firestore_docs ──→ 暁・望・門灯・継灯・帰灯・綴葉からの情報を受け取る
   │    ・天気予報情報 → ステップ2の画像生成で情景の参考にする
   │    ・望の任意記録 → 状況判定ラベルと特記事項の参考にする
-  │    ・綴葉の scribe_handover → 「登山レポートへの想い」の素材にする（レポート画像は読み直さない）
+  │    ・綴葉の scribe_handover → 「登山レポートへの想い」の素材にする（レポート画像は読み直さない。SNS投稿の成否は引き継ぎの記載に従う）
   │    ・その他 → 報告内容に組み込む
   └─ put_firestore_doc ──→ Firestore（type: night_handover）
        ・一日の概要・就寝場所の推察・翌日の最重要予定（翌朝の暁への引き継ぎ）

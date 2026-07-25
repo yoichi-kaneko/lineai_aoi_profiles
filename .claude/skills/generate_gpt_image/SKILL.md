@@ -14,7 +14,8 @@ OpenAI GPT Image APIを使って画像を生成するスタンドアロン CLI �
 - プロンプトを保存した一時ファイルのパスを受け取り、OpenAI の画像生成モデルで画像を生成します
 - 生成した画像は `tmp/` ディレクトリに保存します
 - 第二引数で指定した参考画像ファイルを送信します
-- 参考画像ファイルは `GENERATE_IMAGE_IMPORT_DIR` 配下のファイル名のみを指定します
+- 参考画像ファイルは、原則として `GENERATE_IMAGE_IMPORT_DIR` 配下のファイル名のみを指定します
+- 例外として、`tmp/` で始まる相対パス（例: `tmp/scribe_featured.jpg`）を指定すると、`tmp/` 配下のファイルを参考画像として添付できます（綴葉モードの代表写真など、実行時にダウンロードしたユーザー提供画像用）
 - 画像サイズ: `1536x1024`（横長・固定）
 - 画質: `medium`（固定）
 - 出力形式: `png`（固定）
@@ -56,6 +57,7 @@ pnpm exec tsx src/openai/generate_image.ts "tmp/gpt_image_prompt.txt" "{添付�
 
    - プロンプトは引数で直接渡さず、`tmp/gpt_image_prompt.txt` 経由で受け渡します。スクリプトがファイルを読み込み、**書いた内容（実際の改行を含む）をそのまま**プロンプトとして使用します。
    - **第二引数**には `GENERATE_IMAGE_IMPORT_DIR` 配下にあるファイル名のみを指定してください。ディレクトリパスは付けません。複数のファイルを添付する場合は、カンマ `,` で区切ります。
+   - 例外として、`tmp/` で始まる相対パスを指定した場合のみ、`tmp/` 配下のファイルを添付できます（例: `"report_template.png,tmp/scribe_featured.jpg"`）。`tmp/` 以外のディレクトリパスは指定できません。
 
    ```bash
    pnpm exec tsx src/openai/generate_image.ts "tmp/gpt_image_prompt.txt" "reference.png,style.webp"

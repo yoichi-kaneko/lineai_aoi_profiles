@@ -7,6 +7,7 @@ import {
   writeFileSync,
   readFileSync,
   createReadStream,
+  realpathSync,
 } from "fs";
 import path from "path";
 import OpenAI, { toFile } from "openai";
@@ -15,6 +16,36 @@ import type { Uploadable } from "openai/uploads";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+
+/** 解決済みパスの実体が許可ディレクトリ内に収まることを確認して返す（シンボリックリンク経由の脱出を拒否） */
+function assertRealPathInsideDir(
+  resolvedPath: string,
+  allowedDir: string,
+  outsideErrorMessage: string,
+): string {
+  let realAllowedDir: string;
+  let realFilePath: string;
+  try {
+    realAllowedDir = realpathSync(allowedDir);
+    realFilePath = realpathSync(resolvedPath);
+  } catch (error) {
+    console.error(
+      `参照画像ファイルが存在しません: ${resolvedPath}`,
+      error instanceof Error ? error.message : String(error),
+    );
+    process.exit(1);
+  }
+
+  if (
+    realFilePath !== realAllowedDir &&
+    !realFilePath.startsWith(realAllowedDir + path.sep)
+  ) {
+    console.error(outsideErrorMessage);
+    process.exit(1);
+  }
+
+  return realFilePath;
+}
 
 const IMAGE_SIZE = "1536x1024" as const;
 const IMAGE_QUALITY = "medium" as const;
@@ -72,6 +103,46 @@ function readPromptFile(filePath: string): string {
   }
 }
 
+const TMP_REFERENCE_PREFIX = "tmp/";
+
+/**
+ * 参照画像の指定をフルパスへ解決する。
+ * ファイル名のみ → 参照画像ディレクトリ（GENERATE_IMAGE_IMPORT_DIR）配下、
+ * `tmp/` 前置の相対パス → プロジェクトの tmp/ 配下（綴葉モードの代表写真など、実行時に取得したファイル用）
+ */
+function resolveReferenceImagePath(file: string, importDirPath: string): string {
+  if (file.startsWith(TMP_REFERENCE_PREFIX)) {
+    // tmp/ 配下以外への参照（../ による脱出など）を拒否する
+    const tmpDir = resolve(PROJECT_ROOT, "tmp");
+    const resolvedPath = resolve(PROJECT_ROOT, file);
+    if (!resolvedPath.startsWith(tmpDir + path.sep)) {
+      console.error(`tmp/ 配下のファイルパスを指定してください: ${file}`);
+      process.exit(1);
+    }
+    // シンボリックリンク経由で tmp/ 外へ脱出していないかも実体パスで確認する
+    return assertRealPathInsideDir(
+      resolvedPath,
+      tmpDir,
+      `tmp/ 配下のファイルパスを指定してください: ${file}`,
+    );
+  }
+
+  if (file !== path.basename(file)) {
+    console.error(
+      `参照画像ディレクトリのファイル名のみ、または tmp/ 配下の相対パスを指定してください: ${file}`,
+    );
+    process.exit(1);
+  }
+
+  const joinedPath = path.join(importDirPath, file);
+  // 参照画像ディレクトリ内のシンボリックリンク経由の脱出も拒否する
+  return assertRealPathInsideDir(
+    joinedPath,
+    importDirPath,
+    `参照画像ディレクトリ外のファイルは指定できません: ${file}`,
+  );
+}
+
 function parseReferenceFileNames(rawFileNames: string): string[] {
   const fileNames = rawFileNames
     .split(",")
@@ -103,10 +174,7 @@ function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
   const images: ReferenceImage[] = [];
 
   for (const file of files) {
-    if (file !== path.basename(file)) {
-      console.error(`ファイル名のみを指定してください: ${file}`);
-      process.exit(1);
-    }
+    const filePath = resolveReferenceImagePath(file, dirPath);
 
     const ext = path.extname(file).toLowerCase();
     const mimeType = IMAGE_MIME_TYPES[ext];
@@ -115,7 +183,6 @@ function loadReferenceImages(rawFileNames: string): ReferenceImage[] {
       process.exit(1);
     }
 
-    const filePath = path.join(dirPath, file);
     if (!existsSync(filePath)) {
       console.error(`参照画像ファイルが存在しません: ${filePath}`);
       process.exit(1);

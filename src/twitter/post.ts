@@ -1,4 +1,4 @@
-import { realpathSync } from "fs";
+import { realpathSync, statSync } from "fs";
 import { isAbsolute, resolve, sep } from "path";
 import { fileURLToPath } from "url";
 import { createTwitterClient, handleCliError, readMessageText } from "./client";
@@ -49,6 +49,11 @@ function resolveUploadImagePath(imageFilePath: string): string {
 
   if (realFilePath !== realTmpDir && !realFilePath.startsWith(realTmpDir + sep)) {
     rejectOutsideTmp(imageFilePath);
+  }
+
+  if (!statSync(realFilePath).isFile()) {
+    console.error(`画像ファイルではありません: ${imageFilePath}`);
+    process.exit(1);
   }
 
   return realFilePath;

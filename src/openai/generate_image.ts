@@ -7,6 +7,7 @@ import {
   writeFileSync,
   readFileSync,
   createReadStream,
+  realpathSync,
 } from "fs";
 import path from "path";
 import OpenAI, { toFile } from "openai";
@@ -15,6 +16,36 @@ import type { Uploadable } from "openai/uploads";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+
+/** 解決済みパスの実体が許可ディレクトリ内に収まることを確認して返す（シンボリックリンク経由の脱出を拒否） */
+function assertRealPathInsideDir(
+  resolvedPath: string,
+  allowedDir: string,
+  outsideErrorMessage: string,
+): string {
+  let realAllowedDir: string;
+  let realFilePath: string;
+  try {
+    realAllowedDir = realpathSync(allowedDir);
+    realFilePath = realpathSync(resolvedPath);
+  } catch (error) {
+    console.error(
+      `参照画像ファイルが存在しません: ${resolvedPath}`,
+      error instanceof Error ? error.message : String(error),
+    );
+    process.exit(1);
+  }
+
+  if (
+    realFilePath !== realAllowedDir &&
+    !realFilePath.startsWith(realAllowedDir + path.sep)
+  ) {
+    console.error(outsideErrorMessage);
+    process.exit(1);
+  }
+
+  return realFilePath;
+}
 
 const IMAGE_SIZE = "1536x1024" as const;
 const IMAGE_QUALITY = "medium" as const;
@@ -88,7 +119,12 @@ function resolveReferenceImagePath(file: string, importDirPath: string): string 
       console.error(`tmp/ 配下のファイルパスを指定してください: ${file}`);
       process.exit(1);
     }
-    return resolvedPath;
+    // シンボリックリンク経由で tmp/ 外へ脱出していないかも実体パスで確認する
+    return assertRealPathInsideDir(
+      resolvedPath,
+      tmpDir,
+      `tmp/ 配下のファイルパスを指定してください: ${file}`,
+    );
   }
 
   if (file !== path.basename(file)) {
@@ -98,7 +134,13 @@ function resolveReferenceImagePath(file: string, importDirPath: string): string 
     process.exit(1);
   }
 
-  return path.join(importDirPath, file);
+  const joinedPath = path.join(importDirPath, file);
+  // 参照画像ディレクトリ内のシンボリックリンク経由の脱出も拒否する
+  return assertRealPathInsideDir(
+    joinedPath,
+    importDirPath,
+    `参照画像ディレクトリ外のファイルは指定できません: ${file}`,
+  );
 }
 
 function parseReferenceFileNames(rawFileNames: string): string[] {

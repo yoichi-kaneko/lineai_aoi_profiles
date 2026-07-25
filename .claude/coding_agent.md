@@ -185,6 +185,7 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 
 ## 注意事項
 
+- 同時実行・複数回実行のシステム的防止（原子的な実行予約・分散ロック・idempotency key・再実行フラグによるガード等）は導入しない方針。現状は `send_daily_line.sh` の `run_logs` 実行前スキップ（`morning` / `noon` / `night` のみ・ベストエフォート）に留め、手動起動モードの再実行回避は運用者判断に委ねる。レビュー指摘や一般的なベストプラクティスを理由に追加実装しないこと。詳細は [README.md](../README.md) の「二重実行防止」セクションを参照
 - `.env` はGit管理外（`.gitignore`に含まれる）。直接編集・コミットしないこと
 - `tmp/` は各処理（モード）内でのみ使う揮発的な一時ファイル置き場。コミット不要。処理開始時に前回の残骸があっても内容を確認・参照せず、固定名ファイルは上書きして使う（本番フローでは `send_daily_line.sh` が起動ごとに `refresh_tmp.sh` で掃除する）
 - `send_line_*`（`send_line_text` / `send_line_image` / `send_line_audio`）はメッセージ本文を引数で直接渡さず、`tmp/line_message.txt` に保存してそのパスを引数に渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要（各スキルの SKILL.md 参照）

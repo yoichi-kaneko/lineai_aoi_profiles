@@ -8,6 +8,13 @@ reviews:
     - "!tmp/**"
     - "!pnpm-lock.yaml"
   path_instructions:
+    - path: "**/*"
+      instructions: |
+        【同時実行・複数回実行の防止について（プロジェクト方針）】
+        本プロジェクトは個人利用・スケジュール起動が中心であり、同時実行や意図しない複数回実行は運用上ほぼ起きない前提で設計しています。
+        原子的な実行予約、分散ロック、idempotency key、明示的な再実行フラグによるガードなど、システムとしての厳密な同時実行・重複実行防止機構の追加は求められていません（導入予定もありません）。
+        `run_logs` による `morning` / `noon` / `night` の実行前スキップ（ベストエフォート）以外の排他制御を提案しないでください。
+        詳細は README.md の「二重実行防止」セクションを参照してください。
     - path: "src/**/*.ts"
       instructions: |
         外部 API（LINE・Firestore・Todoist・OpenWeather 等）のクライアントスクリプト群です。以下を重点的に確認してください。

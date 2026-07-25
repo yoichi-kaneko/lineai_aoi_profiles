@@ -43,9 +43,9 @@
 
 > **重要**: この画像は SNS で不特定多数へ発信するためのものであり、従来のデイリーモード（小夜・帰灯など）の画像生成とは狙い・構図・被写体の考え方が大きく異なります。**SNS 投稿画像のガイドラインは [../assets/scribe_image_guideline.md](../assets/scribe_image_guideline.md) を正とし、そちらを参照して**プロンプトと添付画像ファイルリストを組み立ててください。
 
-1. **ガイドラインと素材の確認**: `assets/scribe_image_guideline.md` を読み込んでください。あわせて、`assets/images/report_template.png`（レイアウトの正）・`assets/images/report_designs.png`（チップデザイン集）・ステップ2で保存した代表写真（`tmp/scribe_featured.{拡張子}`）の3点を Read ツールで確認してください（ガイドラインの「プロンプト構成前の画像確認」）。
+1. **ガイドラインと素材の確認**: `assets/scribe_image_guideline.md` を読み込んでください。あわせて、`assets/images/report_template.png`（レイアウトの正）・`assets/images/report_designs_1.png`（チップデザイン集(1)：キャラクター・道具類）・`assets/images/report_designs_2.png`（チップデザイン集(2)：地形・天候アイコン・季節装飾）・ステップ2で保存した代表写真（`tmp/scribe_featured.{拡張子}`）の4点を Read ツールで確認してください（ガイドラインの「プロンプト構成前の画像確認」）。
 2. **差し込みテキストの確定**: ガイドラインのセクション3のマッピングに従い、ステップ3の読み解き結果から、レイアウト各領域へ差し込む文字列（登山日・山名・紹介文・コース概要・見どころ・ひとことメモなど）を確定してください。
-3. **プロンプトの構成と生成**: ガイドラインのセクション5のフレームワークに従いプロンプトを構成して `tmp/gpt_image_prompt.txt` に保存し、固定の添付ファイルリスト（`report_template.png,report_designs.png,tmp/scribe_featured.{拡張子}`）とともに `generate_gpt_image` を実行してください。
+3. **プロンプトの構成と生成**: ガイドラインのセクション5のフレームワークに従いプロンプトを構成して `tmp/gpt_image_prompt.txt` に保存し、固定の添付ファイルリスト（`report_template.png,report_designs_1.png,report_designs_2.png,tmp/scribe_featured.{拡張子}`）とともに `generate_gpt_image` を実行してください。
 4. **品質チェック**: 生成画像を Read ツールで確認し、ガイドラインのセクション6のチェック（テキストの正確性・プレースホルダの残存・代表写真の反映・キャラクターの意匠・公開適性）を行ってください。重大な問題があれば、対策をプロンプトへ加えて **1回だけ** 再生成してください。
 5. **中断条件**: 画像生成が再試行しても失敗した場合、または再生成後も品質チェックの重大な問題が解消しない場合は、処理を中断してその旨をユーザーへ報告して終了してください（この画像は SNS 投稿と LINE 通知の双方で必須の素材であり、崩れた画像のまま公開投稿へ進むことはできません）。
 

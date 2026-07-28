@@ -232,7 +232,7 @@ lineai_aoi_profiles/
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
-| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。登山開始メッセージに含まれる位置情報共有URLは `line_text` の `description` から後続モードが参照する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は `src/firebase/put_log.ts` または `run_aoi_daily` スキル経由で書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
@@ -316,7 +316,21 @@ lineai_aoi_profiles/
 | 役割 | Web ページを取得する MCP ツール。Claude 標準の fetch よりも性能が高いため導入 |
 | MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
 
-## 8. 二重実行防止・タイムアウト・リトライについて
+## 8. ユーザーが使用するツールについて
+
+碧衣（AI）が呼び出すスキルとは別に、**ユーザーが手動で操作する**ことを前提としたツールがあります。碧衣側の設定・実装は不要で、運用者が各自の環境に導入します。
+
+### FireShot（Chrome 拡張）
+
+| 項目 | 内容 |
+|------|------|
+| ツール名 | FireShot（Take Webpage Screenshots Entirely） |
+| 種別 | Google Chrome 拡張機能 |
+| 役割 | YAMAP 活動記録ページ全体の**縦長スクリーンショット**を撮影する。撮影した PNG 画像は Todoist の登山レポートタスクへ添付し、綴葉（scribe）モードが `download_todoist_attachment` で取得したうえで `crop_yamap_report` により主要ブロックへ切り出して読み解く（[modes/scribe.md](modes/scribe.md) のステップ2〜3） |
+| 入手先 | https://chromewebstore.google.com/detail/take-webpage-screenshots/mcbpblocgmgfnpjjppndjkmgjaogfceg?hl=ja |
+| 備考 | 綴葉モードの素材準備に**必須**のツールだが、操作するのはユーザーのみ。碧衣がこのツールを直接扱うことはないため、スキル定義やモード定義に FireShot の設定・記述は不要 |
+
+## 9. 二重実行防止・タイムアウト・リトライについて
 
 ### 設計方針（同時実行・複数回実行）
 
@@ -355,7 +369,7 @@ lineai_aoi_profiles/
 | ツールがエラーを返す（APIエラー、認証失敗など） | Claudeルールに基づきスキップして続行 |
 | 一時的な障害（API瞬断など） | シェルリトライ + Claudeルールによるスキップ |
 
-## 9. ライセンスについて
+## 10. ライセンスについて
 
 本プロジェクトは MIT License のもとで公開されています。
 

@@ -59,7 +59,6 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 門灯モード（up_mountain）  ※登山日のみ・入山直前に実行
   └─ put_firestore_doc ──→ Firestore（type: up_mountain）
        ・入山連絡の旨、山名・コース・下山予定日
-       ・任意：位置情報URLの有無
 
 継灯モード（stay_mountain）  ※宿泊を伴う登山日のみ・山小屋到着時に実行
   ├─ get_firestore_docs ──→ 入山日〜本日のFirestore記録（up_mountain・山行中のLINEテキスト・画像など）を受け取る

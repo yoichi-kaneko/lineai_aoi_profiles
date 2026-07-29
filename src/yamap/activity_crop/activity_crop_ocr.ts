@@ -48,6 +48,21 @@ export function scaleBbox(bbox: Bbox, scaleX: number, scaleY: number): Bbox {
   };
 }
 
+/**
+ * 見出しの右端に併記される YAMAP の UI 要素。
+ * OCR は見出しとリンクを1行として読むため（例: 「活動詳細」＋「すべて見る」→「活動詳細すべて見る」）、
+ * 見出し判定の前にここに挙げた語を取り除く。YAMAP 側の UI 変更時はこの一覧へ追記する。
+ */
+export const HEADING_TRAILING_UI_LABELS = [
+  "すべて見る",
+  "もっと見る",
+  "地図を見る",
+  "地図で見る",
+];
+
+/** 見出し判定で許容する OCR ノイズ（記号・罫線の誤認識片）の文字数 */
+export const HEADING_NOISE_TOLERANCE = 4;
+
 export type FindLabelOptions = {
   afterY?: number;
   beforeY?: number;
@@ -55,8 +70,30 @@ export type FindLabelOptions = {
 };
 
 /**
+ * 正規化済みの行が、ラベルの見出し行かどうかを判定する。
+ *
+ * 既知の UI 語を取り除いたうえで、ラベルの前後に**日本語の語が残らない**行のみ見出しとみなす。
+ * 単純な文字数閾値ではなく語の有無で判定するのは、「活動詳細すべて見る」のような
+ * 見出し＋リンクの行を通しつつ、本文中にラベルが出現しただけの行を弾くため。
+ */
+export function isHeadingLine(normalized: string, needle: string): boolean {
+  const index = normalized.indexOf(needle);
+  if (index < 0) return false;
+
+  const before = normalized.slice(0, index);
+  let after = normalized.slice(index + needle.length);
+  for (const uiLabel of HEADING_TRAILING_UI_LABELS) {
+    after = after.replace(uiLabel, "");
+  }
+
+  if (countJapaneseChars(before) > 0 || countJapaneseChars(after) > 0) return false;
+  return before.length <= HEADING_NOISE_TOLERANCE
+    && after.length <= HEADING_NOISE_TOLERANCE;
+}
+
+/**
  * OCR 行からラベル文字列を含む bbox を探す。
- * exactHeading=true のとき、ラベル以外の文字が少ない行のみ採用する。
+ * exactHeading=true のとき、見出し行とみなせる行のみ採用する（isHeadingLine 参照）。
  */
 export function findLabelBbox(
   lines: Line[],
@@ -82,11 +119,7 @@ export function findAllLabelBboxes(
     if (line.bbox.y0 < afterY || line.bbox.y0 >= beforeY) continue;
     const normalized = normalizeText(line.text);
     if (!normalized.includes(needle)) continue;
-
-    if (options.exactHeading) {
-      const withoutLabel = normalized.replace(needle, "");
-      if (withoutLabel.length > 4) continue;
-    }
+    if (options.exactHeading && !isHeadingLine(normalized, needle)) continue;
 
     results.push(line.bbox);
   }

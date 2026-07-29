@@ -20,10 +20,16 @@ const TMP_DIR = path.join(PROJECT_ROOT, "tmp");
 
 function usageAndExit(): never {
   console.error(
-    "使用方法: pnpm exec tsx src/yamap/crop_activity_detail.ts <入力画像パス> <出力プレフィックス>",
+    "使用方法: pnpm exec tsx src/yamap/crop_activity_detail.ts <入力画像パス> <出力プレフィックス> [--debug]",
   );
   console.error(
     '例: pnpm exec tsx src/yamap/crop_activity_detail.ts "tmp/yamap_screenshot.png" "yamap_20250716_001"',
+  );
+  console.error(
+    "  --debug: 全ブロック成功時も診断情報（見出し候補と棄却理由）を出力する",
+  );
+  console.error(
+    "           ※ 失敗ブロックがある場合は指定なしでも自動的に出力される",
   );
   process.exit(1);
 }
@@ -42,10 +48,14 @@ function validateOutputPrefix(prefix: string): string | null {
 }
 
 async function main() {
-  const inputArg = process.argv[2];
-  const outputPrefix = process.argv[3];
-
-  if (!inputArg || !outputPrefix) usageAndExit();
+  const args = process.argv.slice(2);
+  const unknownOptions = args.filter(
+    (arg) => arg.startsWith("--") && arg !== "--debug",
+  );
+  const forceDebug = args.includes("--debug");
+  const positional = args.filter((arg) => !arg.startsWith("--"));
+  if (unknownOptions.length > 0 || positional.length !== 2) usageAndExit();
+  const [inputArg, outputPrefix] = positional;
 
   const prefixError = validateOutputPrefix(outputPrefix);
   if (prefixError) {
@@ -70,18 +80,27 @@ async function main() {
 
   const result = await cropAllSections(inputPath, TMP_DIR, outputPrefix, ocr);
 
-  const allFailed = result.results.every((item) => item.status === "FAILED");
-  if (allFailed) {
-    console.error("すべてのブロック切り出しに失敗しました:");
-    for (const item of result.results) {
-      if (item.status === "FAILED") {
-        console.error(`  ${item.section}: ${item.reason}`);
-      }
+  const failed = result.results.filter((item) => item.status === "FAILED");
+
+  // 失敗ブロックがあるときは指定がなくても診断情報を出す（原因の切り分けと、
+  // 予備フローでの座標決めに必要なため）。全ブロック成功時は --debug のときだけ付ける。
+  const { debug, ...withoutDebug } = result;
+  const output = forceDebug || failed.length > 0 ? result : withoutDebug;
+
+  if (failed.length > 0) {
+    console.error(`${failed.length}件のブロック切り出しに失敗しました:`);
+    for (const item of failed) {
+      console.error(`  ${item.section}: ${item.reason}`);
     }
-    process.exit(1);
+    console.error("診断情報は出力JSONの debug フィールドを参照してください。");
   }
 
-  console.log(JSON.stringify(result, null, 2));
+  // 全滅時も JSON を出してから終了する。失敗時ほど診断情報が要るため。
+  console.log(JSON.stringify(output, null, 2));
+
+  if (failed.length === result.results.length) {
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {

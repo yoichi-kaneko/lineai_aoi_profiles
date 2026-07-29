@@ -48,6 +48,30 @@ export function scaleBbox(bbox: Bbox, scaleX: number, scaleY: number): Bbox {
   };
 }
 
+/**
+ * 見出しの右端に併記される YAMAP の UI 要素。
+ * OCR は見出しとリンクを1行として読むため（例: 「活動詳細」＋「すべて見る」→「活動詳細すべて見る」）、
+ * 見出し判定の前にここに挙げた語を取り除く。YAMAP 側の UI 変更時はこの一覧へ追記する。
+ */
+export const HEADING_TRAILING_UI_LABELS = [
+  "すべて見る",
+  "もっと見る",
+  "地図を見る",
+  "地図で見る",
+];
+
+/**
+ * 見出しの前後に現れる OCR ノイズ文字。
+ *
+ * 併記されたリンクや罫線・下線が読み取れる大きさに満たないと、単体では語を成さない
+ * 長音符・ダッシュの連なりとして認識される（例: 縮小率が小さい画像では
+ * 「すべて見る」リンクが「ーー」になる）。語の有無を判定する前に取り除く。
+ */
+const HEADING_NOISE_MARKS = /[ー―‐—–一_＿|｜丨~〜ｰ]/g;
+
+/** 見出し判定で許容する OCR ノイズ（記号・罫線の誤認識片）の文字数 */
+export const HEADING_NOISE_TOLERANCE = 4;
+
 export type FindLabelOptions = {
   afterY?: number;
   beforeY?: number;
@@ -55,8 +79,32 @@ export type FindLabelOptions = {
 };
 
 /**
+ * 正規化済みの行が、ラベルの見出し行かどうかを判定する。
+ *
+ * 既知の UI 語とノイズ記号を取り除いたうえで、ラベルの前後に**日本語の語が残らない**行のみ
+ * 見出しとみなす。単純な文字数閾値ではなく語の有無で判定するのは、「活動詳細すべて見る」のような
+ * 見出し＋リンクの行を通しつつ、本文中にラベルが出現しただけの行を弾くため。
+ */
+export function isHeadingLine(normalized: string, needle: string): boolean {
+  const index = normalized.indexOf(needle);
+  if (index < 0) return false;
+
+  const before = normalized.slice(0, index).replace(HEADING_NOISE_MARKS, "");
+  let after = normalized.slice(index + needle.length);
+  // 語を含む UI ラベルを先に落としてから、残ったノイズ記号を落とす
+  for (const uiLabel of HEADING_TRAILING_UI_LABELS) {
+    after = after.replace(uiLabel, "");
+  }
+  after = after.replace(HEADING_NOISE_MARKS, "");
+
+  if (countJapaneseChars(before) > 0 || countJapaneseChars(after) > 0) return false;
+  return before.length <= HEADING_NOISE_TOLERANCE
+    && after.length <= HEADING_NOISE_TOLERANCE;
+}
+
+/**
  * OCR 行からラベル文字列を含む bbox を探す。
- * exactHeading=true のとき、ラベル以外の文字が少ない行のみ採用する。
+ * exactHeading=true のとき、見出し行とみなせる行のみ採用する（isHeadingLine 参照）。
  */
 export function findLabelBbox(
   lines: Line[],
@@ -67,31 +115,72 @@ export function findLabelBbox(
   return candidates[0] ?? null;
 }
 
+/**
+ * ラベル候補の採否。
+ * `accepted` 以外は棄却理由を表す。診断出力（--debug）で「なぜ見出しを特定できなかったか」を示すために使う。
+ */
+export type LabelCandidateStatus =
+  /** 見出しとして採用 */
+  | "accepted"
+  /** 探索範囲（afterY / beforeY）の外にあった */
+  | "out_of_range"
+  /** ラベルは含むが見出し行とみなせなかった（isHeadingLine 参照） */
+  | "not_heading";
+
+export type LabelCandidate = {
+  bbox: Bbox;
+  text: string;
+  confidence: number;
+  status: LabelCandidateStatus;
+};
+
+/**
+ * ラベル文字列を含む行を、採否の判定つきで縦位置順にすべて返す。
+ *
+ * 採用分だけが欲しい場合は findAllLabelBboxes を使う。こちらは棄却されたものも
+ * 理由つきで返すため、診断出力から「見出しらしき行はあったが弾かれた」ことが分かる。
+ */
+export function collectLabelCandidates(
+  lines: Line[],
+  label: string,
+  options: FindLabelOptions = {},
+): LabelCandidate[] {
+  const needle = normalizeText(label);
+  const afterY = options.afterY ?? 0;
+  const beforeY = options.beforeY ?? Number.POSITIVE_INFINITY;
+  const results: LabelCandidate[] = [];
+
+  for (const line of lines) {
+    const normalized = normalizeText(line.text);
+    if (!normalized.includes(needle)) continue;
+
+    let status: LabelCandidateStatus = "accepted";
+    if (line.bbox.y0 < afterY || line.bbox.y0 >= beforeY) {
+      status = "out_of_range";
+    } else if (options.exactHeading && !isHeadingLine(normalized, needle)) {
+      status = "not_heading";
+    }
+
+    results.push({
+      bbox: line.bbox,
+      text: line.text,
+      confidence: line.confidence,
+      status,
+    });
+  }
+
+  return results.sort((a, b) => a.bbox.y0 - b.bbox.y0);
+}
+
 /** 条件に合うラベル bbox を縦位置順にすべて返す */
 export function findAllLabelBboxes(
   lines: Line[],
   label: string,
   options: FindLabelOptions = {},
 ): Bbox[] {
-  const needle = normalizeText(label);
-  const afterY = options.afterY ?? 0;
-  const beforeY = options.beforeY ?? Number.POSITIVE_INFINITY;
-  const results: Bbox[] = [];
-
-  for (const line of lines) {
-    if (line.bbox.y0 < afterY || line.bbox.y0 >= beforeY) continue;
-    const normalized = normalizeText(line.text);
-    if (!normalized.includes(needle)) continue;
-
-    if (options.exactHeading) {
-      const withoutLabel = normalized.replace(needle, "");
-      if (withoutLabel.length > 4) continue;
-    }
-
-    results.push(line.bbox);
-  }
-
-  return results.sort((a, b) => a.y0 - b.y0);
+  return collectLabelCandidates(lines, label, options)
+    .filter((candidate) => candidate.status === "accepted")
+    .map((candidate) => candidate.bbox);
 }
 
 function isContentLine(line: Line): boolean {
@@ -315,6 +404,34 @@ export async function isRedButtonBackground(
   }
 
   return total > 0 && redCount / total > 0.25;
+}
+
+/**
+ * 境界検出が画像の画素へ問い合わせる操作。
+ *
+ * OCR 行だけでは決まらない判定（赤背景ボタンの除外・写真グリッドの開始位置）を
+ * この境界に閉じ込めることで、境界検出そのものは画像ファイルなしで実行できる。
+ * テストでは記録済みの応答を返す差し替え実装を渡す（test/yamap/activity_crop.test.ts）。
+ */
+export type ImageProbe = {
+  /** 見出し bbox（OCR 座標）付近が赤背景ボタンかどうか */
+  isRedButtonBackground(bbox: Bbox, scaleBack: number): Promise<boolean>;
+  /** searchStartY 以降で写真グリッドが始まる Y（元画像座標。見つからなければ null） */
+  detectPhotoGridStartY(
+    searchStartY: number,
+    imageWidth: number,
+    imageHeight: number,
+  ): Promise<number | null>;
+};
+
+/** 実際の画像ファイルを読む ImageProbe */
+export function createSharpImageProbe(inputPath: string): ImageProbe {
+  return {
+    isRedButtonBackground: (bbox, scaleBack) =>
+      isRedButtonBackground(inputPath, bbox, scaleBack),
+    detectPhotoGridStartY: (searchStartY, imageWidth, imageHeight) =>
+      detectPhotoGridStartY(inputPath, searchStartY, imageWidth, imageHeight),
+  };
 }
 
 /** 入力画像に対して OCR を1回実行し、行一覧とスケール情報を返す */

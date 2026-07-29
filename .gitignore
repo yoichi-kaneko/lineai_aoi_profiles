@@ -4,3 +4,7 @@ node_modules
 tmp/
 .DS_Store
 jpn.traineddata
+
+# 層2テスト用のレポート原画像（1枚あたり約10MB）。入手方法は test/README.md を参照
+test/fixtures/yamap/images/*
+!test/fixtures/yamap/images/.gitkeep

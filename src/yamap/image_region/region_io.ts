@@ -23,6 +23,20 @@ export function parseIntOption(
   return Number(raw);
 }
 
+/**
+ * `--` で始まる引数のうち、許可リスト外のものを拒否する。
+ * 誤字（`--rigth` など）が黙って無視され既定値で動くのを防ぐ。
+ */
+export function assertKnownOptions(args: string[], allowed: string[]): void {
+  const allowedSet = new Set(allowed.map((name) => `--${name}`));
+  const unknown = args.filter(
+    (arg) => arg.startsWith("--") && !allowedSet.has(arg),
+  );
+  if (unknown.length > 0) {
+    throw new Error(`未知のオプションです: ${unknown.join(", ")}`);
+  }
+}
+
 /** 入力画像のパスを解決し、存在とサイズを確認する */
 export async function openImage(
   projectRoot: string,

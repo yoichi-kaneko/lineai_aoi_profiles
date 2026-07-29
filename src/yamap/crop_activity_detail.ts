@@ -49,11 +49,13 @@ function validateOutputPrefix(prefix: string): string | null {
 
 async function main() {
   const args = process.argv.slice(2);
+  const unknownOptions = args.filter(
+    (arg) => arg.startsWith("--") && arg !== "--debug",
+  );
   const forceDebug = args.includes("--debug");
   const positional = args.filter((arg) => !arg.startsWith("--"));
+  if (unknownOptions.length > 0 || positional.length !== 2) usageAndExit();
   const [inputArg, outputPrefix] = positional;
-
-  if (!inputArg || !outputPrefix) usageAndExit();
 
   const prefixError = validateOutputPrefix(outputPrefix);
   if (prefixError) {

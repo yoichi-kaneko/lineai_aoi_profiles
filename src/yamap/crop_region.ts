@@ -8,6 +8,7 @@ import { mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  assertKnownOptions,
   exitWithError,
   extractRegion,
   openImage,
@@ -39,7 +40,7 @@ async function main() {
   });
   const [inputArg, outputArg] = positional;
 
-  if (!inputArg || !outputArg) usageAndExit();
+  if (!inputArg || !outputArg || positional.length !== 2) usageAndExit();
 
   let top: number | undefined;
   let bottom: number | undefined;
@@ -47,6 +48,7 @@ async function main() {
   let right: number | undefined;
 
   try {
+    assertKnownOptions(args, ["top", "bottom", "left", "right"]);
     top = parseIntOption(args, "top");
     bottom = parseIntOption(args, "bottom");
     left = parseIntOption(args, "left");

@@ -95,13 +95,20 @@ export function resolveCropRect(
   if (right <= left) {
     return fail(`終了x座標は開始x座標より大きくしてください: ${left} → ${right}`);
   }
+  // --bottom / --to と異なり、--right の画像幅超過は丸めず拒否する
+  // （SKILL.md: 範囲外はエラー。例外は縦方向の下端のみ）
+  if (right > image.width) {
+    return fail(
+      `終了x座標が画像の幅を超えています: ${right}（画像の幅: ${image.width}）`,
+    );
+  }
 
   return {
     ok: true,
     value: {
       left,
       top: vertical.value.top,
-      width: Math.min(right, image.width) - left,
+      width: right - left,
       height: vertical.value.bottom - vertical.value.top,
     },
   };

@@ -11,6 +11,7 @@ import { mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  assertKnownOptions,
   exitWithError,
   extractRegion,
   openImage,
@@ -46,7 +47,7 @@ async function main() {
   });
   const [inputArg, outputPrefix] = positional;
 
-  if (!inputArg || !outputPrefix) usageAndExit();
+  if (!inputArg || !outputPrefix || positional.length !== 2) usageAndExit();
 
   const prefixError = validateOutputPrefix(outputPrefix);
   if (prefixError) {
@@ -58,6 +59,7 @@ async function main() {
   let step: number | undefined;
 
   try {
+    assertKnownOptions(args, ["from", "to", "step"]);
     from = parseIntOption(args, "from");
     to = parseIntOption(args, "to");
     step = parseIntOption(args, "step");

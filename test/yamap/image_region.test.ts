@@ -62,6 +62,22 @@ describe("resolveCropRect", () => {
     expect(expectError(resolveCropRect(IMAGE, { top: -1, bottom: 100 })))
       .toContain("負の値");
   });
+
+  it("right が画像の幅ぴったりなら成功する", () => {
+    const rect = expectOk(
+      resolveCropRect(IMAGE, { top: 100, bottom: 200, left: 0, right: IMAGE.width }),
+    );
+
+    expect(rect.width).toBe(IMAGE.width);
+  });
+
+  it("right が画像の幅を超えたら失敗する", () => {
+    expect(
+      expectError(
+        resolveCropRect(IMAGE, { top: 100, bottom: 200, left: 0, right: IMAGE.width + 1 }),
+      ),
+    ).toContain("画像の幅");
+  });
 });
 
 describe("planSlices", () => {

@@ -43,7 +43,7 @@ cp .env.example .env
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
-- YAMAP 計画書スクレイピング（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお活動記録はスクレイピングを廃止し、スクリーンショット画像の添付を `crop_yamap_report` で切り出して読み解く運用です（[ガイド](.claude/docs/yamap_activity_guide.md)）。
+- YAMAP 計画書スクレイピング（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお活動記録はスクレイピングを廃止し、スクリーンショット画像の添付を `crop_yamap_report` で切り出して読み解く運用です（[ガイド](.claude/docs/yamap_activity_guide.md)）。`crop_yamap_report` は OCR で見出しを検出するため切り出しに失敗することがあり、その場合は `crop_image_region` スキルで座標を指定して切り出す予備フローに切り替えます（手順は [crop_yamap_report](.claude/skills/crop_yamap_report/SKILL.md) の「切り出しに失敗した場合の手順」）。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -219,7 +219,7 @@ lineai_aoi_profiles/
 | サービス名 | YAMAP |
 | 役割 | ユーザーの登山計画・活動記録を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://yamap.com/ |
-| スキル | `fetch_yamap_plan`（計画書の Web スクレイピング）／活動記録はスクリーンショット画像の添付を `download_todoist_attachment` で取得し、`crop_yamap_report` で主要ブロックに切り出して読み解く（[ガイド](.claude/docs/yamap_activity_guide.md)） |
+| スキル | `fetch_yamap_plan`（計画書の Web スクレイピング）／活動記録はスクリーンショット画像の添付を `download_todoist_attachment` で取得し、`crop_yamap_report` で主要ブロックに切り出して読み解く。切り出しに失敗した場合は `crop_image_region`（座標指定・範囲スライス）で代用する（[ガイド](.claude/docs/yamap_activity_guide.md)） |
 
 ### Firebase / Firestore
 
@@ -326,7 +326,7 @@ lineai_aoi_profiles/
 |------|------|
 | ツール名 | FireShot（Take Webpage Screenshots Entirely） |
 | 種別 | Google Chrome 拡張機能 |
-| 役割 | YAMAP 活動記録ページ全体の**縦長スクリーンショット**を撮影する。撮影した PNG 画像は Todoist の登山レポートタスクへ添付し、綴葉（scribe）モードが `download_todoist_attachment` で取得したうえで `crop_yamap_report` により主要ブロックへ切り出して読み解く（[modes/scribe.md](modes/scribe.md) のステップ2〜3） |
+| 役割 | YAMAP 活動記録ページ全体の**縦長スクリーンショット**を撮影する。撮影した PNG 画像は Todoist の登山レポートタスクへ添付し、綴葉（scribe）モードが `download_todoist_attachment` で取得したうえで `crop_yamap_report` により主要ブロックへ切り出して読み解く（[modes/scribe.md](modes/scribe.md) のステップ2〜4） |
 | 入手先 | https://chromewebstore.google.com/detail/take-webpage-screenshots/mcbpblocgmgfnpjjppndjkmgjaogfceg?hl=ja |
 | 備考 | 綴葉モードの素材準備に**必須**のツールだが、操作するのはユーザーのみ。碧衣がこのツールを直接扱うことはないため、スキル定義やモード定義に FireShot の設定・記述は不要 |
 

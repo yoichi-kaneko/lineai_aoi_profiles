@@ -35,7 +35,11 @@
 
 1. ステップ2で取得したレポートのスクリーンショット画像を、**`crop_yamap_report` スキル**（= [../src/yamap/crop_activity_detail.ts](../src/yamap/crop_activity_detail.ts)）で主要4ブロック（活動詳細・活動データ・チェックポイント・ヘッダ）に切り出してください。出力プレフィックスは `scribe_{YYYYMMDD}_001` のような形式で構いません。
 2. 切り出した各ブロックを Read ツールで読み取ります。**読み取りの優先順位・重点チェックの観点は [../.claude/docs/yamap_activity_guide.md](../.claude/docs/yamap_activity_guide.md) に従ってください**（activity_detail＝本文が最重要）。
-3. **中断条件**: **`activity_detail`（活動詳細・本文）の切り出しに失敗した**場合は、代筆の核となる素材が得られないため処理を中断し、その旨をユーザーへ報告して終了してください。`activity_detail` さえ取得できていれば、他ブロック（活動データ・チェックポイント・ヘッダ）の切り出し失敗は無視して処理を続行します。
+3. **切り出しに失敗した場合**: 出力JSONの `results` に `status: "FAILED"` が**1つでもあれば失敗**として扱い、[../.claude/skills/crop_yamap_report/SKILL.md](../.claude/skills/crop_yamap_report/SKILL.md) の「切り出しに失敗した場合の手順」に従ってください。要点は次の3つです。
+   - **`crop_image_region` スキルで代用を試みる**（診断情報 `debug.headingCandidates` から切り出し座標を求める）
+   - 代用で4ブロックが揃えば、**切り出し成功として処理を続行**する
+   - 予備フローでの成否に関わらず、**Todoist へ報告する**（検出ロジックの修正が必要なため）
+4. **中断条件**: 予備フローでも4ブロックを揃えられなかった場合は、読み解きの精度を担保できないため処理を中断し、その旨をユーザーへ報告して終了してください。
 
 ### ステップ4：SNS 投稿用の画像を生成する
 

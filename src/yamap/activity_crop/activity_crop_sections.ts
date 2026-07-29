@@ -3,8 +3,11 @@ import sharp from "sharp";
 import type { Line } from "tesseract.js";
 import {
   type Bbox,
+  type FindLabelOptions,
   type ImageProbe,
+  type LabelCandidateStatus,
   type OcrResult,
+  collectLabelCandidates,
   createSharpImageProbe,
   findAllLabelBboxes,
   findLabelBbox,
@@ -54,6 +57,8 @@ export type CropAllSectionsResult = {
   ocrScale: number;
   savedPaths: string[];
   results: SectionCropResult[];
+  /** 見出し検出の診断情報。CLI 側が出力要否を判断する */
+  debug: CropDebugInfo;
 };
 
 const SECTION_OUTPUT_SUFFIX: Record<SectionId, string> = {
@@ -79,8 +84,44 @@ export type BoundaryEvidence = {
   activityDetailBottom: boolean;
 };
 
+/** 活動詳細の下端解決で、どの手段をどこまで試したかの記録 */
+export type ActivityDetailBottomStep = {
+  method: ActivityDetailEndMethod;
+  found: boolean;
+  /** found=true のときの下端（元画像座標） */
+  bottom?: number;
+};
+
+/** 見出し候補1件の診断情報 */
+export type HeadingCandidateDebug = {
+  label: string;
+  /** OCR が読んだ生テキスト */
+  text: string;
+  confidence: number;
+  /** OCR 座標（縮小後） */
+  ocrY: { y0: number; y1: number };
+  /** 元画像座標。切り出し位置を手で決めるときはこちらを使う */
+  imageY: { y0: number; y1: number };
+  status: LabelCandidateStatus | "red_button";
+};
+
+/**
+ * 切り出しの診断情報。
+ *
+ * 「見出しらしき行はあったが、なぜ採用されなかったのか」を示すためのもの。
+ * 検出に失敗したとき、この情報から予備フロー（座標指定での切り出し）へ進めるようにする。
+ */
+export type CropDebugInfo = {
+  ocr: { lineCount: number; ocrScale: number };
+  /** 4つの見出しラベルごとの候補行（採用・棄却の別つき） */
+  headingCandidates: HeadingCandidateDebug[];
+  /** 活動詳細の下端解決の経過。見出しが取れなかった場合は null */
+  activityDetailBottomSteps: ActivityDetailBottomStep[] | null;
+};
+
 export type SectionBoundaries = {
   evidence: BoundaryEvidence;
+  debug: CropDebugInfo;
   header: { top: number; bottom: number } | null;
   activityData: { top: number; bottom: number } | null;
   checkpoints: { top: number; bottom: number } | null;
@@ -151,26 +192,33 @@ function looksLikeStatsLine(text: string): boolean {
 /**
  * 「活動データ」見出しの候補から、白背景の本文側見出しを選ぶ。
  * ヘッダ画像直下の赤背景ボタンは isRedButtonBackground で除外する。
+ *
+ * 赤背景として除外した候補は redButtonRejected に返す。この棄却は OCR 行だけでは
+ * 説明できないため、診断出力で明示できるよう呼び出し元へ渡す。
  */
 async function findActivityDataHeading(
   probe: ImageProbe,
   lines: Line[],
   scaleBack: number,
   checkpointOcrY: number | null,
-): Promise<Bbox | null> {
+): Promise<{ heading: Bbox | null; redButtonRejected: Bbox[] }> {
   const beforeY = checkpointOcrY ?? Number.POSITIVE_INFINITY;
   const candidates = findAllLabelBboxes(lines, LABEL_ACTIVITY_DATA, {
     exactHeading: true,
     beforeY,
   });
 
-  if (candidates.length === 0) return null;
+  const redButtonRejected: Bbox[] = [];
+  if (candidates.length === 0) return { heading: null, redButtonRejected };
 
   const scored: { bbox: Bbox; score: number }[] = [];
 
   for (const candidate of candidates) {
     const isRed = await probe.isRedButtonBackground(candidate, scaleBack);
-    if (isRed) continue;
+    if (isRed) {
+      redButtonRejected.push(candidate);
+      continue;
+    }
 
     let score = 0;
     const following = lines
@@ -186,11 +234,14 @@ async function findActivityDataHeading(
   }
 
   if (scored.length === 0) {
-    return null;
+    return { heading: null, redButtonRejected };
   }
 
   scored.sort((a, b) => b.score - a.score);
-  return scaleBbox(scored[0].bbox, scaleBack, scaleBack);
+  return {
+    heading: scaleBbox(scored[0].bbox, scaleBack, scaleBack),
+    redButtonRejected,
+  };
 }
 
 function buildCropRect(
@@ -228,8 +279,12 @@ async function resolveActivityDetailBottom(
   scaleBack: number,
   imageWidth: number,
   imageHeight: number,
-): Promise<{ bottom: number; endMethod: ActivityDetailEndMethod } | null> {
+): Promise<{
+  resolved: { bottom: number; endMethod: ActivityDetailEndMethod } | null;
+  steps: ActivityDetailBottomStep[];
+}> {
   const start = scaleBbox(startOcr, scaleBack, scaleBack);
+  const steps: ActivityDetailBottomStep[] = [];
 
   const photoLabelOcr = findLabelBbox(lines, LABEL_PHOTOS, {
     afterY: startOcr.y1,
@@ -237,11 +292,11 @@ async function resolveActivityDetailBottom(
   });
 
   if (photoLabelOcr) {
-    return {
-      bottom: scaleBbox(photoLabelOcr, scaleBack, scaleBack).y0,
-      endMethod: "photo_label",
-    };
+    const bottom = scaleBbox(photoLabelOcr, scaleBack, scaleBack).y0;
+    steps.push({ method: "photo_label", found: true, bottom });
+    return { resolved: { bottom, endMethod: "photo_label" }, steps };
   }
+  steps.push({ method: "photo_label", found: false });
 
   const gridY = await probe.detectPhotoGridStartY(
     start.y0,
@@ -249,18 +304,20 @@ async function resolveActivityDetailBottom(
     imageHeight,
   );
   if (gridY != null) {
-    return { bottom: gridY, endMethod: "grid_detection" };
+    steps.push({ method: "grid_detection", found: true, bottom: gridY });
+    return { resolved: { bottom: gridY, endMethod: "grid_detection" }, steps };
   }
+  steps.push({ method: "grid_detection", found: false });
 
   const textEndOcrY = findTextEndY(lines, startOcr.y1);
   if (textEndOcrY != null) {
-    return {
-      bottom: Math.round(textEndOcrY * scaleBack),
-      endMethod: "text_end_heuristic",
-    };
+    const bottom = Math.round(textEndOcrY * scaleBack);
+    steps.push({ method: "text_end_heuristic", found: true, bottom });
+    return { resolved: { bottom, endMethod: "text_end_heuristic" }, steps };
   }
+  steps.push({ method: "text_end_heuristic", found: false });
 
-  return null;
+  return { resolved: null, steps };
 }
 
 /**
@@ -283,12 +340,13 @@ export async function detectSectionBoundaries(
   const checkpointOcr = findLabelBbox(lines, LABEL_CHECKPOINTS, { exactHeading: true });
   const activityDetailOcr = findLabelBbox(lines, LABEL_ACTIVITY_DETAIL, { exactHeading: true });
 
-  const activityDataHeading = await findActivityDataHeading(
-    probe,
-    lines,
-    scaleBack,
-    checkpointOcr?.y0 ?? null,
-  );
+  const { heading: activityDataHeading, redButtonRejected } =
+    await findActivityDataHeading(
+      probe,
+      lines,
+      scaleBack,
+      checkpointOcr?.y0 ?? null,
+    );
 
   const checkpointHeading = checkpointOcr
     ? scaleBbox(checkpointOcr, scaleBack, scaleBack)
@@ -298,8 +356,9 @@ export async function detectSectionBoundaries(
     : null;
 
   let activityDetailBottom: { bottom: number; endMethod: ActivityDetailEndMethod } | null = null;
+  let activityDetailBottomSteps: ActivityDetailBottomStep[] | null = null;
   if (activityDetailOcr) {
-    activityDetailBottom = await resolveActivityDetailBottom(
+    const resolution = await resolveActivityDetailBottom(
       probe,
       lines,
       activityDetailOcr,
@@ -307,6 +366,8 @@ export async function detectSectionBoundaries(
       imageWidth,
       imageHeight,
     );
+    activityDetailBottom = resolution.resolved;
+    activityDetailBottomSteps = resolution.steps;
   }
 
   const headerBottom = activityDataHeading?.y0 ?? null;
@@ -337,7 +398,73 @@ export async function detectSectionBoundaries(
     activityDetailBottom: activityDetailBottom != null,
   };
 
-  return { evidence, header, activityData, checkpoints, activityDetail };
+  const debug: CropDebugInfo = {
+    ocr: { lineCount: lines.length, ocrScale },
+    headingCandidates: collectHeadingCandidates(
+      lines,
+      scaleBack,
+      checkpointOcr?.y0 ?? null,
+      activityDetailOcr,
+      redButtonRejected,
+    ),
+    activityDetailBottomSteps,
+  };
+
+  return { evidence, debug, header, activityData, checkpoints, activityDetail };
+}
+
+/**
+ * 4つの見出しラベルについて、候補行を採否つきで集める。
+ *
+ * 探索条件は detectSectionBoundaries 本体と揃えること。ここがずれると
+ * 「診断上は採用されるはずなのに実際は棄却されている」という食い違いが起きる。
+ */
+function collectHeadingCandidates(
+  lines: Line[],
+  scaleBack: number,
+  checkpointOcrY: number | null,
+  activityDetailOcr: Bbox | null,
+  redButtonRejected: Bbox[],
+): HeadingCandidateDebug[] {
+  const redButtonKeys = new Set(
+    redButtonRejected.map((bbox) => `${bbox.x0},${bbox.y0}`),
+  );
+
+  const groups: { label: string; options: FindLabelOptions }[] = [
+    {
+      label: LABEL_ACTIVITY_DATA,
+      options: {
+        exactHeading: true,
+        beforeY: checkpointOcrY ?? Number.POSITIVE_INFINITY,
+      },
+    },
+    { label: LABEL_CHECKPOINTS, options: { exactHeading: true } },
+    { label: LABEL_ACTIVITY_DETAIL, options: { exactHeading: true } },
+    {
+      label: LABEL_PHOTOS,
+      options: {
+        exactHeading: true,
+        afterY: activityDetailOcr?.y1 ?? 0,
+      },
+    },
+  ];
+
+  return groups.flatMap(({ label, options }) =>
+    collectLabelCandidates(lines, label, options).map((candidate) => {
+      const isRedButton = candidate.status === "accepted"
+        && redButtonKeys.has(`${candidate.bbox.x0},${candidate.bbox.y0}`);
+      const imageBbox = scaleBbox(candidate.bbox, scaleBack, scaleBack);
+
+      return {
+        label,
+        text: candidate.text.trim(),
+        confidence: Math.round(candidate.confidence),
+        ocrY: { y0: candidate.bbox.y0, y1: candidate.bbox.y1 },
+        imageY: { y0: imageBbox.y0, y1: imageBbox.y1 },
+        status: isRedButton ? ("red_button" as const) : candidate.status,
+      };
+    }),
+  );
 }
 
 async function cropAndSave(
@@ -444,5 +571,6 @@ export async function cropAllSections(
     ocrScale,
     savedPaths,
     results,
+    debug: boundaries.debug,
   };
 }

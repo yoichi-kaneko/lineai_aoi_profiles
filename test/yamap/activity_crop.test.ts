@@ -156,6 +156,80 @@ describe("detectSectionBoundaries", () => {
   });
 });
 
+describe("診断情報（debug）", () => {
+  it("採用された見出しを元画像座標つきで報告する", async () => {
+    const fixture = loadFixture("hijiriyama_20260728");
+    const boundaries = await detectSectionBoundaries(
+      toOcrResult(fixture),
+      createReplayProbe(fixture),
+    );
+
+    const detail = boundaries.debug.headingCandidates.find(
+      (candidate) => candidate.label === "活動詳細",
+    );
+
+    expect(detail).toBeDefined();
+    expect(detail?.status).toBe("accepted");
+    // 見出し＋リンクが1行として読まれていることが診断から分かる
+    expect(detail?.text.replace(/\s/g, "")).toBe("活動詳細すべて見る");
+    // 元画像座標が boundaries と一致していること（予備フローの座標決めに使うため）
+    expect(detail?.imageY.y0).toBe(boundaries.activityDetail?.top);
+  });
+
+  it("棄却された見出し候補を理由つきで報告する", async () => {
+    const fixture = loadFixture("hijiriyama_20260728");
+    // 見出し行に日本語の語を混ぜ、isHeadingLine に弾かれる状態を作る
+    const brokenLines = fixture.lines.map((line) => ({
+      ...line,
+      text: line.text.replace(/活動\s*詳細/g, "活動詳細の記録について"),
+    })) as unknown as Line[];
+
+    const boundaries = await detectSectionBoundaries(
+      toOcrResult(fixture, brokenLines),
+      createReplayProbe(fixture),
+    );
+
+    expect(boundaries.activityDetail).toBeNull();
+
+    const detail = boundaries.debug.headingCandidates.find(
+      (candidate) => candidate.label === "活動詳細",
+    );
+
+    // 「見出しらしき行はあったが弾かれた」ことと、その位置が分かる
+    expect(detail?.status).toBe("not_heading");
+    expect(detail?.imageY.y0).toBeGreaterThan(0);
+  });
+
+  it("活動詳細の下端解決で、試した手段と決め手を順に報告する", async () => {
+    const fixture = loadFixture("hijiriyama_20260728");
+    const boundaries = await detectSectionBoundaries(
+      toOcrResult(fixture),
+      createReplayProbe(fixture),
+    );
+
+    // このレポートには「写真」見出しが無く、グリッド検知が決め手になる
+    expect(boundaries.debug.activityDetailBottomSteps).toEqual([
+      { method: "photo_label", found: false },
+      { method: "grid_detection", found: true, bottom: 6149 },
+    ]);
+  });
+
+  it("見出しが取れなかった場合、下端解決は試行されない", async () => {
+    const fixture = loadFixture("hijiriyama_20260728");
+    const brokenLines = fixture.lines.map((line) => ({
+      ...line,
+      text: line.text.replace(/活動\s*詳細/g, "XX"),
+    })) as unknown as Line[];
+
+    const boundaries = await detectSectionBoundaries(
+      toOcrResult(fixture, brokenLines),
+      createReplayProbe(fixture),
+    );
+
+    expect(boundaries.debug.activityDetailBottomSteps).toBeNull();
+  });
+});
+
 describe("buildFailReason", () => {
   const allFound: BoundaryEvidence = {
     activityDataHeading: true,

@@ -115,27 +115,72 @@ export function findLabelBbox(
   return candidates[0] ?? null;
 }
 
+/**
+ * ラベル候補の採否。
+ * `accepted` 以外は棄却理由を表す。診断出力（--debug）で「なぜ見出しを特定できなかったか」を示すために使う。
+ */
+export type LabelCandidateStatus =
+  /** 見出しとして採用 */
+  | "accepted"
+  /** 探索範囲（afterY / beforeY）の外にあった */
+  | "out_of_range"
+  /** ラベルは含むが見出し行とみなせなかった（isHeadingLine 参照） */
+  | "not_heading";
+
+export type LabelCandidate = {
+  bbox: Bbox;
+  text: string;
+  confidence: number;
+  status: LabelCandidateStatus;
+};
+
+/**
+ * ラベル文字列を含む行を、採否の判定つきで縦位置順にすべて返す。
+ *
+ * 採用分だけが欲しい場合は findAllLabelBboxes を使う。こちらは棄却されたものも
+ * 理由つきで返すため、診断出力から「見出しらしき行はあったが弾かれた」ことが分かる。
+ */
+export function collectLabelCandidates(
+  lines: Line[],
+  label: string,
+  options: FindLabelOptions = {},
+): LabelCandidate[] {
+  const needle = normalizeText(label);
+  const afterY = options.afterY ?? 0;
+  const beforeY = options.beforeY ?? Number.POSITIVE_INFINITY;
+  const results: LabelCandidate[] = [];
+
+  for (const line of lines) {
+    const normalized = normalizeText(line.text);
+    if (!normalized.includes(needle)) continue;
+
+    let status: LabelCandidateStatus = "accepted";
+    if (line.bbox.y0 < afterY || line.bbox.y0 >= beforeY) {
+      status = "out_of_range";
+    } else if (options.exactHeading && !isHeadingLine(normalized, needle)) {
+      status = "not_heading";
+    }
+
+    results.push({
+      bbox: line.bbox,
+      text: line.text,
+      confidence: line.confidence,
+      status,
+    });
+  }
+
+  return results.sort((a, b) => a.bbox.y0 - b.bbox.y0);
+}
+
 /** 条件に合うラベル bbox を縦位置順にすべて返す */
 export function findAllLabelBboxes(
   lines: Line[],
   label: string,
   options: FindLabelOptions = {},
 ): Bbox[] {
-  const needle = normalizeText(label);
-  const afterY = options.afterY ?? 0;
-  const beforeY = options.beforeY ?? Number.POSITIVE_INFINITY;
-  const results: Bbox[] = [];
-
-  for (const line of lines) {
-    if (line.bbox.y0 < afterY || line.bbox.y0 >= beforeY) continue;
-    const normalized = normalizeText(line.text);
-    if (!normalized.includes(needle)) continue;
-    if (options.exactHeading && !isHeadingLine(normalized, needle)) continue;
-
-    results.push(line.bbox);
-  }
-
-  return results.sort((a, b) => a.y0 - b.y0);
+  return collectLabelCandidates(lines, label, options)
+    .filter((candidate) => candidate.status === "accepted")
+    .map((candidate) => candidate.bbox);
 }
 
 function isContentLine(line: Line): boolean {

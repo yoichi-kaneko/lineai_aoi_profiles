@@ -93,6 +93,10 @@ lineai_aoi_profiles/
 │       ├── send_line_audio/
 │       ├── send_line_image/
 │       └── send_line_text/
+├── test/                   # ルート src/ に対するテスト（詳細は test/README.md）
+│   ├── fixtures/           # テスト用フィクスチャ（原画像は Git 管理外）
+│   ├── tools/              # フィクスチャ生成ツール
+│   └── yamap/              # YAMAP crop のテスト（層1: *.test.ts / 層2: *.e2e.test.ts）
 └── tmp/                    # 一時ファイル（画像など）
 ```
 
@@ -163,7 +167,7 @@ pnpm install
 
 ## スキル動作確認
 
-スキルのテストはプロジェクトルートから直接実行する：
+スキルの手動実行はプロジェクトルートから直接行う：
 
 ```bash
 cd {プロジェクトルート}
@@ -171,6 +175,21 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 ```
 
 環境変数は `.env` から自動読み込みされる（dotenvで設定済み）。
+
+## 自動テスト
+
+vitest を使用する。テストは `test/` 配下に置く（`src/` にはテストを混ぜない）。
+
+```bash
+pnpm test        # 層1: 高速。常時実行する
+pnpm test:watch  # 層1をウォッチ実行
+pnpm test:e2e    # 層2: 実画像を通した E2E。任意実行
+```
+
+現在の対象は YAMAP レポートの crop 処理のみ。OCR に依存し実画像が重いため、
+記録済み OCR 結果で検証する層1と、実画像を通す層2に分けている。
+**crop に失敗するレポートが見つかったら、フィクスチャとして追加してからロジックを直す**のが運用方針。
+構成・フィクスチャの追加手順は [test/README.md](../test/README.md) を参照。
 
 ## 環境変数
 

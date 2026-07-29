@@ -60,6 +60,15 @@ export const HEADING_TRAILING_UI_LABELS = [
   "地図で見る",
 ];
 
+/**
+ * 見出しの前後に現れる OCR ノイズ文字。
+ *
+ * 併記されたリンクや罫線・下線が読み取れる大きさに満たないと、単体では語を成さない
+ * 長音符・ダッシュの連なりとして認識される（例: 縮小率が小さい画像では
+ * 「すべて見る」リンクが「ーー」になる）。語の有無を判定する前に取り除く。
+ */
+const HEADING_NOISE_MARKS = /[ー―‐—–一_＿|｜丨~〜ｰ]/g;
+
 /** 見出し判定で許容する OCR ノイズ（記号・罫線の誤認識片）の文字数 */
 export const HEADING_NOISE_TOLERANCE = 4;
 
@@ -72,19 +81,21 @@ export type FindLabelOptions = {
 /**
  * 正規化済みの行が、ラベルの見出し行かどうかを判定する。
  *
- * 既知の UI 語を取り除いたうえで、ラベルの前後に**日本語の語が残らない**行のみ見出しとみなす。
- * 単純な文字数閾値ではなく語の有無で判定するのは、「活動詳細すべて見る」のような
+ * 既知の UI 語とノイズ記号を取り除いたうえで、ラベルの前後に**日本語の語が残らない**行のみ
+ * 見出しとみなす。単純な文字数閾値ではなく語の有無で判定するのは、「活動詳細すべて見る」のような
  * 見出し＋リンクの行を通しつつ、本文中にラベルが出現しただけの行を弾くため。
  */
 export function isHeadingLine(normalized: string, needle: string): boolean {
   const index = normalized.indexOf(needle);
   if (index < 0) return false;
 
-  const before = normalized.slice(0, index);
+  const before = normalized.slice(0, index).replace(HEADING_NOISE_MARKS, "");
   let after = normalized.slice(index + needle.length);
+  // 語を含む UI ラベルを先に落としてから、残ったノイズ記号を落とす
   for (const uiLabel of HEADING_TRAILING_UI_LABELS) {
     after = after.replace(uiLabel, "");
   }
+  after = after.replace(HEADING_NOISE_MARKS, "");
 
   if (countJapaneseChars(before) > 0 || countJapaneseChars(after) > 0) return false;
   return before.length <= HEADING_NOISE_TOLERANCE
@@ -348,6 +359,34 @@ export async function isRedButtonBackground(
   }
 
   return total > 0 && redCount / total > 0.25;
+}
+
+/**
+ * 境界検出が画像の画素へ問い合わせる操作。
+ *
+ * OCR 行だけでは決まらない判定（赤背景ボタンの除外・写真グリッドの開始位置）を
+ * この境界に閉じ込めることで、境界検出そのものは画像ファイルなしで実行できる。
+ * テストでは記録済みの応答を返す差し替え実装を渡す（test/yamap/activity_crop.test.ts）。
+ */
+export type ImageProbe = {
+  /** 見出し bbox（OCR 座標）付近が赤背景ボタンかどうか */
+  isRedButtonBackground(bbox: Bbox, scaleBack: number): Promise<boolean>;
+  /** searchStartY 以降で写真グリッドが始まる Y（元画像座標。見つからなければ null） */
+  detectPhotoGridStartY(
+    searchStartY: number,
+    imageWidth: number,
+    imageHeight: number,
+  ): Promise<number | null>;
+};
+
+/** 実際の画像ファイルを読む ImageProbe */
+export function createSharpImageProbe(inputPath: string): ImageProbe {
+  return {
+    isRedButtonBackground: (bbox, scaleBack) =>
+      isRedButtonBackground(inputPath, bbox, scaleBack),
+    detectPhotoGridStartY: (searchStartY, imageWidth, imageHeight) =>
+      detectPhotoGridStartY(inputPath, searchStartY, imageWidth, imageHeight),
+  };
 }
 
 /** 入力画像に対して OCR を1回実行し、行一覧とスケール情報を返す */

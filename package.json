@@ -5,7 +5,10 @@
         "functions"
     ],
     "scripts": {
-        "setup:browsers": "playwright install chromium"
+        "setup:browsers": "playwright install chromium",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:e2e": "vitest run --config vitest.e2e.config.ts"
     },
     "dependencies": {
         "@doist/todoist-sdk": "^9.1.0",
@@ -28,7 +31,8 @@
     "devDependencies": {
         "@types/node": "^22.15.29",
         "tsx": "^4.19.2",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vitest": "^4.1.10"
     },
     "optionalDependencies": {
         "@esbuild/linux-x64": "^0.27.4"

@@ -3,12 +3,12 @@ import sharp from "sharp";
 import type { Line } from "tesseract.js";
 import {
   type Bbox,
+  type ImageProbe,
   type OcrResult,
-  detectPhotoGridStartY,
+  createSharpImageProbe,
   findAllLabelBboxes,
   findLabelBbox,
   findTextEndY,
-  isRedButtonBackground,
   normalizeText,
   scaleBbox,
 } from "./activity_crop_ocr.js";
@@ -72,14 +72,14 @@ const LABEL_PHOTOS = "写真";
  * 見出し・下端の検出状況。
  * 失敗理由を「どの手がかりが欠けたか」まで具体化するために持ち回る。
  */
-type BoundaryEvidence = {
+export type BoundaryEvidence = {
   activityDataHeading: boolean;
   checkpointsHeading: boolean;
   activityDetailHeading: boolean;
   activityDetailBottom: boolean;
 };
 
-type SectionBoundaries = {
+export type SectionBoundaries = {
   evidence: BoundaryEvidence;
   header: { top: number; bottom: number } | null;
   activityData: { top: number; bottom: number } | null;
@@ -98,7 +98,7 @@ type SectionBoundaries = {
  * 2ブロックを道連れにする（例: 「活動詳細」の検出漏れ → checkpoints も失敗）。
  * 連鎖による失敗はその旨を明示し、原因の切り分けを助ける。
  */
-function buildFailReason(
+export function buildFailReason(
   section: SectionId,
   evidence: BoundaryEvidence,
 ): string {
@@ -153,7 +153,7 @@ function looksLikeStatsLine(text: string): boolean {
  * ヘッダ画像直下の赤背景ボタンは isRedButtonBackground で除外する。
  */
 async function findActivityDataHeading(
-  inputPath: string,
+  probe: ImageProbe,
   lines: Line[],
   scaleBack: number,
   checkpointOcrY: number | null,
@@ -169,7 +169,7 @@ async function findActivityDataHeading(
   const scored: { bbox: Bbox; score: number }[] = [];
 
   for (const candidate of candidates) {
-    const isRed = await isRedButtonBackground(inputPath, candidate, scaleBack);
+    const isRed = await probe.isRedButtonBackground(candidate, scaleBack);
     if (isRed) continue;
 
     let score = 0;
@@ -222,7 +222,7 @@ function buildCropRect(
  * 実質的には 2 段目のグリッド検知が下端検出の主役になっている点に注意。
  */
 async function resolveActivityDetailBottom(
-  inputPath: string,
+  probe: ImageProbe,
   lines: Line[],
   startOcr: Bbox,
   scaleBack: number,
@@ -243,8 +243,7 @@ async function resolveActivityDetailBottom(
     };
   }
 
-  const gridY = await detectPhotoGridStartY(
-    inputPath,
+  const gridY = await probe.detectPhotoGridStartY(
     start.y0,
     imageWidth,
     imageHeight,
@@ -271,10 +270,12 @@ async function resolveActivityDetailBottom(
  * - activity_data: 白背景「活動データ」見出しからチェックポイント直前まで
  * - checkpoints: 「チェックポイント」見出しから活動詳細直前まで
  * - activity_detail: 「活動詳細」見出しから写真一覧直前まで
+ *
+ * 画像の画素を要する判定は probe 経由で行うため、この関数自体は画像ファイルなしで実行できる。
  */
-async function detectSectionBoundaries(
-  inputPath: string,
+export async function detectSectionBoundaries(
   ocr: OcrResult,
+  probe: ImageProbe,
 ): Promise<SectionBoundaries> {
   const { lines, ocrScale, imageWidth, imageHeight } = ocr;
   const scaleBack = 1 / ocrScale;
@@ -283,7 +284,7 @@ async function detectSectionBoundaries(
   const activityDetailOcr = findLabelBbox(lines, LABEL_ACTIVITY_DETAIL, { exactHeading: true });
 
   const activityDataHeading = await findActivityDataHeading(
-    inputPath,
+    probe,
     lines,
     scaleBack,
     checkpointOcr?.y0 ?? null,
@@ -299,7 +300,7 @@ async function detectSectionBoundaries(
   let activityDetailBottom: { bottom: number; endMethod: ActivityDetailEndMethod } | null = null;
   if (activityDetailOcr) {
     activityDetailBottom = await resolveActivityDetailBottom(
-      inputPath,
+      probe,
       lines,
       activityDetailOcr,
       scaleBack,
@@ -370,9 +371,10 @@ export async function cropAllSections(
   outputDir: string,
   outputPrefix: string,
   ocr: OcrResult,
+  probe: ImageProbe = createSharpImageProbe(inputPath),
 ): Promise<CropAllSectionsResult> {
   const { imageWidth, imageHeight, ocrScale } = ocr;
-  const boundaries = await detectSectionBoundaries(inputPath, ocr);
+  const boundaries = await detectSectionBoundaries(ocr, probe);
 
   const sectionDefs: {
     section: SectionId;

@@ -48,7 +48,9 @@ lineai_aoi_profiles/
 │   ├── todoist/            # Todoist タスク操作
 │   ├── twitter/            # Twitter（X）投稿
 │   ├── util/               # 汎用ユーティリティ
-│   └── yamap/              # YAMAP 登山情報スクレイピング
+│   └── yamap/              # YAMAP 計画書スクレイピング・活動記録レポートの切り出し
+│       ├── activity_crop/  # レポートの自動切り出し（OCR による見出し検出）
+│       └── image_region/   # 座標指定・範囲スライスの切り出し（自動検出失敗時の予備）
 ├── .claude/
 │   ├── rules/              # 常時適用ルール（aoi.md から @import で参照される）
 │   │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
@@ -64,6 +66,7 @@ lineai_aoi_profiles/
 │   │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
+│       ├── crop_image_region/
 │       ├── crop_yamap_report/
 │       ├── download_google_drive_file/
 │       ├── download_image/

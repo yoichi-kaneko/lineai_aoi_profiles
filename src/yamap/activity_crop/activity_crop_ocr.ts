@@ -51,7 +51,8 @@ export function scaleBbox(bbox: Bbox, scaleX: number, scaleY: number): Bbox {
 /**
  * 見出しの右端に併記される YAMAP の UI 要素。
  * OCR は見出しとリンクを1行として読むため（例: 「活動詳細」＋「すべて見る」→「活動詳細すべて見る」）、
- * 見出し判定の前にここに挙げた語を取り除く。YAMAP 側の UI 変更時はこの一覧へ追記する。
+ * 見出し判定の前にここに挙げた語を取り除く（読み落とした断片の扱いは stripTrailingUiLabels 参照）。
+ * YAMAP 側の UI 変更時はこの一覧へ追記する。
  */
 export const HEADING_TRAILING_UI_LABELS = [
   "すべて見る",
@@ -72,6 +73,45 @@ const HEADING_NOISE_MARKS = /[ー―‐—–一_＿|｜丨~〜ｰ]/g;
 /** 見出し判定で許容する OCR ノイズ（記号・罫線の誤認識片）の文字数 */
 export const HEADING_NOISE_TOLERANCE = 4;
 
+/**
+ * 併記リンクの読み落としとみなす断片の最小文字数。
+ *
+ * 1文字だけの残りは助詞（「写真を」の「を」など）と区別がつかないため、
+ * 部分列に一致しても UI ラベルの断片とはみなさない。
+ */
+const HEADING_UI_LABEL_MIN_FRAGMENT = 2;
+
+/** fragment が source から文字を抜いたもの（部分列）かどうか */
+function isSubsequence(fragment: string, source: string): boolean {
+  const chars = [...fragment];
+  let index = 0;
+  for (const char of source) {
+    if (index < chars.length && char === chars[index]) index += 1;
+  }
+  return index === chars.length;
+}
+
+/**
+ * 見出しラベルより後ろの文字列から、併記された UI リンクの痕跡を取り除く。
+ *
+ * リンクは常に完全な語として読めるとは限らない。文字が取りこぼされると語の断片だけが残り
+ * （例: 「すべて見る」→「てる」）、完全一致での除去をすり抜ける。取りこぼしは元の語から
+ * 文字が抜けたもの＝**部分列**になるため、既知の UI 語の部分列であればリンクの残骸とみなす。
+ */
+function stripTrailingUiLabels(after: string): string {
+  let rest = after;
+  // 語を含む UI ラベルを先に落としてから、残ったノイズ記号を落とす
+  for (const uiLabel of HEADING_TRAILING_UI_LABELS) {
+    rest = rest.replace(uiLabel, "");
+  }
+  rest = rest.replace(HEADING_NOISE_MARKS, "");
+
+  const isLinkFragment = rest.length >= HEADING_UI_LABEL_MIN_FRAGMENT
+    && HEADING_TRAILING_UI_LABELS.some((uiLabel) => isSubsequence(rest, uiLabel));
+
+  return isLinkFragment ? "" : rest;
+}
+
 export type FindLabelOptions = {
   afterY?: number;
   beforeY?: number;
@@ -81,21 +121,16 @@ export type FindLabelOptions = {
 /**
  * 正規化済みの行が、ラベルの見出し行かどうかを判定する。
  *
- * 既知の UI 語とノイズ記号を取り除いたうえで、ラベルの前後に**日本語の語が残らない**行のみ
- * 見出しとみなす。単純な文字数閾値ではなく語の有無で判定するのは、「活動詳細すべて見る」のような
- * 見出し＋リンクの行を通しつつ、本文中にラベルが出現しただけの行を弾くため。
+ * 既知の UI 語（読み落とした断片を含む）とノイズ記号を取り除いたうえで、ラベルの前後に
+ * **日本語の語が残らない**行のみ見出しとみなす。単純な文字数閾値ではなく語の有無で判定するのは、
+ * 「活動詳細すべて見る」のような見出し＋リンクの行を通しつつ、本文中にラベルが出現しただけの行を弾くため。
  */
 export function isHeadingLine(normalized: string, needle: string): boolean {
   const index = normalized.indexOf(needle);
   if (index < 0) return false;
 
   const before = normalized.slice(0, index).replace(HEADING_NOISE_MARKS, "");
-  let after = normalized.slice(index + needle.length);
-  // 語を含む UI ラベルを先に落としてから、残ったノイズ記号を落とす
-  for (const uiLabel of HEADING_TRAILING_UI_LABELS) {
-    after = after.replace(uiLabel, "");
-  }
-  after = after.replace(HEADING_NOISE_MARKS, "");
+  const after = stripTrailingUiLabels(normalized.slice(index + needle.length));
 
   if (countJapaneseChars(before) > 0 || countJapaneseChars(after) > 0) return false;
   return before.length <= HEADING_NOISE_TOLERANCE

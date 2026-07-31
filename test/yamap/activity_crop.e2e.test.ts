@@ -30,6 +30,10 @@ const IMAGE_CASES = [
     file: "hutamatayama_20260729.png",
     description: "二岐山レポート（見出し併記リンクがノイズ化するケース）",
   },
+  {
+    file: "kuwasakiyama_20260731.png",
+    description: "鍬崎山レポート（併記リンクが部分的にしか読めないケース）",
+  },
 ];
 
 describe("crop_yamap_report E2E", () => {

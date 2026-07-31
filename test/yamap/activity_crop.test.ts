@@ -51,6 +51,18 @@ const FIXTURE_CASES = [
       activityDetail: { top: 3950, bottom: 6282, endMethod: "grid_detection" },
     },
   },
+  {
+    name: "kuwasakiyama_20260731",
+    // 2026-07-31 綴葉モードで checkpoints / activity_detail の切り出しに失敗した実レポート。
+    // 「すべて見る」リンクが「てる」としか読めず、UI ラベルの完全一致除去をすり抜けていた。
+    description: "鍬崎山レポート（併記リンクが部分的にしか読めないケース）",
+    expected: {
+      header: { top: 0, bottom: 1072 },
+      activityData: { top: 1072, bottom: 2517 },
+      checkpoints: { top: 2517, bottom: 4726 },
+      activityDetail: { top: 4726, bottom: 7116, endMethod: "grid_detection" },
+    },
+  },
 ] as const;
 
 describe("isHeadingLine", () => {
@@ -72,6 +84,30 @@ describe("isHeadingLine", () => {
       label: "活動詳細",
       want: true,
       why: "縮小率が小さくリンクが読み取れず長音符へ潰れたケース（hutamatayama）",
+    },
+    {
+      line: "活動 詳細 て る",
+      label: "活動詳細",
+      want: true,
+      why: "「すべて見る」の文字が抜け落ち断片だけが残ったケース（kuwasakiyama）",
+    },
+    {
+      line: "活動 詳細 べ 見 る",
+      label: "活動詳細",
+      want: true,
+      why: "同上。抜け方が変わっても既知 UI 語の部分列なら断片とみなす",
+    },
+    {
+      line: "写真 も",
+      label: "写真",
+      want: false,
+      why: "1文字の残りは助詞と区別がつかないため、部分列に一致しても断片とみなさない",
+    },
+    {
+      line: "活動 詳細 も 見 た",
+      label: "活動詳細",
+      want: false,
+      why: "既知 UI 語の部分列にならない語が残る行は見出しではない",
     },
     {
       line: "活動 詳細 一 _ |",

@@ -43,7 +43,7 @@ cp .env.example .env
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
-- YAMAP 計画書スクレイピング（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお活動記録はスクレイピングを廃止し、スクリーンショット画像の添付を `crop_yamap_report` で切り出して読み解く運用です（[ガイド](.claude/docs/yamap_activity_guide.md)）。`crop_yamap_report` は OCR で見出しを検出するため切り出しに失敗することがあり、その場合は `crop_image_region` スキルで座標を指定して切り出す予備フローに切り替えます（手順は [crop_yamap_report](.claude/skills/crop_yamap_report/SKILL.md) の「切り出しに失敗した場合の手順」）。
+- YAMAP 計画書の取得（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお計画書は DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれた計画データ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。なお活動記録はスクレイピングを廃止し、スクリーンショット画像の添付を `crop_yamap_report` で切り出して読み解く運用です（[ガイド](.claude/docs/yamap_activity_guide.md)）。`crop_yamap_report` は OCR で見出しを検出するため切り出しに失敗することがあり、その場合は `crop_image_region` スキルで座標を指定して切り出す予備フローに切り替えます（手順は [crop_yamap_report](.claude/skills/crop_yamap_report/SKILL.md) の「切り出しに失敗した場合の手順」）。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -97,7 +97,7 @@ lineai_aoi_profiles/
 │   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
-│   └── yamap/             # YAMAP 登山情報スクレイピング
+│   └── yamap/             # YAMAP 計画書の取得・活動記録レポートの切り出し
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
@@ -219,7 +219,7 @@ lineai_aoi_profiles/
 | サービス名 | YAMAP |
 | 役割 | ユーザーの登山計画・活動記録を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://yamap.com/ |
-| スキル | `fetch_yamap_plan`（計画書の Web スクレイピング）／活動記録はスクリーンショット画像の添付を `download_todoist_attachment` で取得し、`crop_yamap_report` で主要ブロックに切り出して読み解く。切り出しに失敗した場合は `crop_image_region`（座標指定・範囲スライス）で代用する（[ガイド](.claude/docs/yamap_activity_guide.md)） |
+| スキル | `fetch_yamap_plan`（計画書ページの埋め込み計画データを取得）／活動記録はスクリーンショット画像の添付を `download_todoist_attachment` で取得し、`crop_yamap_report` で主要ブロックに切り出して読み解く。切り出しに失敗した場合は `crop_image_region`（座標指定・範囲スライス）で代用する（[ガイド](.claude/docs/yamap_activity_guide.md)） |
 
 ### Firebase / Firestore
 

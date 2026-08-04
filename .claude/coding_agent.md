@@ -48,7 +48,7 @@ lineai_aoi_profiles/
 │   ├── todoist/            # Todoist タスク操作
 │   ├── twitter/            # Twitter（X）投稿
 │   ├── util/               # 汎用ユーティリティ
-│   └── yamap/              # YAMAP 計画書スクレイピング・活動記録レポートの切り出し
+│   └── yamap/              # YAMAP 計画書の取得・活動記録レポートの切り出し
 │       ├── activity_crop/  # レポートの自動切り出し（OCR による見出し検出）
 │       └── image_region/   # 座標指定・範囲スライスの切り出し（自動検出失敗時の予備）
 ├── .claude/
@@ -156,7 +156,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 # 依存インストール（ルートディレクトリで実行）
 pnpm install
 
-# Playwright Chromium（YAMAP スクレイピング用。初回・環境移行時）
+# Playwright Chromium（YAMAP 計画書の取得用。初回・環境移行時）
 pnpm run setup:browsers
 ```
 

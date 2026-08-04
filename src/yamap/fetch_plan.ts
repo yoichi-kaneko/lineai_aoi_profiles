@@ -1,4 +1,6 @@
 import * as cheerio from "cheerio";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 // YAMAPの計画ページは Next.js 製で、計画データは SSR 時に埋め込まれる
@@ -9,7 +11,7 @@ type YamapLandmark = {
   name?: string | null;
 };
 
-type YamapCheckpoint = {
+export type YamapCheckpoint = {
   arrivalDayNumber?: number | null;
   arrivalTimeInSeconds?: number | null;
   stayType?: string | null;
@@ -20,7 +22,7 @@ type YamapCheckpoint = {
   landmark?: YamapLandmark | null;
 };
 
-type YamapPlan = {
+export type YamapPlan = {
   title?: string | null;
   description?: string | null;
   startAt?: number | null;
@@ -32,6 +34,15 @@ type YamapPlan = {
   maps?: { name?: string | null }[] | null;
   checkpoints?: YamapCheckpoint[] | null;
 };
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** timezone は数値なら採用し、欠落・非数値は JST(9) にフォールバックする */
+function resolveTimezone(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 9;
+}
 
 // URLの正規化処理
 // 受け付けるフォーマット:
@@ -62,26 +73,47 @@ function normalizeYamapUrl(url: string): string {
 }
 
 // #__NEXT_DATA__ から計画データとタイムゾーン（時間単位）を取り出す
-function extractPageData(html: string): { plan: YamapPlan; timezone: number } {
+// JSON.parse 成功だけでは型が保証されないため、ルート・plan・timezone・checkpoints を実行時に検証する
+export function extractPageData(html: string): { plan: YamapPlan; timezone: number } {
   const $ = cheerio.load(html);
   const raw = $("#__NEXT_DATA__").first().html();
   if (!raw) {
     throw new Error("計画データ（__NEXT_DATA__）が見つかりませんでした。YAMAP側のページ構成が変更された可能性があります。");
   }
 
-  let parsed: { props?: { pageProps?: { plan?: YamapPlan; timezone?: number } } };
+  let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
     throw new Error("計画データ（__NEXT_DATA__）のJSON解析に失敗しました。");
   }
 
-  const plan = parsed.props?.pageProps?.plan;
-  if (!plan) {
+  if (!isPlainObject(parsed)) {
+    throw new Error("計画データ（__NEXT_DATA__）の形式が不正です。");
+  }
+
+  const pageProps =
+    isPlainObject(parsed.props) && isPlainObject(parsed.props.pageProps)
+      ? parsed.props.pageProps
+      : undefined;
+
+  const planRaw = pageProps?.plan;
+  if (!isPlainObject(planRaw)) {
     throw new Error("計画データが含まれていませんでした。非公開の計画、または削除された計画の可能性があります。");
   }
 
-  return { plan, timezone: parsed.props?.pageProps?.timezone ?? 9 };
+  if (planRaw.checkpoints != null && !Array.isArray(planRaw.checkpoints)) {
+    throw new Error("計画データのチェックポイント形式が不正です。");
+  }
+
+  const plan: YamapPlan = {
+    ...(planRaw as YamapPlan),
+    checkpoints: Array.isArray(planRaw.checkpoints)
+      ? (planRaw.checkpoints as YamapCheckpoint[])
+      : [],
+  };
+
+  return { plan, timezone: resolveTimezone(pageProps?.timezone) };
 }
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -270,7 +302,13 @@ async function main() {
   console.log(buildReport(plan, timezone));
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+const isDirectRun =
+  !!process.argv[1] &&
+  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

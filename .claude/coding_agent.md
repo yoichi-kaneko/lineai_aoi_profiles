@@ -63,7 +63,7 @@ lineai_aoi_profiles/
 │   │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ・記録コマンド
 │   │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
 │   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
-│   │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
+│   │   ├── long_sleep_execution.md   # 長時間処理の実行方法（sleep・タイムアウト時の扱い）
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
 │       ├── crop_image_region/
@@ -149,6 +149,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 - 実行方法: プロジェクトルートで `pnpm exec tsx src/{module}/{main}.ts [引数]`
 - 環境変数の読み込み: `dotenv` で `../../.env`（`src/{module}/` から2階層上）を参照
 - エラー時は `console.error` + `process.exit(1)`
+- Firestore 系（`src/firebase/`）は初期化・タイムアウト・終了処理を `src/firebase/client.ts` に集約している。新しい Firestore CLI を追加する場合は `initFirestore()` / `withFirestoreTimeout()` / `finishFirestoreCli()` / `handleFirestoreCliError()` を使い、`initializeApp` を直に書かないこと（詳細は [README.md](../README.md) の「タイムアウト・リトライ」層3を参照）
 
 ## パッケージ管理
 
@@ -197,6 +198,7 @@ pnpm test:e2e    # 層2: 実画像を通した E2E。任意実行
 ## 環境変数
 
 `.env.example` を参照。必要な変数:
+- `FIREBASE_CONFIG_PATH` - Firebase サービスアカウントJSONのパス（`FIRESTORE_TIMEOUT_MS` は任意・既定30000ms）
 - `LINE_ACCESS_TOKEN` / `LINE_DESTINATION_USER_ID` - LINE Messaging API
 - `GOOGLE_OAUTH_CREDENTIALS` / `GOOGLE_CALENDAR_ID` / `GOOGLE_CALENDAR_TIMEZONE` - Google Calendar
 - `GOOGLE_GEMINI_API_KEY` / `GOOGLE_GEMINI_GENERATE_IMAGEMODEL` / `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` - Gemini画像生成

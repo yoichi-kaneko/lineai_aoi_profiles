@@ -1,25 +1,11 @@
-import dotenv from "dotenv";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
-
-// プロジェクトルートの .env を読み込む
-// src/firebase/ -> src/ -> project root
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
-
-import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { readFileSync } from "fs";
+import { Timestamp } from "firebase-admin/firestore";
 import { isRunLogMode, type RunLogMode } from "./runLogModes";
-
-function getFirebaseConfigPath(): string {
-  const configPath = process.env.FIREBASE_CONFIG_PATH;
-  if (!configPath) {
-    console.error("環境変数 FIREBASE_CONFIG_PATH が設定されていません");
-    process.exit(1);
-  }
-  return configPath;
-}
+import {
+  finishFirestoreCli,
+  handleFirestoreCliError,
+  initFirestore,
+  withFirestoreTimeout,
+} from "./client";
 
 async function main() {
   const date = process.argv[2];
@@ -44,29 +30,25 @@ async function main() {
     process.exit(1);
   }
 
-  const configPath = getFirebaseConfigPath();
-  const serviceAccount = JSON.parse(readFileSync(configPath, "utf-8")) as ServiceAccount;
-
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-
-  const db = getFirestore();
+  const db = initFirestore();
 
   const [year, month, day] = date.split("-").map(Number);
   const dateValue = new Date(year, month - 1, day);
 
-  const snapshot = await db
-    .collection("run_logs")
-    .where("date", "==", Timestamp.fromDate(dateValue))
-    .where("mode", "==", mode)
-    .limit(1)
-    .get();
+  const snapshot = await withFirestoreTimeout(
+    db
+      .collection("run_logs")
+      .where("date", "==", Timestamp.fromDate(dateValue))
+      .where("mode", "==", mode)
+      .limit(1)
+      .get(),
+    "run_logs の確認",
+    "read"
+  );
 
   console.log(snapshot.empty ? "false" : "true");
+
+  await finishFirestoreCli(db);
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+main().catch(handleFirestoreCliError);

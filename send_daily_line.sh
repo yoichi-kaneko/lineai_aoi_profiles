@@ -30,6 +30,15 @@ ALLOWED_TOOLS_STR=$(IFS=,; echo "${ALLOWED_TOOLS[*]}")
 # 2. 日本時間 (JST) で日付を取得
 TARGET_DATE=$(TZ='JST-9' date +%Y-%m-%d)
 
+# 共通: run_logs（二重実行防止）の対象モードかどうかを判定する
+# 許可される mode 値は src/firebase/runLogModes.ts の RUN_LOG_MODE を正とする
+is_run_log_mode() {
+  case "$1" in
+    morning | noon | night) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # 共通: claude を timeout 付きで実行するヘルパー
 # 使い方: run_claude "<trigger>" "<effort>" "<timeout_sec>"
 run_claude() {
@@ -69,7 +78,7 @@ else
 fi
 
 # 4. morning / noon / night は run_logs を確認し、実行済みならスキップ
-if [ "$MODE" = "morning" ] || [ "$MODE" = "noon" ] || [ "$MODE" = "night" ]; then
+if is_run_log_mode "$MODE"; then
   HAS_LOG_OUTPUT=$(pnpm exec tsx src/firebase/has_log.ts "$TARGET_DATE" "$MODE")
   HAS_LOG_EXIT=$?
 
@@ -225,4 +234,21 @@ done
 if [ $EXIT_CODE -ne 0 ]; then
   echo "[ERROR] All $MAX_RETRIES attempts failed. MODE=${MODE}, DATE=${TARGET_DATE}" >&2
   exit $EXIT_CODE
+fi
+
+# 6. morning / noon / night は実行ログを run_logs に記録する
+# ------------------------------------------------------------------
+# ステップ4の実行前チェック（has_log.ts）が参照するのはこのログだが、headless 実行には
+# put_log.ts を呼ぶ経路が存在せず、当日分のログが残らないままだった（対話モードの
+# run_aoi_daily / run_aoi_scribe スキルのみが記録していた）。そのため cron の再発火や
+# 手動再実行に対して実行前スキップが機能していなかった。
+#
+# これは「claude が exit 0 で完了した」という事後記録であり、排他制御や原子的な実行予約の
+# 代替ではない（README「二重実行防止」参照）。リトライループ内での二重送信抑止は別課題
+# （issue #21）として扱う。
+# ------------------------------------------------------------------
+if is_run_log_mode "$MODE"; then
+  if ! pnpm exec tsx src/firebase/put_log.ts "$TARGET_DATE" "$MODE" >&2; then
+    echo "[WARN] run_logs への実行ログ記録に失敗しました。次回の実行前スキップが効かない可能性があります。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+  fi
 fi

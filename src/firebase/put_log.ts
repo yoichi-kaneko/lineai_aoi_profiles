@@ -1,25 +1,11 @@
-import dotenv from "dotenv";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
-
-// プロジェクトルートの .env を読み込む
-// src/firebase/ -> src/ -> project root
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
-
-import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
-import { readFileSync } from "fs";
+import { Timestamp } from "firebase-admin/firestore";
 import { isRunLogMode, type RunLogMode } from "./runLogModes";
-
-function getFirebaseConfigPath(): string {
-  const configPath = process.env.FIREBASE_CONFIG_PATH;
-  if (!configPath) {
-    console.error("環境変数 FIREBASE_CONFIG_PATH が設定されていません");
-    process.exit(1);
-  }
-  return configPath;
-}
+import {
+  finishFirestoreCli,
+  handleFirestoreCliError,
+  initFirestore,
+  withFirestoreTimeout,
+} from "./client";
 
 async function main() {
   const date = process.argv[2];
@@ -56,14 +42,7 @@ async function main() {
     process.exit(1);
   }
 
-  const configPath = getFirebaseConfigPath();
-  const serviceAccount = JSON.parse(readFileSync(configPath, "utf-8")) as ServiceAccount;
-
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-
-  const db = getFirestore();
+  const db = initFirestore();
 
   const docData = {
     date: Timestamp.fromDate(dateValue),
@@ -71,12 +50,15 @@ async function main() {
     createdAt: Timestamp.fromDate(new Date()),
   };
 
-  const docRef = await db.collection("run_logs").add(docData);
+  const docRef = await withFirestoreTimeout(
+    db.collection("run_logs").add(docData),
+    "run_logs への書き込み",
+    "write"
+  );
 
   console.log(`ドキュメントを追加しました。ID: ${docRef.id}`);
+
+  await finishFirestoreCli(db);
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+main().catch(handleFirestoreCliError);

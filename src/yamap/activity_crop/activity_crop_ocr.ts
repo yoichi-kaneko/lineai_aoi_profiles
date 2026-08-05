@@ -77,26 +77,56 @@ export const HEADING_NOISE_TOLERANCE = 4;
  * 併記リンクの読み落としとみなす断片の最小文字数。
  *
  * 1文字だけの残りは助詞（「写真を」の「を」など）と区別がつかないため、
- * 部分列に一致しても UI ラベルの断片とはみなさない。
+ * UI ラベルに似ていても断片とはみなさない。
  */
 const HEADING_UI_LABEL_MIN_FRAGMENT = 2;
 
-/** fragment が source から文字を抜いたもの（部分列）かどうか */
-function isSubsequence(fragment: string, source: string): boolean {
-  const chars = [...fragment];
-  let index = 0;
-  for (const char of source) {
-    if (index < chars.length && char === chars[index]) index += 1;
+/**
+ * 断片を UI ラベルの残骸とみなす、順序どおり一致する文字の割合。
+ *
+ * 取りこぼしだけでなく**文字の取り違え**（「見」→「上」など）も起こるため、完全な部分列は
+ * 要求しない。一方で緩めすぎると本文の語（「もっと見る」に対する「も見た」など）まで
+ * 拾ってしまうため、4文字中3文字は元の語由来であることを求める水準に置く。
+ */
+const HEADING_UI_LABEL_MIN_MATCH_RATIO = 0.75;
+
+/** a と b の最長共通部分列の長さ（順序を保ったまま一致する文字数） */
+function longestCommonSubsequenceLength(a: string, b: string): number {
+  const left = [...a];
+  const right = [...b];
+  // 直前の行だけ保持する DP。比較対象は数文字の短い語のみ
+  let previous = new Array<number>(right.length + 1).fill(0);
+
+  for (const charA of left) {
+    const current = new Array<number>(right.length + 1).fill(0);
+    for (let j = 0; j < right.length; j++) {
+      current[j + 1] = charA === right[j]
+        ? previous[j] + 1
+        : Math.max(current[j], previous[j + 1]);
+    }
+    previous = current;
   }
-  return index === chars.length;
+
+  return previous[right.length];
+}
+
+/** rest が uiLabel の読み崩れとみなせるか */
+function isUiLabelRemnant(rest: string, uiLabel: string): boolean {
+  // 読み崩れた残骸が元の語より長くなることはない（ノイズ記号は除去済み）。
+  // 本文がたまたま似た文字を並べた長い行を弾くための上限。
+  if ([...rest].length > [...uiLabel].length) return false;
+
+  const matched = longestCommonSubsequenceLength(rest, uiLabel);
+  return matched / [...rest].length >= HEADING_UI_LABEL_MIN_MATCH_RATIO;
 }
 
 /**
  * 見出しラベルより後ろの文字列から、併記された UI リンクの痕跡を取り除く。
  *
- * リンクは常に完全な語として読めるとは限らない。文字が取りこぼされると語の断片だけが残り
- * （例: 「すべて見る」→「てる」）、完全一致での除去をすり抜ける。取りこぼしは元の語から
- * 文字が抜けたもの＝**部分列**になるため、既知の UI 語の部分列であればリンクの残骸とみなす。
+ * リンクは常に完全な語として読めるとは限らない。文字が抜け落ちて断片だけが残ったり
+ * （例: 「すべて見る」→「てる」）、別の字に読み違えられたり（例: 「すべて見る」→「すて上る」）して、
+ * 完全一致での除去をすり抜ける。そのため既知の UI 語と**順序どおりに十分な割合で一致する**
+ * 残りは、リンクの残骸とみなして落とす（isUiLabelRemnant 参照）。
  */
 function stripTrailingUiLabels(after: string): string {
   let rest = after;
@@ -107,7 +137,7 @@ function stripTrailingUiLabels(after: string): string {
   rest = rest.replace(HEADING_NOISE_MARKS, "");
 
   const isLinkFragment = rest.length >= HEADING_UI_LABEL_MIN_FRAGMENT
-    && HEADING_TRAILING_UI_LABELS.some((uiLabel) => isSubsequence(rest, uiLabel));
+    && HEADING_TRAILING_UI_LABELS.some((uiLabel) => isUiLabelRemnant(rest, uiLabel));
 
   return isLinkFragment ? "" : rest;
 }

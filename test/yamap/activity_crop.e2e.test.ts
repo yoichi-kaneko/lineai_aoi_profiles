@@ -34,6 +34,10 @@ const IMAGE_CASES = [
     file: "kuwasakiyama_20260731.png",
     description: "鍬崎山レポート（併記リンクが部分的にしか読めないケース）",
   },
+  {
+    file: "kumotoriyama_20260805.png",
+    description: "雲取山レポート（併記リンクに読み違えが混ざるケース）",
+  },
 ];
 
 describe("crop_yamap_report E2E", () => {

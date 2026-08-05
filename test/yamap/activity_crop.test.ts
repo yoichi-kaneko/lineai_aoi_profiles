@@ -63,6 +63,19 @@ const FIXTURE_CASES = [
       activityDetail: { top: 4726, bottom: 7116, endMethod: "grid_detection" },
     },
   },
+  {
+    name: "kumotoriyama_20260805",
+    // 2026-08-05 綴葉モードで checkpoints / activity_detail の切り出しに失敗した実レポート。
+    // 「すべて見る」が「すて上る」と読まれ、文字の脱落だけでなく**取り違え**（見→上）が
+    // 混ざっていたため、部分列による断片判定をすり抜けていた。
+    description: "雲取山レポート（併記リンクに読み違えが混ざるケース）",
+    expected: {
+      header: { top: 0, bottom: 1073 },
+      activityData: { top: 1073, bottom: 2477 },
+      checkpoints: { top: 2477, bottom: 4785 },
+      activityDetail: { top: 4785, bottom: 6873, endMethod: "grid_detection" },
+    },
+  },
 ] as const;
 
 describe("isHeadingLine", () => {
@@ -98,6 +111,12 @@ describe("isHeadingLine", () => {
       why: "同上。抜け方が変わっても既知 UI 語の部分列なら断片とみなす",
     },
     {
+      line: "活動 詳細 す て 上 る",
+      label: "活動詳細",
+      want: true,
+      why: "「べ」が脱落し「見」が「上」へ読み違えられたケース（kumotoriyama）",
+    },
+    {
       line: "写真 も",
       label: "写真",
       want: false,
@@ -107,7 +126,13 @@ describe("isHeadingLine", () => {
       line: "活動 詳細 も 見 た",
       label: "活動詳細",
       want: false,
-      why: "既知 UI 語の部分列にならない語が残る行は見出しではない",
+      why: "既知 UI 語と3文字中2文字しか一致しない行は、読み違えとみなす水準に届かない",
+    },
+    {
+      line: "活動 詳細 すべ て 見 る もの",
+      label: "活動詳細",
+      want: false,
+      why: "既知 UI 語を除いてもなお語が残る行は、リンク併記ではなく本文",
     },
     {
       line: "活動 詳細 一 _ |",

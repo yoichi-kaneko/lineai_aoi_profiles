@@ -248,7 +248,14 @@ fi
 # （issue #21）として扱う。
 # ------------------------------------------------------------------
 if is_run_log_mode "$MODE"; then
-  if ! pnpm exec tsx src/firebase/put_log.ts "$TARGET_DATE" "$MODE" >&2; then
-    echo "[WARN] run_logs への実行ログ記録に失敗しました。次回の実行前スキップが効かない可能性があります。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+  if pnpm exec tsx src/firebase/put_log.ts "$TARGET_DATE" "$MODE" >&2; then
+    :
+  else
+    put_log_status=$?
+    if [ "$put_log_status" -eq 124 ]; then
+      echo "[WARN] run_logs への書き込みはタイムアウトしました。結果不明のため、確認なしに再実行しないでください。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    else
+      echo "[WARN] run_logs への実行ログ記録に失敗しました。次回の実行前スキップが効かない可能性があります。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    fi
   fi
 fi

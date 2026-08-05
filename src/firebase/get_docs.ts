@@ -60,12 +60,24 @@ async function main() {
     process.exit(1);
   }
 
-  const db = initFirestore();
-
   const [fromYear, fromMonth, fromDay] = dateFrom.split("-").map(Number);
   const [toYear, toMonth, toDay] = dateTo.split("-").map(Number);
   const startDate = new Date(fromYear, fromMonth - 1, fromDay, 0, 0, 0, 0);
   const endDate = new Date(toYear, toMonth - 1, toDay, 23, 59, 59, 999);
+
+  if (
+    startDate.getFullYear() !== fromYear ||
+    startDate.getMonth() !== fromMonth - 1 ||
+    startDate.getDate() !== fromDay ||
+    endDate.getFullYear() !== toYear ||
+    endDate.getMonth() !== toMonth - 1 ||
+    endDate.getDate() !== toDay
+  ) {
+    console.error("日付が不正です。存在する日付を YYYY-MM-DD 形式で指定してください");
+    process.exit(1);
+  }
+
+  const db = initFirestore();
 
   const snapshot = await withFirestoreTimeout(
     db

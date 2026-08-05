@@ -116,16 +116,29 @@ async function exitAfterFlush(exitCode: number): Promise<never> {
 }
 
 /**
+ * gRPC チャネルを明示的に閉じる。未初期化時は何もしない。
+ * `terminate()` 自体が詰まった場合は TERMINATE_GRACE_MS で打ち切る。
+ */
+async function terminateGracefully(db?: Firestore): Promise<void> {
+  try {
+    const instance = db ?? getFirestore();
+    await Promise.race([
+      instance.terminate().catch(() => undefined),
+      new Promise<void>((r) => setTimeout(r, TERMINATE_GRACE_MS)),
+    ]);
+  } catch {
+    // App 未初期化など — 切断対象なし
+  }
+}
+
+/**
  * Firestore CLI の正常終了処理。
  *
  * gRPC チャネルを開いたままにするとイベントループが解放されず終了が遅れることがあるため、
  * 明示的に `terminate()` してから終了コードを返す。
  */
 export async function finishFirestoreCli(db: Firestore, exitCode = 0): Promise<never> {
-  await Promise.race([
-    db.terminate().catch(() => undefined),
-    new Promise<void>((r) => setTimeout(r, TERMINATE_GRACE_MS)),
-  ]);
+  await terminateGracefully(db);
   return exitAfterFlush(exitCode);
 }
 
@@ -140,9 +153,11 @@ export async function handleFirestoreCliError(error: unknown): Promise<never> {
     } else {
       console.error("読み取り操作のため、そのまま再実行して差し支えありません。");
     }
+    await terminateGracefully();
     return exitAfterFlush(TIMEOUT_EXIT_CODE);
   }
 
   console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
+  await terminateGracefully();
   return exitAfterFlush(1);
 }

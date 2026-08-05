@@ -30,10 +30,19 @@ async function main() {
     process.exit(1);
   }
 
-  const db = initFirestore();
-
   const [year, month, day] = date.split("-").map(Number);
   const dateValue = new Date(year, month - 1, day);
+
+  if (
+    dateValue.getFullYear() !== year ||
+    dateValue.getMonth() !== month - 1 ||
+    dateValue.getDate() !== day
+  ) {
+    console.error("日付が不正です。存在する日付を YYYY-MM-DD 形式で指定してください");
+    process.exit(1);
+  }
+
+  const db = initFirestore();
 
   const snapshot = await withFirestoreTimeout(
     db

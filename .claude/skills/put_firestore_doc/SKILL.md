@@ -76,3 +76,9 @@ pnpm exec tsx src/firebase/put_doc.ts "{date}" "{type}" --description-file tmp/f
 - `{type}` は省略可能です。既定値の詳細は [src/firebase/noteTypes.ts](../../../src/firebase/noteTypes.ts) の `NOTE_TYPE.FROM_AOI` を参照してください。`{type}` に空文字を渡すと CLI がエラーになるため、省略するか許可された値のみを渡してください。
 
 3. コマンドが成功したら、追加したドキュメントのIDと内容をユーザーに報告してください。
+
+## タイムアウト
+
+Firestore は gRPC 接続のため、詰まるとクライアント側に期限がなく長時間ぶら下がります。これを避けるため、CLI は30秒（`FIRESTORE_TIMEOUT_MS` で変更可）で自ら打ち切り、標準エラーに `[TIMEOUT]` を出力して終了コード `124` を返します。
+
+打ち切りは「待つのをやめる」だけで、**サーバ側の書き込みをキャンセルするものではありません**。本スキルは書き込みのため、タイムアウトした場合は**そのまま再実行しないでください**。`get_firestore_docs` に書き込み時と**同じ `--collection`** を必ず指定して対象レコードを照合し、記録が無いことを確認できた場合に限り1回だけやり直します。対象を照合できない場合は「記録がない」と判定せず、再実行しないでください（[aoi_constraints.md の「タイムアウトの扱い」](../../rules/aoi_constraints.md) を正とします）。

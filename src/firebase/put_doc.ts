@@ -1,27 +1,21 @@
-import dotenv from "dotenv";
 import { resolve, sep } from "path";
 import { fileURLToPath } from "url";
 
-// プロジェクトルートの .env を読み込む
 // src/firebase/ -> src/ -> project root
+// .env の読み込みは ./client が行う
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
 
-import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import { readFileSync } from "fs";
 import { NOTE_TYPE, isNoteType, type NoteType } from "./noteTypes";
+import {
+  finishFirestoreCli,
+  handleFirestoreCliError,
+  initFirestore,
+  withFirestoreTimeout,
+} from "./client";
 
 const projectRoot = resolve(__dirname, "../../");
-
-function getFirebaseConfigPath(): string {
-  const configPath = process.env.FIREBASE_CONFIG_PATH;
-  if (!configPath) {
-    console.error("環境変数 FIREBASE_CONFIG_PATH が設定されていません");
-    process.exit(1);
-  }
-  return configPath;
-}
 
 /**
  * `--key value` / `--key=value` 形式のオプションを抽出し、残りを位置引数として返す。
@@ -157,14 +151,7 @@ async function main() {
     type = typeArg;
   }
 
-  const configPath = getFirebaseConfigPath();
-  const serviceAccount = JSON.parse(readFileSync(configPath, "utf-8")) as ServiceAccount;
-
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-
-  const db = getFirestore();
+  const db = initFirestore();
 
   const [year, month, day] = date.split("-").map(Number);
   const dateValue = new Date(year, month - 1, day);
@@ -176,12 +163,15 @@ async function main() {
     createdAt: Timestamp.fromDate(new Date()),
   };
 
-  const docRef = await db.collection(collection).add(docData);
+  const docRef = await withFirestoreTimeout(
+    db.collection(collection).add(docData),
+    `コレクション ${collection} への書き込み`,
+    "write"
+  );
 
   console.log(`ドキュメントを追加しました。コレクション: ${collection}, ID: ${docRef.id}`);
+
+  await finishFirestoreCli(db);
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+main().catch(handleFirestoreCliError);

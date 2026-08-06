@@ -8,8 +8,10 @@ import {
   formatDurationFromSeconds,
   formatElevation,
   formatTimeOfDay,
+  isFiniteNumber,
   isPlainObject,
   paceLabel,
+  requireFiniteNumberOrNull,
   resolveTimezone,
 } from "./format";
 
@@ -54,7 +56,10 @@ export type YamapActivity = {
   courseConstant?: number | null;
   standardCourseTime?: number | null;
   averagePace?: number | null;
-  map?: { name?: string | null; prefectures?: { name?: string | null }[] | null } | null;
+  map?: {
+    name?: string | null;
+    prefectures?: ({ name?: string | null } | null)[] | null;
+  } | null;
   activityWholeSection?: YamapActivitySection | null;
   checkpoints?: YamapActivityCheckpoint[] | null;
 };
@@ -128,21 +133,122 @@ export function extractActivityData(html: string): YamapActivityPage {
     throw new Error("活動記録データのチェックポイント形式が不正です。");
   }
 
-  const activity: YamapActivity = {
-    ...(activityRaw as YamapActivity),
-    checkpoints: Array.isArray(activityRaw.checkpoints)
-      ? (activityRaw.checkpoints as YamapActivityCheckpoint[])
-      : [],
-  };
+  const checkpoints = Array.isArray(activityRaw.checkpoints)
+    ? activityRaw.checkpoints.map((checkpoint, index) =>
+        parseCheckpoint(checkpoint, `checkpoints[${index}]`),
+      )
+    : [];
 
   const dailySections = Array.isArray(pageProps?.activityDailySections)
-    ? (pageProps.activityDailySections as YamapActivitySection[])
+    ? pageProps.activityDailySections.map((section, index) =>
+        parseSection(section, `activityDailySections[${index}]`),
+      )
     : [];
+
+  const activity: YamapActivity = {
+    title: asOptionalString(activityRaw.title),
+    description: asOptionalString(activityRaw.description),
+    startAt: requireFiniteNumberOrNull(activityRaw.startAt, "活動記録データのstartAt"),
+    finishAt: requireFiniteNumberOrNull(activityRaw.finishAt, "活動記録データのfinishAt"),
+    timeZone: isFiniteNumber(activityRaw.timeZone) ? activityRaw.timeZone : undefined,
+    courseConstant: requireFiniteNumberOrNull(activityRaw.courseConstant, "活動記録データのcourseConstant"),
+    standardCourseTime: requireFiniteNumberOrNull(
+      activityRaw.standardCourseTime,
+      "活動記録データのstandardCourseTime",
+    ),
+    averagePace: requireFiniteNumberOrNull(activityRaw.averagePace, "活動記録データのaveragePace"),
+    map: parseMap(activityRaw.map),
+    activityWholeSection:
+      activityRaw.activityWholeSection == null
+        ? (activityRaw.activityWholeSection as null | undefined)
+        : parseSection(activityRaw.activityWholeSection, "activityWholeSection"),
+    checkpoints,
+  };
 
   return {
     activity,
     dailySections,
     timezone: resolveTimezone(activity.timeZone),
+  };
+}
+
+function asOptionalString(value: unknown): string | null | undefined {
+  if (value == null) return value as null | undefined;
+  return typeof value === "string" ? value : null;
+}
+
+function parseMap(value: unknown): YamapActivity["map"] {
+  if (value == null) return value as null | undefined;
+  if (!isPlainObject(value)) {
+    throw new Error("活動記録データのmapの形式が不正です。");
+  }
+  const prefecturesRaw = value.prefectures;
+  let prefectures: ({ name?: string | null } | null)[] | null | undefined;
+  if (prefecturesRaw == null) {
+    prefectures = prefecturesRaw as null | undefined;
+  } else if (!Array.isArray(prefecturesRaw)) {
+    throw new Error("活動記録データのmap.prefecturesの形式が不正です。");
+  } else {
+    prefectures = prefecturesRaw.map((entry) => {
+      if (entry == null) return null;
+      if (!isPlainObject(entry)) {
+        throw new Error("活動記録データのmap.prefecturesの形式が不正です。");
+      }
+      return { name: asOptionalString(entry.name) };
+    });
+  }
+  return {
+    name: asOptionalString(value.name),
+    prefectures,
+  };
+}
+
+function parseSection(value: unknown, label: string): YamapActivitySection {
+  if (!isPlainObject(value)) {
+    throw new Error(`活動記録データの${label}の形式が不正です。`);
+  }
+  return {
+    startedAt: requireFiniteNumberOrNull(value.startedAt, `活動記録データの${label}.startedAt`),
+    stoppedAt: requireFiniteNumberOrNull(value.stoppedAt, `活動記録データの${label}.stoppedAt`),
+    totalTime: requireFiniteNumberOrNull(value.totalTime, `活動記録データの${label}.totalTime`),
+    restTime: requireFiniteNumberOrNull(value.restTime, `活動記録データの${label}.restTime`),
+    distance: requireFiniteNumberOrNull(value.distance, `活動記録データの${label}.distance`),
+    cumulativeUp: requireFiniteNumberOrNull(value.cumulativeUp, `活動記録データの${label}.cumulativeUp`),
+    cumulativeDown: requireFiniteNumberOrNull(
+      value.cumulativeDown,
+      `活動記録データの${label}.cumulativeDown`,
+    ),
+    totalDays: requireFiniteNumberOrNull(value.totalDays, `活動記録データの${label}.totalDays`),
+    dayNumber: requireFiniteNumberOrNull(value.dayNumber, `活動記録データの${label}.dayNumber`),
+  };
+}
+
+function parseCheckpoint(value: unknown, label: string): YamapActivityCheckpoint {
+  if (!isPlainObject(value)) {
+    throw new Error(`活動記録データの${label}の形式が不正です。`);
+  }
+  const landmarkRaw = value.landmark;
+  let landmark: YamapLandmark | null | undefined;
+  if (landmarkRaw == null) {
+    landmark = landmarkRaw as null | undefined;
+  } else if (!isPlainObject(landmarkRaw)) {
+    throw new Error(`活動記録データの${label}.landmarkの形式が不正です。`);
+  } else {
+    landmark = {
+      name: asOptionalString(landmarkRaw.name),
+      altitude: requireFiniteNumberOrNull(landmarkRaw.altitude, `活動記録データの${label}.landmark.altitude`),
+      isSummit:
+        typeof landmarkRaw.isSummit === "boolean"
+          ? landmarkRaw.isSummit
+          : landmarkRaw.isSummit == null
+            ? (landmarkRaw.isSummit as null | undefined)
+            : null,
+    };
+  }
+  return {
+    enteredAt: requireFiniteNumberOrNull(value.enteredAt, `活動記録データの${label}.enteredAt`),
+    leftAt: requireFiniteNumberOrNull(value.leftAt, `活動記録データの${label}.leftAt`),
+    landmark,
   };
 }
 
@@ -190,7 +296,8 @@ function groupByDay(
     groups.set(1, []);
   }
 
-  const dayNumbers = [...groups.keys()];
+  const fallbackDay = [...groups.keys()][0];
+  const dayNumberOf = (index: number) => ordered[index]?.dayNumber ?? index + 1;
   for (const checkpoint of checkpoints) {
     const enteredAt = checkpoint.enteredAt ?? 0;
     let index = ordered.findIndex(
@@ -205,7 +312,7 @@ function groupByDay(
         }
       }
     }
-    const day = dayNumbers[index >= 0 ? index : 0];
+    const day = index >= 0 ? dayNumberOf(index) : fallbackDay;
     groups.get(day)?.push(checkpoint);
   }
 
@@ -223,11 +330,11 @@ export function buildReport(page: YamapActivityPage): string {
   lines.push(`タイトル: ${activity.title?.trim() || "-"}`);
   lines.push(`山域: ${activity.map?.name?.trim() || "-"}`);
   const prefectures = (activity.map?.prefectures ?? [])
-    .map((prefecture) => prefecture.name)
+    .map((prefecture) => prefecture?.name)
     .filter(Boolean)
     .join("、");
   lines.push(`都道府県: ${prefectures || "-"}`);
-  if (activity.startAt && activity.finishAt) {
+  if (isFiniteNumber(activity.startAt) && isFiniteNumber(activity.finishAt)) {
     const startDate = formatDate(activity.startAt, timezone);
     const finishDate = formatDate(activity.finishAt, timezone);
     const start = `${startDate} ${formatTimeOfDay(activity.startAt, timezone)}`;
@@ -238,33 +345,33 @@ export function buildReport(page: YamapActivityPage): string {
         : `${finishDate} ${formatTimeOfDay(activity.finishAt, timezone)}`;
     lines.push(`活動日: ${start} 〜 ${finish}`);
   }
-  lines.push(`日程: ${itineraryLabel(whole.totalDays ?? 1)}`);
+  lines.push(`日程: ${itineraryLabel(isFiniteNumber(whole.totalDays) ? whole.totalDays : 1)}`);
 
   // 活動データ
   // 画面表示は activityWholeSection の値を用いる（activity 直下の distance /
   // cumulativeUp は別系統の値で、表示と一致しないため使わない）
   lines.push("--------");
   lines.push("活動データ");
-  if (whole.totalTime != null) {
+  if (isFiniteNumber(whole.totalTime)) {
     lines.push(`タイム: ${formatDurationFromSeconds(whole.totalTime)}`);
   }
-  if (whole.distance != null) {
+  if (isFiniteNumber(whole.distance)) {
     lines.push(`距離: ${formatDistance(whole.distance)}`);
   }
-  if (whole.cumulativeUp != null) {
+  if (isFiniteNumber(whole.cumulativeUp)) {
     lines.push(`のぼり: ${formatElevation(whole.cumulativeUp)}`);
   }
-  if (whole.cumulativeDown != null) {
+  if (isFiniteNumber(whole.cumulativeDown)) {
     lines.push(`くだり: ${formatElevation(whole.cumulativeDown)}`);
   }
-  if (activity.courseConstant != null) {
+  if (isFiniteNumber(activity.courseConstant)) {
     lines.push(`コース定数: ${activity.courseConstant} (${difficultyLabel(activity.courseConstant)})`);
   }
-  if (activity.standardCourseTime != null) {
+  if (isFiniteNumber(activity.standardCourseTime)) {
     lines.push(`標準タイム: ${formatDurationFromSeconds(activity.standardCourseTime)}`);
   }
   // averagePace は「標準タイムに対する実績の比」なので、逆数を百分率にすると画面表示と一致する
-  if (activity.averagePace != null && activity.averagePace > 0) {
+  if (isFiniteNumber(activity.averagePace) && activity.averagePace > 0) {
     const percent = Math.round((1 / activity.averagePace) * 100);
     lines.push(`平均ペース: ${percent}% (${paceLabel(percent)})`);
   }
@@ -281,20 +388,29 @@ export function buildReport(page: YamapActivityPage): string {
   );
   for (const [day, dayCheckpoints] of groupByDay(checkpoints, dailySections)) {
     const section = sectionsByDay.get(day);
+    const totalTime = section?.totalTime;
+    const restTime = section?.restTime;
+    const distance = section?.distance;
+    const cumulativeUp = section?.cumulativeUp;
+    const cumulativeDown = section?.cumulativeDown;
     const summary = [
-      section?.totalTime != null ? `合計${formatDurationFromSeconds(section.totalTime)}` : null,
-      section?.restTime != null ? `休憩${formatDurationFromSeconds(section.restTime)}` : null,
-      section?.distance != null ? `距離${formatDistance(section.distance)}` : null,
-      section?.cumulativeUp != null ? `のぼり${formatElevation(section.cumulativeUp)}` : null,
-      section?.cumulativeDown != null ? `くだり${formatElevation(section.cumulativeDown)}` : null,
+      isFiniteNumber(totalTime) ? `合計${formatDurationFromSeconds(totalTime)}` : null,
+      isFiniteNumber(restTime) ? `休憩${formatDurationFromSeconds(restTime)}` : null,
+      isFiniteNumber(distance) ? `距離${formatDistance(distance)}` : null,
+      isFiniteNumber(cumulativeUp) ? `のぼり${formatElevation(cumulativeUp)}` : null,
+      isFiniteNumber(cumulativeDown) ? `くだり${formatElevation(cumulativeDown)}` : null,
     ].filter(Boolean);
     lines.push(summary.length > 0 ? `${day}日目: ${summary.join(" / ")}` : `${day}日目`);
 
     for (const checkpoint of dayCheckpoints) {
-      const entered = checkpoint.enteredAt != null ? formatTimeOfDay(checkpoint.enteredAt, timezone) : "--:--";
-      const left = checkpoint.leftAt != null ? formatTimeOfDay(checkpoint.leftAt, timezone) : "--:--";
+      const entered = isFiniteNumber(checkpoint.enteredAt)
+        ? formatTimeOfDay(checkpoint.enteredAt, timezone)
+        : "--:--";
+      const left = isFiniteNumber(checkpoint.leftAt)
+        ? formatTimeOfDay(checkpoint.leftAt, timezone)
+        : "--:--";
       const altitude = checkpoint.landmark?.altitude;
-      const suffix = altitude != null ? ` (${formatElevation(altitude)})` : "";
+      const suffix = isFiniteNumber(altitude) ? ` (${formatElevation(altitude)})` : "";
       lines.push(`${entered}-${left} ${checkpointName(checkpoint)}${suffix}`);
     }
   }
@@ -313,6 +429,7 @@ export function buildReport(page: YamapActivityPage): string {
  */
 async function fetchActivityHtml(url: string): Promise<string> {
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(30_000),
     headers: {
       // 素のリクエストだとYAMAP側で弾かれる場合に備え、ブラウザ相当のUAを名乗る
       "User-Agent":

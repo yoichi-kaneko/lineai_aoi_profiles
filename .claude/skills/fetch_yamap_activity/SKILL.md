@@ -1,6 +1,6 @@
 ---
 name: fetch_yamap_activity
-description: 【活動記録URL用】YAMAPの活動記録ページから山行の記録を取得する。yamap.com/activities/で始まるURLが渡されたときに使用する。タイトル・活動日・活動データ・チェックポイント通過時刻・活動詳細（本文）を抽出して返す。
+description: 【活動記録URL用】YAMAPの活動記録ページから山行の記録を取得する。https://yamap.com/activities/{ID} 形式のURLが渡されたときに使用する。タイトル・活動日・活動データ・チェックポイント通過時刻・活動詳細（本文）を抽出して返す。
 ---
 
 # fetch_yamap_activity
@@ -31,7 +31,7 @@ YAMAPの活動記録ページから山行の記録を取得するスタンドア
 
 以下のURLを受け付けます。それ以外はエラーとなります。
 
-```
+```text
 https://yamap.com/activities/{ID}
 ```
 
@@ -56,7 +56,7 @@ pnpm exec tsx src/yamap/fetch_activity.ts "https://yamap.com/activities/XXXX"
 
 ## 出力例
 
-```
+```text
 概要
 タイトル: 【タフ山】鴨沢登山口から雲取山へ　6年ぶりの再訪
 山域: 雲取山・鷹ノ巣山・七ツ石山
@@ -96,7 +96,7 @@ pnpm exec tsx src/yamap/fetch_activity.ts "https://yamap.com/activities/XXXX"
 
 ## Claudeへの指示
 
-`yamap.com/activities/` で始まるURLが渡されたとき、このスキルを使用してください。
+`https://yamap.com/activities/{ID}` 形式のURLが渡されたとき、このスキルを使用してください。
 以下のコマンドをプロジェクトルートから実行してください。
 
 ```bash

@@ -143,6 +143,33 @@ describe("extractActivityData", () => {
     expect(extractActivityData(wrapPageProps({ activity: { timeZone: "Asia/Tokyo" } })).timezone).toBe(9);
     expect(extractActivityData(wrapPageProps({ activity: {} })).timezone).toBe(9);
   });
+
+  it("数値フィールドが文字列・オブジェクトなら拒否する", () => {
+    expect(() =>
+      extractActivityData(wrapPageProps({ activity: { startAt: "1783724400" } })),
+    ).toThrow("活動記録データのstartAtの形式が不正です。");
+    expect(() =>
+      extractActivityData(
+        wrapPageProps({
+          activity: { activityWholeSection: { distance: { value: 1000 } } },
+        }),
+      ),
+    ).toThrow("活動記録データのactivityWholeSection.distanceの形式が不正です。");
+  });
+
+  it("都道府県要素が null でも落ちずにハイフンへ落とす", () => {
+    const report = buildReport(
+      extractActivityData(
+        wrapPageProps({
+          activity: {
+            title: "都道府県null",
+            map: { name: "テスト山", prefectures: [null, { name: "東京" }, undefined] },
+          },
+        }),
+      ),
+    );
+    expect(report).toContain("都道府県: 東京");
+  });
 });
 
 describe("buildReport（日帰り: 雲取山）", () => {
@@ -325,6 +352,26 @@ describe("buildReport（欠損値の扱い）", () => {
     expect(at("1日目")).toBeLessThan(at("2日目"));
     expect(at("08:01-08:02 1日目の地点")).toBeLessThan(at("2日目"));
     expect(at("2日目の地点")).toBeGreaterThan(at("2日目"));
+  });
+
+  it("dayNumber が重複してもチェックポイントを落とさない", () => {
+    const report = build({
+      activity: {
+        title: "dayNumber重複",
+        checkpoints: [
+          { enteredAt: BASE + 100, leftAt: BASE + 160, landmark: { name: "区間Aの地点" } },
+          { enteredAt: BASE + 86500, leftAt: BASE + 86560, landmark: { name: "区間Bの地点" } },
+        ],
+      },
+      // 同じ dayNumber が2つあっても、マッチしたセクションの dayNumber へ直接寄せる
+      activityDailySections: [
+        { dayNumber: 1, startedAt: BASE, stoppedAt: BASE + 3600 },
+        { dayNumber: 1, startedAt: BASE + 86400, stoppedAt: BASE + 90600 },
+      ],
+    });
+
+    expect(report).toContain("区間Aの地点");
+    expect(report).toContain("区間Bの地点");
   });
 
   it("本文が空なら活動詳細をハイフンにする", () => {

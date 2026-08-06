@@ -10,9 +10,27 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** 有限な number かどうか（NaN / Infinity / 非 number を弾く） */
+export function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+/**
+ * null / undefined はそのまま通し、それ以外は有限な number のみ許可する。
+ * 外部 JSON の数値フィールドを整形関数へ渡す前の境界検証に使う。
+ */
+export function requireFiniteNumberOrNull(
+  value: unknown,
+  fieldLabel: string,
+): number | null | undefined {
+  if (value == null) return value as null | undefined;
+  if (isFiniteNumber(value)) return value;
+  throw new Error(`${fieldLabel}の形式が不正です。`);
+}
+
 /** timezone は数値なら採用し、欠落・非数値は JST(9) にフォールバックする */
 export function resolveTimezone(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 9;
+  return isFiniteNumber(value) ? value : 9;
 }
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];

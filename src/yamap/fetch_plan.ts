@@ -8,8 +8,10 @@ import {
   formatDistance,
   formatDuration,
   formatElevation,
+  isFiniteNumber,
   isPlainObject,
   paceLabel,
+  requireFiniteNumberOrNull,
   resolveTimezone,
 } from "./format";
 
@@ -107,14 +109,90 @@ export function extractPageData(html: string): { plan: YamapPlan; timezone: numb
     throw new Error("計画データのチェックポイント形式が不正です。");
   }
 
+  const checkpoints = Array.isArray(planRaw.checkpoints)
+    ? planRaw.checkpoints.map((checkpoint, index) =>
+        parsePlanCheckpoint(checkpoint, `checkpoints[${index}]`),
+      )
+    : [];
+
   const plan: YamapPlan = {
-    ...(planRaw as YamapPlan),
-    checkpoints: Array.isArray(planRaw.checkpoints)
-      ? (planRaw.checkpoints as YamapCheckpoint[])
-      : [],
+    title: asOptionalString(planRaw.title),
+    description: asOptionalString(planRaw.description),
+    startAt: requireFiniteNumberOrNull(planRaw.startAt, "計画データのstartAt"),
+    finishAt: requireFiniteNumberOrNull(planRaw.finishAt, "計画データのfinishAt"),
+    memberCount: requireFiniteNumberOrNull(planRaw.memberCount, "計画データのmemberCount"),
+    courseConstant: requireFiniteNumberOrNull(planRaw.courseConstant, "計画データのcourseConstant"),
+    paceMultiplier: requireFiniteNumberOrNull(planRaw.paceMultiplier, "計画データのpaceMultiplier"),
+    user: parseNamedObject(planRaw.user, "user"),
+    maps: parseNamedObjectList(planRaw.maps, "maps"),
+    checkpoints,
   };
 
   return { plan, timezone: resolveTimezone(pageProps?.timezone) };
+}
+
+function asOptionalString(value: unknown): string | null | undefined {
+  if (value == null) return value as null | undefined;
+  return typeof value === "string" ? value : null;
+}
+
+function parseNamedObject(
+  value: unknown,
+  label: string,
+): { name?: string | null } | null | undefined {
+  if (value == null) return value as null | undefined;
+  if (!isPlainObject(value)) {
+    throw new Error(`計画データの${label}の形式が不正です。`);
+  }
+  return { name: asOptionalString(value.name) };
+}
+
+function parseNamedObjectList(
+  value: unknown,
+  label: string,
+): { name?: string | null }[] | null | undefined {
+  if (value == null) return value as null | undefined;
+  if (!Array.isArray(value)) {
+    throw new Error(`計画データの${label}の形式が不正です。`);
+  }
+  return value.map((entry, index) => {
+    const parsed = parseNamedObject(entry, `${label}[${index}]`);
+    return parsed ?? { name: null };
+  });
+}
+
+function parsePlanCheckpoint(value: unknown, label: string): YamapCheckpoint {
+  if (!isPlainObject(value)) {
+    throw new Error(`計画データの${label}の形式が不正です。`);
+  }
+  const landmarkRaw = value.landmark;
+  let landmark: YamapLandmark | null | undefined;
+  if (landmarkRaw == null) {
+    landmark = landmarkRaw as null | undefined;
+  } else if (!isPlainObject(landmarkRaw)) {
+    throw new Error(`計画データの${label}.landmarkの形式が不正です。`);
+  } else {
+    landmark = { name: asOptionalString(landmarkRaw.name) };
+  }
+  return {
+    arrivalDayNumber: requireFiniteNumberOrNull(
+      value.arrivalDayNumber,
+      `計画データの${label}.arrivalDayNumber`,
+    ),
+    arrivalTimeInSeconds: requireFiniteNumberOrNull(
+      value.arrivalTimeInSeconds,
+      `計画データの${label}.arrivalTimeInSeconds`,
+    ),
+    stayType: asOptionalString(value.stayType),
+    distance: requireFiniteNumberOrNull(value.distance, `計画データの${label}.distance`),
+    cumulativeUp: requireFiniteNumberOrNull(value.cumulativeUp, `計画データの${label}.cumulativeUp`),
+    cumulativeDown: requireFiniteNumberOrNull(
+      value.cumulativeDown,
+      `計画データの${label}.cumulativeDown`,
+    ),
+    name: asOptionalString(value.name),
+    landmark,
+  };
 }
 
 // 日内の経過秒を「HH:MM」形式に整形する（日をまたぐ場合は24時間で丸める）
@@ -154,12 +232,15 @@ function segmentMinutes(baseSeconds: number, paceMultiplier: number): number {
 }
 
 function sumBy(checkpoints: YamapCheckpoint[], key: "distance" | "cumulativeUp" | "cumulativeDown"): number {
-  return checkpoints.reduce((total, checkpoint) => total + (checkpoint[key] ?? 0), 0);
+  return checkpoints.reduce((total, checkpoint) => {
+    const value = checkpoint[key];
+    return total + (isFiniteNumber(value) ? value : 0);
+  }, 0);
 }
 
 function buildReport(plan: YamapPlan, timezone: number): string {
   const checkpoints = plan.checkpoints ?? [];
-  const paceMultiplier = plan.paceMultiplier ?? 100;
+  const paceMultiplier = isFiniteNumber(plan.paceMultiplier) ? plan.paceMultiplier : 100;
   const lines: string[] = [];
 
   // 概要
@@ -168,11 +249,11 @@ function buildReport(plan: YamapPlan, timezone: number): string {
   lines.push(`特記事項: ${plan.description?.trim() || "-"}`);
   lines.push(`作成者: ${plan.user?.name ?? "-"}`);
   lines.push(`地図: ${plan.maps?.map((map) => map.name).filter(Boolean).join("、") || "-"}`);
-  lines.push(`予定人数: ${plan.memberCount ?? "-"}人`);
-  if (plan.startAt) {
+  lines.push(`予定人数: ${isFiniteNumber(plan.memberCount) ? plan.memberCount : "-"}人`);
+  if (isFiniteNumber(plan.startAt)) {
     lines.push(`入山予定日: ${formatDate(plan.startAt, timezone)}`);
   }
-  if (plan.finishAt) {
+  if (isFiniteNumber(plan.finishAt)) {
     lines.push(`下山予定日: ${formatDate(plan.finishAt, timezone)}`);
   }
 
@@ -182,13 +263,19 @@ function buildReport(plan: YamapPlan, timezone: number): string {
 
   for (const [day, dayCheckpoints] of days) {
     const dayLines: string[] = [];
-    let cursor = dayCheckpoints[0]?.arrivalTimeInSeconds ?? 0;
+    const firstArrival = dayCheckpoints[0]?.arrivalTimeInSeconds;
+    let cursor = isFiniteNumber(firstArrival) ? firstArrival : 0;
     let totalMinutes = 0;
 
     dayCheckpoints.forEach((checkpoint, index) => {
       if (index > 0) {
-        const base = (checkpoint.arrivalTimeInSeconds ?? 0) - (dayCheckpoints[index - 1].arrivalTimeInSeconds ?? 0);
-        const minutes = segmentMinutes(base, paceMultiplier);
+        const current = isFiniteNumber(checkpoint.arrivalTimeInSeconds)
+          ? checkpoint.arrivalTimeInSeconds
+          : 0;
+        const previous = isFiniteNumber(dayCheckpoints[index - 1].arrivalTimeInSeconds)
+          ? dayCheckpoints[index - 1].arrivalTimeInSeconds
+          : 0;
+        const minutes = segmentMinutes(current - previous, paceMultiplier);
         totalMinutes += minutes;
         cursor += minutes * 60;
       }
@@ -212,7 +299,7 @@ function buildReport(plan: YamapPlan, timezone: number): string {
   lines.push(`距離: ${formatDistance(sumBy(checkpoints, "distance"))}`);
   lines.push(`のぼり: ${formatElevation(sumBy(checkpoints, "cumulativeUp"))}`);
   lines.push(`くだり: ${formatElevation(sumBy(checkpoints, "cumulativeDown"))}`);
-  if (plan.courseConstant != null) {
+  if (isFiniteNumber(plan.courseConstant)) {
     lines.push(`コース定数: ${plan.courseConstant} (${difficultyLabel(plan.courseConstant)})`);
   }
   lines.push(`ペース倍率: ${paceMultiplier}% (${paceLabel(paceMultiplier)})`);

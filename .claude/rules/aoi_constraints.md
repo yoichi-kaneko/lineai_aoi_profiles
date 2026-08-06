@@ -38,3 +38,7 @@
 - 調べモードは headless での長時間待機を避けるため、フェーズA（生成開始）とフェーズB（送信）の2つの `claude -p` 起動に分割され、その間の待機・楽曲ダウンロードを `send_daily_line.sh`（シェル）が担います。
 - この**2フェーズ間に限り**、`tmp/` を意図的な引き継ぎ領域として使います。シェルが**フェーズ間では tmp/ を掃除しない**ことで、フェーズAが書き出した `tmp/song_task_id.txt` / `tmp/song_message.txt` / `tmp/song_log.ok`、およびシェルが用意する `tmp/song_audio_path.txt` を、フェーズBが**参照してよい**（上記「内容を確認・参照しない」原則の唯一の例外）。
 - これは「同一の調べ処理」を2起動に分けた内部受け渡しであり、別モードへの引き継ぎではありません。手順は [modes/song.md](../../modes/song.md) と `send_daily_line.sh` の song ブロックを正とします。
+
+### 例外：綴葉（scribe）モードの活動記録取得
+- 綴葉モードの `fetch_yamap_activity` は代筆の核となる必須素材です。上の「1回だけ再試行 → スキップして次へ」は適用せず、**1回再試行しても取得できない場合（コマンド失敗・本文欠落を含む）は処理を中断**し、ユーザーへ報告して終了してください。
+- 手順の正本は [modes/scribe.md](../../modes/scribe.md) のステップ3、および [run_aoi_scribe/SKILL.md](../skills/run_aoi_scribe/SKILL.md) です。

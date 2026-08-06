@@ -2,6 +2,16 @@ import * as cheerio from "cheerio";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import {
+  difficultyLabel,
+  formatDate,
+  formatDistance,
+  formatDuration,
+  formatElevation,
+  isPlainObject,
+  paceLabel,
+  resolveTimezone,
+} from "./format";
 
 // YAMAPの計画ページは Next.js 製で、計画データは SSR 時に埋め込まれる
 // `#__NEXT_DATA__`（JSON）から取得する。DOMのクラス名はハッシュ化されており
@@ -34,15 +44,6 @@ export type YamapPlan = {
   maps?: { name?: string | null }[] | null;
   checkpoints?: YamapCheckpoint[] | null;
 };
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/** timezone は数値なら採用し、欠落・非数値は JST(9) にフォールバックする */
-function resolveTimezone(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 9;
-}
 
 // URLの正規化処理
 // 受け付けるフォーマット:
@@ -116,56 +117,12 @@ export function extractPageData(html: string): { plan: YamapPlan; timezone: numb
   return { plan, timezone: resolveTimezone(pageProps?.timezone) };
 }
 
-const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
-
-// UNIX秒を指定タイムゾーンの「YYYY.MM.DD (曜)」形式に整形する
-function formatDate(unixSeconds: number, timezoneHours: number): string {
-  const shifted = new Date((unixSeconds + timezoneHours * 3600) * 1000);
-  const year = shifted.getUTCFullYear();
-  const month = String(shifted.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(shifted.getUTCDate()).padStart(2, "0");
-  return `${year}.${month}.${day} (${WEEKDAYS[shifted.getUTCDay()]})`;
-}
-
 // 日内の経過秒を「HH:MM」形式に整形する（日をまたぐ場合は24時間で丸める）
 function formatClock(secondsOfDay: number): string {
   const normalized = ((secondsOfDay % 86400) + 86400) % 86400;
   const hours = String(Math.floor(normalized / 3600)).padStart(2, "0");
   const minutes = String(Math.floor((normalized % 3600) / 60)).padStart(2, "0");
   return `${hours}:${minutes}`;
-}
-
-// 分を「X時間Y分」形式に整形する
-function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return hours > 0 ? `${hours}時間${rest}分` : `${rest}分`;
-}
-
-// メートルを「X.Ykm」形式に整形する（YAMAPの表示に合わせて切り捨て）
-function formatDistance(meters: number): string {
-  return `${(Math.floor(meters / 100) / 10).toFixed(1)}km`;
-}
-
-// メートルを整数に丸めて「Xm」形式に整形する（YAMAPの表示に合わせて切り捨て）
-function formatElevation(meters: number): string {
-  return `${Math.floor(meters)}m`;
-}
-
-// コース定数から体力度のラベルを求める（YAMAPの区分に準拠）
-function difficultyLabel(courseConstant: number): string {
-  if (courseConstant <= 11) return "やさしい";
-  if (courseConstant <= 24) return "ふつう";
-  return "きつい";
-}
-
-// ペース倍率からペースのラベルを求める（YAMAPの区分に準拠）
-function paceLabel(paceMultiplier: number): string {
-  if (paceMultiplier <= 70) return "ゆっくり";
-  if (paceMultiplier <= 90) return "ややゆっくり";
-  if (paceMultiplier <= 109) return "標準";
-  if (paceMultiplier <= 129) return "やや速い";
-  return "速い";
 }
 
 // チェックポイントの表示名を求める

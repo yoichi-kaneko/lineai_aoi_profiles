@@ -197,7 +197,13 @@ function groupByDay(
       (section) => enteredAt >= (section.startedAt ?? 0) && enteredAt <= (section.stoppedAt ?? 0),
     );
     if (index < 0) {
-      index = ordered.findLastIndex((section) => enteredAt >= (section.startedAt ?? 0));
+      // 開始済みの最後のセクションを後ろから探す
+      for (let i = ordered.length - 1; i >= 0; i -= 1) {
+        if (enteredAt >= (ordered[i].startedAt ?? 0)) {
+          index = i;
+          break;
+        }
+      }
     }
     const day = dayNumbers[index >= 0 ? index : 0];
     groups.get(day)?.push(checkpoint);

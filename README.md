@@ -28,23 +28,17 @@ cd lineai_aoi_profiles
 # 2. npm パッケージをインストール
 pnpm install
 
-# 3. Playwright の Chromium ブラウザをインストール
-#    @playwright/browser-chromium により pnpm install 時に自動取得されるが、
-#    未取得の場合や Windows 移行後は明示的に実行する
-pnpm run setup:browsers
-
-# 4. 環境変数を設定
+# 3. 環境変数を設定
 cp .env.example .env
 # .env を編集して各 API キー・認証情報を設定
 ```
 
 ### スキル実行時の注意
 
-- 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
+- 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
-- YAMAP の計画書・活動記録の取得（`fetch_yamap_plan` / `fetch_yamap_activity`）は、DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれたデータ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。活動記録の読み解き方は[ガイド](.claude/docs/yamap_activity_guide.md)を参照してください。
-- 計画書の取得（`fetch_yamap_plan`）のみ、旧実装から引き継いだ Playwright（Chromium）でページを取得しています。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。埋め込み JSON は素の HTTP GET でも取得できるため、`fetch` への移行と Playwright の撤去を [issue #100](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/100) で予定しています（活動記録の取得は既に `fetch` を使っており、Chromium は不要です）。
+- YAMAP の計画書・活動記録の取得（`fetch_yamap_plan` / `fetch_yamap_activity`）は、DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれたデータ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。いずれも素の HTTP GET でページを取得し、ブラウザによるレンダリングは行いません（ネットワーク接続のみ必要）。活動記録の読み解き方は[ガイド](.claude/docs/yamap_activity_guide.md)を参照してください。
 
 ## 4. アクティビティ駆動フレームワークについて
 

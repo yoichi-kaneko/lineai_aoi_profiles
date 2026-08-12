@@ -5,7 +5,6 @@
         "functions"
     ],
     "scripts": {
-        "setup:browsers": "playwright install chromium",
         "test": "vitest run",
         "test:watch": "vitest"
     },
@@ -13,7 +12,6 @@
         "@doist/todoist-sdk": "^9.1.0",
         "@google/genai": "^1.0.1",
         "@line/bot-sdk": "^10.6.0",
-        "@playwright/browser-chromium": "1.58.2",
         "cheerio": "^1.2.0",
         "cloudinary": "^2.9.0",
         "dotenv": "^16.4.7",
@@ -21,7 +19,6 @@
         "google-auth-library": "^10.5.0",
         "googleapis": "^171.4.0",
         "openai": "^6.34.0",
-        "playwright": "1.58.2",
         "twitter-api-v2": "^1.29.0",
         "type-fest": "^4.12.0"
     },
@@ -37,9 +34,7 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "@firebase/util",
-            "@playwright/browser-chromium",
             "esbuild",
-            "playwright",
             "protobufjs"
         ]
     },

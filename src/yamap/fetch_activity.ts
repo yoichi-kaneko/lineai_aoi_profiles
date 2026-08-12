@@ -20,7 +20,7 @@ import {
 // マークアップ変更で容易に壊れるため、スクレイピングではなくJSONを正とする。
 //
 // 埋め込みJSONは素のHTTP GETで返るため、ブラウザによるレンダリングは不要
-// （Playwright を使う fetch_plan.ts とは取得方法が異なる。移行は issue #100）。
+// （計画を取得する fetch_plan.ts と同じ方式）。
 
 type YamapLandmark = {
   name?: string | null;

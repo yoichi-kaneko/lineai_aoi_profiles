@@ -1,7 +1,6 @@
 import * as cheerio from "cheerio";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
 import {
   difficultyLabel,
   formatDate,
@@ -18,6 +17,9 @@ import {
 // YAMAPの計画ページは Next.js 製で、計画データは SSR 時に埋め込まれる
 // `#__NEXT_DATA__`（JSON）から取得する。DOMのクラス名はハッシュ化されており
 // マークアップ変更で容易に壊れるため、スクレイピングではなくJSONを正とする。
+//
+// 埋め込みJSONは素のHTTP GETで返るため、ブラウザによるレンダリングは不要
+// （活動記録を取得する fetch_activity.ts と同じ方式）。
 
 type YamapLandmark = {
   name?: string | null;
@@ -314,6 +316,36 @@ function buildReport(plan: YamapPlan, timezone: number): string {
   return lines.join("\n");
 }
 
+/**
+ * 計画ページのHTMLを取得する。
+ * 埋め込みJSONは初期HTMLに含まれるため、ブラウザによるレンダリングは行わない。
+ */
+async function fetchPlanHtml(url: string): Promise<string> {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(30_000),
+    headers: {
+      // 素のリクエストだとYAMAP側で弾かれる場合に備え、ブラウザ相当のUAを名乗る
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      "Accept-Language": "ja,en;q=0.9",
+    },
+  });
+
+  if (response.status === 404) {
+    // ブラウザ取得時はエラーページのHTMLが返り「計画データが含まれていない」として扱われていた。
+    // 素のGETではHTTPステータスで判別できるため、同じ趣旨をここで伝える
+    throw new Error(
+      "計画ページが見つかりませんでした（HTTP 404）。存在しない計画コード、または非公開・削除された計画の可能性があります。",
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(`計画ページの取得に失敗しました（HTTP ${response.status}）。`);
+  }
+
+  return response.text();
+}
+
 async function main() {
   const url = process.argv[2];
   if (!url) {
@@ -331,17 +363,7 @@ async function main() {
     process.exit(1);
   }
 
-  const browser = await chromium.launch();
-  let html: string;
-  try {
-    const page = await browser.newPage();
-    // 計画データは初期HTMLに埋め込まれているため、描画完了までは待たない
-    await page.goto(normalizedUrl, { waitUntil: "domcontentloaded" });
-    html = await page.content();
-  } finally {
-    await browser.close();
-  }
-
+  const html = await fetchPlanHtml(normalizedUrl);
   const { plan, timezone } = extractPageData(html);
   console.log(buildReport(plan, timezone));
 }

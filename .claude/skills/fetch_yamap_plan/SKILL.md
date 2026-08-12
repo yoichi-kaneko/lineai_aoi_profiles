@@ -9,7 +9,7 @@ YAMAPの山行計画ページから計画情報を取得するスタンドアロ
 
 ## 概要
 
-指定したYAMAP山行計画ページのURLに対して Playwright（Chromium）でアクセスし、
+指定したYAMAP山行計画ページのURLへHTTPリクエストを送り、
 ページに埋め込まれた計画データ（Next.js の `__NEXT_DATA__` JSON）から以下の情報を抽出して標準出力に返します。
 
 - **概要**: 計画タイトル・特記事項・作成者・地図（山域）・予定人数・入山/下山予定日
@@ -35,7 +35,6 @@ https://yamap.com/plans/code/{CODE}/printing  # 末尾の /printing は自動的
 ```bash
 cd {プロジェクトルートの絶対パス}
 pnpm install
-pnpm run setup:browsers
 ```
 
 ## 実行方法
@@ -54,7 +53,7 @@ pnpm exec tsx src/yamap/fetch_plan.ts "https://yamap.com/plans/code/XXXX/printin
 ## 注意事項
 
 - YAMAP側の埋め込みデータ構造（`__NEXT_DATA__` の内容）が変更された場合、予告なく動作しなくなる可能性があります
-- Playwright による実際のブラウザアクセスを行うため、ネットワーク接続が必要です
+- ネットワーク接続が必要です。ブラウザによるレンダリングは行わないため Chromium は不要です
 - ログイン不要で閲覧できる公開計画ページのみ対象です
 - 日出・日入の時刻は取得対象外です（天気情報が必要な場合は `get_openweather_forecast` を使用してください）
 

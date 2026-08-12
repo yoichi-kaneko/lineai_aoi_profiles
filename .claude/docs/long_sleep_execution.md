@@ -55,7 +55,6 @@ Bash ツールには実行時間の上限があり、超えたコマンドはバ
 | 処理 | 目安 |
 |---|---|
 | 画像生成（`generate_gpt_image`） | 5分 |
-| `crop_yamap_report`（OCR） | 5分 |
 | 楽曲・歌詞生成（`generate_mureka_*`） | 5分 |
 | Firestore・各種API呼び出し | 既定のままで足りる |
 

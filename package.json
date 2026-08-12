@@ -7,8 +7,7 @@
     "scripts": {
         "setup:browsers": "playwright install chromium",
         "test": "vitest run",
-        "test:watch": "vitest",
-        "test:e2e": "vitest run --config vitest.e2e.config.ts"
+        "test:watch": "vitest"
     },
     "dependencies": {
         "@doist/todoist-sdk": "^9.1.0",
@@ -23,8 +22,6 @@
         "googleapis": "^171.4.0",
         "openai": "^6.34.0",
         "playwright": "1.58.2",
-        "sharp": "^0.35.3",
-        "tesseract.js": "^7.0.0",
         "twitter-api-v2": "^1.29.0",
         "type-fest": "^4.12.0"
     },
@@ -43,9 +40,7 @@
             "@playwright/browser-chromium",
             "esbuild",
             "playwright",
-            "protobufjs",
-            "sharp",
-            "tesseract.js"
+            "protobufjs"
         ]
     },
     "packageManager": "pnpm@10.0.0"

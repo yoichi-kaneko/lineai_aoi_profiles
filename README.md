@@ -43,7 +43,8 @@ cp .env.example .env
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio`・`playwright` など）はルートの `package.json` で一元管理しています。
 - `.claude/skills/`（または `~/.claude/skills/` にリンクされたスキル）には `SKILL.md` のみが置かれ、`node_modules` は含まれません。**コマンドは必ずプロジェクトルートから** `pnpm exec tsx src/...` の形式で実行してください。
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
-- YAMAP 計画書の取得（`fetch_yamap_plan`）は Playwright（Chromium）と `cheerio` を使用します。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。なお計画書は DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれた計画データ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。なお活動記録はスクレイピングを廃止し、スクリーンショット画像の添付を `crop_yamap_report` で切り出して読み解く運用です（[ガイド](.claude/docs/yamap_activity_guide.md)）。`crop_yamap_report` は OCR で見出しを検出するため切り出しに失敗することがあり、その場合は `crop_image_region` スキルで座標を指定して切り出す予備フローに切り替えます（手順は [crop_yamap_report](.claude/skills/crop_yamap_report/SKILL.md) の「切り出しに失敗した場合の手順」）。
+- YAMAP の計画書・活動記録の取得（`fetch_yamap_plan` / `fetch_yamap_activity`）は、DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれたデータ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。活動記録の読み解き方は[ガイド](.claude/docs/yamap_activity_guide.md)を参照してください。
+- 計画書の取得（`fetch_yamap_plan`）のみ、旧実装から引き継いだ Playwright（Chromium）でページを取得しています。`ERR_MODULE_NOT_FOUND` や Chromium 未インストールのエラーが出た場合は、プロジェクトルートで `pnpm install` と `pnpm run setup:browsers` を再実行してください。埋め込み JSON は素の HTTP GET でも取得できるため、`fetch` への移行と Playwright の撤去を [issue #100](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/100) で予定しています（活動記録の取得は既に `fetch` を使っており、Chromium は不要です）。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -97,7 +98,7 @@ lineai_aoi_profiles/
 │   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
-│   └── yamap/             # YAMAP 計画書の取得・活動記録レポートの切り出し
+│   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
@@ -219,7 +220,7 @@ lineai_aoi_profiles/
 | サービス名 | YAMAP |
 | 役割 | ユーザーの登山計画・活動記録を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://yamap.com/ |
-| スキル | `fetch_yamap_plan`（計画書ページの埋め込み計画データを取得）／活動記録はスクリーンショット画像の添付を `download_todoist_attachment` で取得し、`crop_yamap_report` で主要ブロックに切り出して読み解く。切り出しに失敗した場合は `crop_image_region`（座標指定・範囲スライス）で代用する（[ガイド](.claude/docs/yamap_activity_guide.md)） |
+| スキル | `fetch_yamap_plan`（山行計画ページの埋め込み計画データを取得）／`fetch_yamap_activity`（活動記録ページの埋め込み記録データを取得。本文・活動データ・チェックポイントを整形して返す。[ガイド](.claude/docs/yamap_activity_guide.md)） |
 
 ### Firebase / Firestore
 
@@ -316,21 +317,7 @@ lineai_aoi_profiles/
 | 役割 | Web ページを取得する MCP ツール。Claude 標準の fetch よりも性能が高いため導入 |
 | MCP サーバー | https://github.com/modelcontextprotocol/servers/tree/main/src/fetch |
 
-## 8. ユーザーが使用するツールについて
-
-碧衣（AI）が呼び出すスキルとは別に、**ユーザーが手動で操作する**ことを前提としたツールがあります。碧衣側の設定・実装は不要で、運用者が各自の環境に導入します。
-
-### FireShot（Chrome 拡張）
-
-| 項目 | 内容 |
-|------|------|
-| ツール名 | FireShot（Take Webpage Screenshots Entirely） |
-| 種別 | Google Chrome 拡張機能 |
-| 役割 | YAMAP 活動記録ページ全体の**縦長スクリーンショット**を撮影する。撮影した PNG 画像は Todoist の登山レポートタスクへ添付し、綴葉（scribe）モードが `download_todoist_attachment` で取得したうえで `crop_yamap_report` により主要ブロックへ切り出して読み解く（[modes/scribe.md](modes/scribe.md) のステップ2〜4） |
-| 入手先 | https://chromewebstore.google.com/detail/take-webpage-screenshots/mcbpblocgmgfnpjjppndjkmgjaogfceg?hl=ja |
-| 備考 | 綴葉モードの素材準備に**必須**のツールだが、操作するのはユーザーのみ。碧衣がこのツールを直接扱うことはないため、スキル定義やモード定義に FireShot の設定・記述は不要 |
-
-## 9. 二重実行防止・タイムアウト・リトライについて
+## 8. 二重実行防止・タイムアウト・リトライについて
 
 ### 設計方針（同時実行・複数回実行）
 
@@ -366,7 +353,7 @@ APIやMCPサーバーの無応答によるハングアップを防ぐため、Cl
 
 #### 層2: Bash ツール（`.claude/settings.json`）
 
-Claude 内部の各コマンド実行の上限です。既定の120秒では画像生成やOCRが収まらずバックグラウンドへ回されるため、`env` で引き上げています。
+Claude 内部の各コマンド実行の上限です。既定の120秒では画像生成や楽曲生成が収まらずバックグラウンドへ回されるため、`env` で引き上げています。
 
 | 環境変数 | 値 | 意味 |
 |---|---|---|
@@ -400,7 +387,7 @@ Claude プロンプト層でも degradation を定義しています（[aoi_cons
 | Firestore（gRPC）の接続が詰まる | CLI 自身が30秒で打ち切り、終了コード `124` で結果不明を明示 |
 | コマンドがBashツールの時間切れでバックグラウンドへ回される | 完了を確認してからターンを終える。書き込み・送信は再実行しない（[aoi_constraints.md](.claude/rules/aoi_constraints.md) / [long_sleep_execution.md](.claude/docs/long_sleep_execution.md)） |
 
-## 10. ライセンスについて
+## 9. ライセンスについて
 
 本プロジェクトは MIT License のもとで公開されています。
 

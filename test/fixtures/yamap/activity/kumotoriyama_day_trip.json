@@ -1,0 +1,225 @@
+{
+  "props": {
+    "pageProps": {
+      "activity": {
+        "title": "【タフ山】鴨沢登山口から雲取山へ　6年ぶりの再訪",
+        "description": "YAMAPのタフ山デジタルバッジキャンペーンのため、6年ぶり、2度目となる雲取山へ。\nこの日は夜に用事があり、できれば早めに23区内に戻りたい。\n\n雲取山の鴨沢コースは、標準コースタイムが9～10時間ほどとされている。\n予定していた用事に間に合わせるには、8時間までは短縮したい。\nただ、奥多摩は全体的に、コースタイムに余裕を持たせた時間設定になっている。\n前回訪れた時も、7時間を少し過ぎた程度で歩き切れている。\n前回と同じくらいの速度を維持できれば問題ない範囲——そう判断した。\n\n\n【前半のトラバース道　歩きやすさと危うさの同居】\n前半は、長いトラバース道が延々と続く。\n斜度は緩やかで、コースの足場も整備されていて歩きやすい。\nただ、片側の斜面は鋭く切れ落ちており、足を踏み外したら止まれずに一気に滑落しそうな緊張感が漂っていた。\n\n\n【石尾根から雲取山山頂まで】\n長いトラバース道を歩き切ると、石尾根に出る。\nここからは道幅が広くなり、滑落の危険性は減る。\nコースにもメリハリが出てきて、ちょっとした岩場や急登が来たかと思ったら、平坦な道に戻る。歩いていて楽しい道のりになっている。\n\nこの日はやや曇り気味で、周りの山々の多くは雲に覆われていた。\nそれでも、自分のいる石尾根と雲取山山頂には雲がかかっておらず、これから歩く尾根筋を見通しながら歩く事ができた。\n山頂に登頂した時も、ここまで歩いてきた石尾根は問題なく見渡せた。ただ、遠方の山を見ようとすると、雲で見えづらくなっていた。\n\n山頂でひと休みした後は、急いで下山。\n全行程の所要時間は6時間半ほど。前回よりも30分ほど短縮しているが、\n前回通過した七ツ石山を今回は省略したため、ルートも短くなっている。\nその分も考慮すると、実質は20分程度の短縮だろうか。\nいずれにしても、目標にしていた8時間を大きく下回る結果となり、23区内での予定には問題なく間に合った。\n\n\n【感想】\n6年ぶりとなる雲取山への再訪だが、他の日本各地の山々を登った上で改めて登ると、新しい発見が色々とあった。\n\nまず、何よりも道のりが非常に歩きやすいという事。\nとても良く整備されていて、手入れが行き届いていることを、他の山々と比べられるようになった今だからこそ実感できた。\n累積高低差1700mほどを登った割には、疲労感が少ない。\n足元に余計な負担がかからない事、それによって速いペースを維持できた事を、体で理解できた。\n\n一方で、前半のトラバース区間は、危うさを再認識した。\n片面が切れ落ちており、足を踏み外したら途中で止まれず、一気に滑落すると思える場所が長く続いていた。\n登山道の幅は広く、足元も安定している。それでも、一歩間違えれば無事では済まない感触があった。\nこれは前回訪れた時にも感じた事だが、再訪してその考えがより強くなった。\n\nコースとしても、後半の石尾根は変化に富んでおり、\nちょっとした岩場や急登などが続いて飽きが来ない作りになっている。\n\nトラバース道の危うさこそあるが、雲取山は名山であり、名コースである事を再認識する1日だった。\n\n\n【関連リンク】\n- 6年前に雲取山に登った時の記録\n  - https://yamap.com/activities/8768739\n- タフ山デジタルバッジキャンペーンの紹介ページ\n  - https://yamap.com/magazine/73884\n\n\n【バッジの進展】\n今回の山行によるバッジの進行度は次の通り。\n\n- 雲取山の登頂により、アミノバイタル タフ山EASTを獲得\n- 同じく雲取山の登頂により、GOLDヨーキが1/2",
+        "startAt": 1783724620,
+        "finishAt": 1783748334,
+        "timeZone": 9,
+        "courseConstant": 44,
+        "standardCourseTime": 41258,
+        "averagePace": 0.5358960686412332,
+        "map": {
+          "name": "雲取山・鷹ノ巣山・七ツ石山",
+          "prefectures": [
+            {
+              "name": "東京"
+            },
+            {
+              "name": "埼玉"
+            },
+            {
+              "name": "山梨"
+            }
+          ]
+        },
+        "activityWholeSection": {
+          "startedAt": 1783724620,
+          "stoppedAt": 1783748265,
+          "totalTime": 23645,
+          "restTime": 1217,
+          "distance": 23375,
+          "cumulativeUp": 1688,
+          "cumulativeDown": 1686,
+          "totalDays": 1
+        },
+        "checkpoints": [
+          {
+            "enteredAt": 1783724666,
+            "leftAt": 1783724709,
+            "landmark": {
+              "name": "鴨沢バス停",
+              "altitude": 542,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783725640,
+            "leftAt": 1783725720,
+            "landmark": {
+              "name": "丹波山村村営駐車場",
+              "altitude": 731,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783725909,
+            "leftAt": 1783726017,
+            "landmark": {
+              "name": "小袖登山口",
+              "altitude": 768,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783729618,
+            "leftAt": 1783729911,
+            "landmark": {
+              "name": "堂所",
+              "altitude": 1247,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783734516,
+            "leftAt": 1783734559,
+            "landmark": {
+              "name": "五十人平野営場",
+              "altitude": 1738,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783734597,
+            "leftAt": 1783734795,
+            "landmark": {
+              "name": "五十人平野営場管理小屋",
+              "altitude": 1752,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783734888,
+            "leftAt": 1783734998,
+            "landmark": {
+              "name": "ヨモギノ頭",
+              "altitude": 1813,
+              "isSummit": true
+            }
+          },
+          {
+            "enteredAt": 1783735749,
+            "leftAt": 1783736074,
+            "landmark": {
+              "name": "小雲取山",
+              "altitude": 1937,
+              "isSummit": true
+            }
+          },
+          {
+            "enteredAt": 1783736646,
+            "leftAt": 1783736798,
+            "landmark": {
+              "name": "雲取山頂避難小屋",
+              "altitude": 2001,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783736798,
+            "leftAt": 1783737373,
+            "landmark": {
+              "name": "雲取山",
+              "altitude": 2017,
+              "isSummit": true
+            }
+          },
+          {
+            "enteredAt": 1783737373,
+            "leftAt": 1783737529,
+            "landmark": {
+              "name": "雲取山頂避難小屋",
+              "altitude": 2001,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783738066,
+            "leftAt": 1783738314,
+            "landmark": {
+              "name": "小雲取山",
+              "altitude": 1937,
+              "isSummit": true
+            }
+          },
+          {
+            "enteredAt": 1783738979,
+            "leftAt": 1783739079,
+            "landmark": {
+              "name": "ヨモギノ頭",
+              "altitude": 1813,
+              "isSummit": true
+            }
+          },
+          {
+            "enteredAt": 1783739143,
+            "leftAt": 1783739461,
+            "landmark": {
+              "name": "五十人平野営場管理小屋",
+              "altitude": 1752,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783739493,
+            "leftAt": 1783739535,
+            "landmark": {
+              "name": "五十人平野営場",
+              "altitude": 1738,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783743446,
+            "leftAt": 1783743502,
+            "landmark": {
+              "name": "堂所",
+              "altitude": 1247,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783746821,
+            "leftAt": 1783746894,
+            "landmark": {
+              "name": "小袖登山口",
+              "altitude": 768,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783747084,
+            "leftAt": 1783747260,
+            "landmark": {
+              "name": "丹波山村村営駐車場",
+              "altitude": 731,
+              "isSummit": false
+            }
+          },
+          {
+            "enteredAt": 1783748187,
+            "leftAt": 1783748250,
+            "landmark": {
+              "name": "鴨沢バス停",
+              "altitude": 542,
+              "isSummit": false
+            }
+          }
+        ]
+      },
+      "activityDailySections": [
+        {
+          "startedAt": 1783724620,
+          "stoppedAt": 1783748265,
+          "totalTime": 23645,
+          "restTime": 1217,
+          "distance": 23375,
+          "cumulativeUp": 1688,
+          "cumulativeDown": 1686,
+          "dayNumber": 1
+        }
+      ]
+    }
+  }
+}

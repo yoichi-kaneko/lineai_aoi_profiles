@@ -48,9 +48,10 @@ lineai_aoi_profiles/
 │   ├── todoist/            # Todoist タスク操作
 │   ├── twitter/            # Twitter（X）投稿
 │   ├── util/               # 汎用ユーティリティ
-│   └── yamap/              # YAMAP 計画書の取得・活動記録レポートの切り出し
-│       ├── activity_crop/  # レポートの自動切り出し（OCR による見出し検出）
-│       └── image_region/   # 座標指定・範囲スライスの切り出し（自動検出失敗時の予備）
+│   └── yamap/              # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
+│       ├── fetch_plan.ts       # 山行計画ページ
+│       ├── fetch_activity.ts   # 活動記録ページ
+│       └── format.ts           # 両者で共通の整形・ラベル判定
 ├── .claude/
 │   ├── rules/              # 常時適用ルール（aoi.md から @import で参照される）
 │   │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
@@ -66,13 +67,12 @@ lineai_aoi_profiles/
 │   │   ├── long_sleep_execution.md   # 長時間処理の実行方法（sleep・タイムアウト時の扱い）
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
-│       ├── crop_image_region/
-│       ├── crop_yamap_report/
 │       ├── download_google_drive_file/
 │       ├── download_image/
 │       ├── download_line_image/
 │       ├── download_mureka_audio/
 │       ├── download_todoist_attachment/
+│       ├── fetch_yamap_activity/
 │       ├── fetch_yamap_plan/
 │       ├── generate_gemini_image/
 │       ├── generate_gpt_image/
@@ -97,9 +97,8 @@ lineai_aoi_profiles/
 │       ├── send_line_image/
 │       └── send_line_text/
 ├── test/                   # ルート src/ に対するテスト（詳細は test/README.md）
-│   ├── fixtures/           # テスト用フィクスチャ（原画像は Git 管理外）
-│   ├── tools/              # フィクスチャ生成ツール
-│   └── yamap/              # YAMAP crop のテスト（層1: *.test.ts / 層2: *.e2e.test.ts）
+│   ├── fixtures/           # テスト用フィクスチャ（活動記録の縮小 JSON）
+│   └── yamap/              # YAMAP 計画書・活動記録のパースと整形のテスト
 └── tmp/                    # 一時ファイル（画像など）
 ```
 
@@ -185,14 +184,13 @@ pnpm exec tsx src/{module}/{main}.ts [引数]
 vitest を使用する。テストは `test/` 配下に置く（`src/` にはテストを混ぜない）。
 
 ```bash
-pnpm test        # 層1: 高速。常時実行する
-pnpm test:watch  # 層1をウォッチ実行
-pnpm test:e2e    # 層2: 実画像を通した E2E。任意実行
+pnpm test        # 全テストを実行する
+pnpm test:watch  # ウォッチ実行
 ```
 
-現在の対象は YAMAP レポートの crop 処理のみ。OCR に依存し実画像が重いため、
-記録済み OCR 結果で検証する層1と、実画像を通す層2に分けている。
-**crop に失敗するレポートが見つかったら、フィクスチャとして追加してからロジックを直す**のが運用方針。
+現在の対象は YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る `fetch_plan.ts` / `fetch_activity.ts`。
+どちらもネットワークへ出ない純関数のテストで、1秒未満で完了する。
+**取得に失敗する記録が見つかったら、フィクスチャとして追加してからロジックを直す**のが運用方針。
 構成・フィクスチャの追加手順は [test/README.md](../test/README.md) を参照。
 
 ## 環境変数

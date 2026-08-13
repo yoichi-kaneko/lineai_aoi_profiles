@@ -277,7 +277,7 @@ function buildReport(plan: YamapPlan, timezone: number): string {
         const previous = isFiniteNumber(dayCheckpoints[index - 1].arrivalTimeInSeconds)
           ? dayCheckpoints[index - 1].arrivalTimeInSeconds
           : 0;
-        const minutes = segmentMinutes(current - previous, paceMultiplier);
+        const minutes = segmentMinutes(current - (previous ?? 0), paceMultiplier);
         totalMinutes += minutes;
         cursor += minutes * 60;
       }

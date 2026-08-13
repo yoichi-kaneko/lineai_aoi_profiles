@@ -40,11 +40,12 @@
 | `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
-| `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`） | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
+| `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` の単一結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
 | `prompt_digest` | プロンプトの要約（全文は重いので要点1〜2文のみ） | 文字列 |
 
 ### 値の正規化について
 - `shot_size` / `camera_direction` は画像生成ガイドライン（[../../assets/image_guideline.md](../../assets/image_guideline.md) セクション8③）の語彙を `random_choice` で抽選します。ログには**上表の英語スネークケースの正規化値**で記録してください（例：「バストアップ（bust shot）」→ `bust_shot`、「斜め前（three-quarter view）」→ `three_quarter`）。柱C の偏り集計が値の表記揺れに影響されないようにするためです。
+- `companions` は各抽選の単一結果を統合し、`ruri` → `["ruri"]`、`hotaru` → `["hotaru"]`、`none` → `[]` と正規化します。両方が登場する場合の canonical order は `["ruri","hotaru"]` です。`none` という文字列は配列へ保存しないでください。
 - どの選択肢にも当てはめにくい場合のみ、最も近いものを選ぶか、`scene_category` は `other` を使ってください。
 
 ## 記録コマンド

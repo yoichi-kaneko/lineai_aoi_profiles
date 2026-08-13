@@ -126,7 +126,8 @@
 - `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
 - `outfit`: 採用した衣装（登山シーンが基本のため通常は `outfit_b`）
 - `scene_category`: 山行のため通常は `hike`
-- `time_of_day` / `companions` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
+- `companions`: ステップ2で `random_choice` 抽選したルリの登場可否を、正規化済み配列の `["ruri"]` または `[]` で記録する（山行シーンでは蛍は抽選対象外）。抽選結果を選び直した場合は実際にプロンプトへ入れた内容を使い、`none` は保存しない
+- `time_of_day` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
 - LINE送信が失敗していても `originalUrl` が取得できていれば記録する。アップロードも失敗してURLが無い場合はスキップしてよい。
 
 ### ステップ6：Firestoreへの記録

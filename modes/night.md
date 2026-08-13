@@ -125,7 +125,7 @@
 - `cloudinary_url`: ステップ3の `send_line_image` アップロード出力の `originalUrl`
 - `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
 - `outfit`: 採用した衣装（outfit_a〜d）
-- `companions`: ステップ2で `random_choice` 抽選したルリ・蛍の登場可否（抽選結果を選び直した場合は、実際にプロンプトへ入れた内容を記録）
+- `companions`: ステップ2で `random_choice` 抽選したルリ・蛍の登場可否を、スキーマに従う正規化済み配列（`[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]`）で記録する。抽選結果を選び直した場合は実際にプロンプトへ入れた内容を使い、`none` は保存しない
 - `scene_category` / `time_of_day` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断
 - LINE送信が失敗していても `originalUrl` が取得できていれば記録する。アップロードも失敗してURLが無い場合はスキップしてよい。
 

@@ -95,10 +95,17 @@ function toRFC3339(datetime: string, timezone: string): string {
   return `${datetime}${offset}`;
 }
 
+/** 文字列が実在する "YYYY-MM-DD" 形式の日付かを検証する */
+function isValidDateString(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+
+  const date = new Date(`${dateStr}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === dateStr;
+}
+
 /** "YYYY-MM-DD" の前日を "YYYY-MM-DD" で返す (実行環境のローカルタイムゾーンに影響されないよう UTC 基準で計算) */
 function previousDay(dateStr: string): string {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
+  const date = new Date(`${dateStr}T00:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);
 }
@@ -109,16 +116,17 @@ function previousDay(dateStr: string): string {
  * Google Calendar の終日予定は end.date が排他 (非包含) であり、
  * 例えば 8/15〜8/16 の2日間の予定は end.date = "2026-08-17" として返る。
  * そのため実際の最終日は end.date の前日となる。
- * 時刻付き予定 (dateTime) や date が欠けている場合は undefined を返す。
+ * 時刻付き予定 (dateTime)、date の欠落・不正、end.date <= start.date の場合は
+ * undefined を返す。
  */
-function resolveAllDayLastDate(event: calendar_v3.Schema$Event): string | undefined {
+export function resolveAllDayLastDate(event: calendar_v3.Schema$Event): string | undefined {
   const startDate = event.start?.date;
   const endDate = event.end?.date;
   if (!startDate || !endDate) return undefined;
+  if (!isValidDateString(startDate) || !isValidDateString(endDate)) return undefined;
+  if (endDate <= startDate) return undefined;
 
-  const lastDate = previousDay(endDate);
-  // 不正な範囲 (end.date <= start.date) の場合は開始日を最終日として扱う
-  return lastDate < startDate ? startDate : lastDate;
+  return previousDay(endDate);
 }
 
 function formatEvent(event: calendar_v3.Schema$Event): object {
@@ -199,7 +207,13 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error.message || error);
-  process.exit(1);
-});
+const isDirectRun =
+  !!process.argv[1] &&
+  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error.message || error);
+    process.exit(1);
+  });
+}

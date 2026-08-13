@@ -14,13 +14,16 @@ test/
 ├── fixtures/
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
+├── google_calendar/
+│   └── get_events.test.ts     # 終日予定の最終日計算・日付検証
 └── yamap/
     ├── fetch_plan.test.ts      # 計画ページの埋め込みJSONパース
     └── fetch_activity.test.ts  # 活動記録ページの埋め込みJSONパース・レポート整形
 ```
 
-現在の対象は YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る2つのスキル。
-どちらもネットワークへ出ない純関数のテストで、1秒未満で完了する。
+現在の対象は、YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る2つのスキルと、
+Google Calendar の終日予定に対する最終日計算です。
+いずれもネットワークへ出ない純関数のテストです。
 
 ## フィクスチャの方針
 

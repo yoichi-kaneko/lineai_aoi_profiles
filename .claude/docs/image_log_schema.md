@@ -40,7 +40,7 @@
 | `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
-| `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`） | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
+| `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` 抽選結果をそのまま記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
 | `prompt_digest` | プロンプトの要約（全文は重いので要点1〜2文のみ） | 文字列 |
 
 ### 値の正規化について

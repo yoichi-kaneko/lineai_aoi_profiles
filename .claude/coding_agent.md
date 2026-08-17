@@ -98,7 +98,12 @@ lineai_aoi_profiles/
 │       └── send_line_text/
 ├── test/                   # ルート src/ に対するテスト（詳細は test/README.md）
 │   ├── fixtures/           # テスト用フィクスチャ（活動記録の縮小 JSON）
+│   ├── firebase/           # get_firestore_docs の引数解釈・type 絞り込みのテスト
+│   ├── google_calendar/    # 終日予定の最終日計算のテスト
 │   └── yamap/              # YAMAP 計画書・活動記録のパースと整形のテスト
+├── .github/
+│   └── workflows/
+│       └── test.yml        # プッシュ時に pnpm test を実行する GitHub Actions
 └── tmp/                    # 一時ファイル（画像など）
 ```
 
@@ -183,8 +188,13 @@ pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
 ```
 
-現在の対象は YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る `fetch_plan.ts` / `fetch_activity.ts`。
-どちらもネットワークへ出ない純関数のテストで、1秒未満で完了する。
+現在の対象は YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る `fetch_plan.ts` / `fetch_activity.ts`、
+Google Calendar の `get_events.ts`、Firestore の `get_docs.ts`（引数解釈・`type` 絞り込み）。
+いずれもネットワークへ出ない純関数のテストで、1秒未満で完了する。
+CLI スクリプトをテスト対象にする場合は、`main()` を `isDirectRun` ガードで囲み（`src/firebase/get_docs.ts` 参照）、
+判断ロジックを純関数として `export` すること。
+
+プッシュすると `.github/workflows/test.yml` が同じ `pnpm test` を実行する（外部 API へ接続しないためシークレット不要）。
 **取得に失敗する記録が見つかったら、フィクスチャとして追加してからロジックを直す**のが運用方針。
 構成・フィクスチャの追加手順は [test/README.md](../test/README.md) を参照。
 

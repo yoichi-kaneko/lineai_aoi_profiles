@@ -7,6 +7,9 @@ pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
 ```
 
+GitHub へプッシュすると `.github/workflows/test.yml` が同じ `pnpm test` を実行する。
+テストは外部 API へ接続しないため、CI 側に `.env` の設定は不要。
+
 ## 構成
 
 ```text
@@ -14,6 +17,8 @@ test/
 ├── fixtures/
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
+├── firebase/
+│   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）と type 絞り込み
 ├── google_calendar/
 │   └── get_events.test.ts     # 終日予定の最終日計算・日付検証
 └── yamap/
@@ -21,9 +26,14 @@ test/
     └── fetch_activity.test.ts  # 活動記録ページの埋め込みJSONパース・レポート整形
 ```
 
-現在の対象は、YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る2つのスキルと、
-Google Calendar の終日予定に対する最終日計算です。
+現在の対象は、YAMAP の埋め込み JSON（`__NEXT_DATA__`）を読み取る2つのスキル、
+Google Calendar の終日予定に対する最終日計算、
+`get_firestore_docs` の引数解釈（`--type` の正規化・`NOTE_TYPE` 検証・日付範囲）と `type` 絞り込みです。
 いずれもネットワークへ出ない純関数のテストです。
+
+CLI スクリプトをテスト対象にする場合は、`main()` の実行を
+「直接起動されたときだけ走らせる」ガード（`src/firebase/get_docs.ts` の `isDirectRun` 参照）で囲み、
+判断ロジックを純関数として `export` してからテストを書く。
 
 ## フィクスチャの方針
 

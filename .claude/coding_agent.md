@@ -219,6 +219,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` を `isDirect
 - `generate_mureka_lyrics` / `generate_mureka_song` も同様に、複数行テキストを引数で直接渡さず `tmp/` 配下の一時ファイル経由で受け渡す方式（`tmp/mureka_lyrics_prompt.txt`、`tmp/mureka_song_lyrics.txt`、`tmp/mureka_song_prompt.txt`）。各スキルの SKILL.md 参照
 - `put_firestore_doc` も同様に、本文（`description`）を引数で直接渡さず `tmp/firestore_doc.txt` に保存して `--description-file` で渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要（SKILL.md 参照）
 - `generate_gpt_image` も同様に、プロンプトを引数で直接渡さず `tmp/gpt_image_prompt.txt` に保存し、そのパスを第一引数に渡す方式（第二引数は参考画像ファイル名）。改行はそのまま改行として書けばよく、`\n` への置換は不要（SKILL.md 参照）
+- `put_todoist_task` も同様に、詳細（`description`）を引数で直接渡さず `tmp/todoist_task.txt` に保存して `--description-file` で渡す方式。改行はそのまま改行として書けばよく、`\n` への置換は不要。タイトル（`content`）は1行に収まるため従来どおり第一位置引数で渡す（SKILL.md 参照）
 - 画像生成スキルは `GOOGLE_GEMINI_GENERATE_IMAGE_IMPORT_DIR` に設定された参照画像を自動添付する
 - 画像生成フィードバック機構（issue #43）の `image_logs` / `image_feedback` / `image_feedback_reviews` は、`notes` とは別の**専用コレクション**に隔離されている。`get_firestore_docs` / `put_firestore_doc` の `--collection` オプションで読み書きし（デフォルトは `notes` で後方互換）、`notes` 以外では `NOTE_TYPE` 検証をバイパスして `type` をコレクション内識別用の任意値（`image_log` / `image_feedback` / `review_marker`）として扱う。日々の各モードのコンテキストには流入させず、`review_image_feedback` スキル（柱C）でのみ参照する。スキーマは [`.claude/docs/image_log_schema.md`](docs/image_log_schema.md) / [`image_feedback_schema.md`](docs/image_feedback_schema.md) を参照
 - 楽曲生成ログ（issue #68/#69）の `song_logs` も、`notes` とは別の**専用コレクション**に隔離する。調べモードのフェーズA完了時に `type: song_log` で記録し、次回以降の調べモードで直近2〜3件を参照してスタイルパッケージや主要モチーフの連続を避ける。スキーマは [`.claude/docs/song_log_schema.md`](docs/song_log_schema.md) を参照

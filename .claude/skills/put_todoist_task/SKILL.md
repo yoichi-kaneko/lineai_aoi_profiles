@@ -1,11 +1,11 @@
 ---
 name: put_todoist_task
-description: TodoistのInboxに新しいタスクを作成する。引数はcontent（タイトル）と任意のdescription（詳細）。
+description: TodoistのInboxに新しいタスクを作成する。タイトル（content）は引数で渡し、詳細（description）は一時ファイル(tmp/todoist_task.txt)に保存してそのパスを渡す。
 ---
 
 # put_todoist_task
 
-Todoistの Inbox に新しいタスクを作成するスキルです。
+Todoist の Inbox に新しいタスクを作成するスキルです。
 
 ## 事前準備
 
@@ -25,39 +25,34 @@ TODOIST_API_TOKEN="your_api_token"
 
 ## Claudeへの指示
 
-以下のコマンドをプロジェクトルートから実行してください。
+### 手順
 
-description がある場合：
-```bash
-cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/todoist/put_task.ts "{content}" "{description}"
-```
+1. **詳細（description）の保存**: 詳細を添える場合は、その本文を `tmp/todoist_task.txt` に保存してください。**詳細を引数で直接渡すことはできません**（改行を含む本文はコマンドライン引数では正しくクォート処理されないため）。改行はそのまま改行として書けばよく、`\n` への置換は不要です。
 
-description がない場合：
-```bash
-cd {プロジェクトルートの絶対パス}
-pnpm exec tsx src/todoist/put_task.ts "{content}"
-```
+2. **タスクの作成**: 以下のコマンドをプロジェクトルートから実行してください。
 
-ARGUMENTS として渡された `content`（タスクタイトル）と `description`（任意の詳細）をそれぞれ引数に使用してください。
+   **詳細（description）を添える場合:**
 
-> **⚠️ 警告: 複数行のメッセージを送る場合は必ずクォート処理すること**
->
-> 改行を含むメッセージをそのままコマンドに渡すと、シェルが途中で行を分割してコマンドが正常に動作しません。
-> **複数行のメッセージは `\n` に置換して、コマンドを必ず1行に収めてください。**
->
-> 悪い例（動作しない可能性あり）:
-> ```bash
-> pnpm exec tsx src/todoist/put_task.ts "タスクタイトル" "1行目
-> 2行目"
-> ```
->
-> 良い例:
-> ```bash
-> pnpm exec tsx src/todoist/put_task.ts "タスクタイトル" "1行目\n2行目"
-> ```
+   ```bash
+   cd {プロジェクトルートの絶対パス}
+   pnpm exec tsx src/todoist/put_task.ts "{content}" --description-file tmp/todoist_task.txt
+   ```
 
-**複数行のメッセージを送る場合には改行をクォート処理してコマンドを1行に収めること。**
-これを行わないと正常に動作しない恐れがあります。
+   **タイトルのみの場合:**
 
-コマンドの実行結果（作成されたタスクのJSON）をそのままユーザーに提示してください。
+   ```bash
+   cd {プロジェクトルートの絶対パス}
+   pnpm exec tsx src/todoist/put_task.ts "{content}"
+   ```
+
+   - 第1引数: `content`（タスクタイトル）。1行に収まる短い文字列であるため、従来どおり引数で渡します。
+   - `--description-file`: 詳細を保存した一時ファイルのパス（任意）。プロジェクトルート内のパスを指定してください。
+
+3. 標準出力に作成されたタスクの JSON が返ります。その内容をそのままユーザーに提示してください。
+
+## 注意事項
+
+- **詳細（description）は必ず一時ファイル経由で渡すこと。** 詳細を第2位置引数として渡した場合、コマンドは終了コード1で失敗します。
+- `--description-file` に指定したファイルが空の場合も、終了コード1で失敗します。詳細が不要な場合はオプションごと省略してください。
+- `--description-file` はプロジェクトルート外のパス（絶対パスや `../` による脱出）を受け付けません。
+- タイトルに改行を含めないでください（Todoist のタスクタイトルは1行が前提です）。

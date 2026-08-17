@@ -30,13 +30,15 @@
 
 - **`get_google_calendar_events`**: `dateFrom` を7日前、`dateTo` を7日後に指定
 - **`get_swarm_checkins`**: `start_date` を7日前、`end_date` を本日に指定
-- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定
+- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定し、**`--type "line_text,line_image,from_aoi"` を付けて絞り込む**
+  - 7日分を絞り込まずに取得すると、`night_handover` / `up_mountain` / `stay_mountain` / `off_mountain` といった長文の引き継ぎ記録がすべて含まれ、レスポンスが一度に読み込めない大きさ（100KB近く）に膨らみます。本モードで使うのは、ユーザー自身の言葉・画像（`line_text` / `line_image`）と、暁モードが残した天候の傾向（`from_aoi`）であり、引き継ぎ記録の詳細な申し送り事項は不要です
+  - 各モードの引き継ぎ記録から山行の様子を補いたい場合は、対象日を絞ったうえで別途 `--type` を指定して取得してください（7日分をまとめて取り直さないこと）
 - **`get_firestore_docs`（`--collection song_logs`）**: `dateFrom` を21日前、`dateTo` を本日に指定し、直近の楽曲生成ログを取得。取得できた場合は作成日の新しい順に2〜3件を、ステップ2〜3の重複回避に使う
 
 収集後、以下の観点からインスピレーションキーワードを抽出してください。
 
 - **出来事の傾向**: 1週間の間に起こった出来事の概要
-- **天気の傾向**: Firestoreの記録から読み取れる天候の傾向
+- **天気の傾向**: Firestoreの `from_aoi`（暁モードが記録した天気予報の概要）から読み取れる天候の傾向
 - **訪れた場所**: 登山や外出で足を運んだ場所
 - **時期・季節**: 現在の季節感や直近の行事
 - **直近楽曲との違い**: `song_logs` の `description` JSON から `title` / `package` / `theme_digest` を読み取り、直近の曲で使った主要モチーフ・情景・曲調を控える

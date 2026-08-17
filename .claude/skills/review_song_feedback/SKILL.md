@@ -110,6 +110,7 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection song
 
 - **content（タイトル）の目安**: `[楽曲要望] ボーカルの発音が不明瞭な曲が続く` のように、`[楽曲要望]` プレフィックス＋要望の要約。
 - **description（詳細）の目安**: 現状の懸念（FB の根拠・件数）、どう直されるとよいか、根拠となった対象日などを記載します。詳細は引数で直接渡せないため、本文を `tmp/todoist_task.txt` に Write で書き出し、`--description-file` で渡してください（改行はそのまま改行として書けばよく、`\n` への置換は不要です）。
+- 要望が複数ある場合は、**各タスクの作成前に** `tmp/todoist_task.txt` を Write で対象タスクの内容へ上書きしてから1件ずつ作成してください（直前のタスクの詳細が次のタスクへ紛れ込まないようにするため）。
 
 `tmp/todoist_task.txt` の例:
 

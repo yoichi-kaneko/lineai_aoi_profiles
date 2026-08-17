@@ -88,6 +88,19 @@ describe("resolveDateRange", () => {
     );
   });
 
+  it("同一日の範囲は受け付ける", () => {
+    const { startDate, endDate } = resolveDateRange("2026-08-16", "2026-08-16");
+
+    expect(startDate).toEqual(new Date(2026, 7, 16, 0, 0, 0, 0));
+    expect(endDate).toEqual(new Date(2026, 7, 16, 23, 59, 59, 999));
+  });
+
+  it("dateFrom が dateTo より後の場合は ArgumentError を投げる", () => {
+    expect(() => resolveDateRange("2026-08-17", "2026-08-16")).toThrow(
+      /dateFrom は dateTo 以前/
+    );
+  });
+
   it.each([
     ["形式が不正な dateFrom", "2026-8-9", "2026-08-16"],
     ["形式が不正な dateTo", "2026-08-09", "2026/08/16"],

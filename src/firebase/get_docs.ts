@@ -135,6 +135,10 @@ export function resolveDateRange(
     throw new ArgumentError("日付が不正です。存在する日付を YYYY-MM-DD 形式で指定してください");
   }
 
+  if (startDate > endDate) {
+    throw new ArgumentError("dateFrom は dateTo 以前の日付を指定してください");
+  }
+
   return { startDate, endDate };
 }
 

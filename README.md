@@ -40,6 +40,17 @@ cp .env.example .env
 - `random_choice` は通常は等確率で抽選します。選択肢ごとの重みを指定する場合のみ、`--weighted` と `選択肢:重み` 形式を使用します（詳細は [random_choice](.claude/skills/random_choice/SKILL.md)）。
 - YAMAP の計画書・活動記録の取得（`fetch_yamap_plan` / `fetch_yamap_activity`）は、DOM のクラス名を辿るスクレイピングではなく、ページに埋め込まれたデータ（Next.js の `__NEXT_DATA__` JSON）を読み取る方式です（`cheerio` はその埋め込み JSON の取り出しにのみ使用）。いずれも素の HTTP GET でページを取得し、ブラウザによるレンダリングは行いません（ネットワーク接続のみ必要）。活動記録の読み解き方は[ガイド](.claude/docs/yamap_activity_guide.md)を参照してください。
 
+### 自動テスト
+
+`src/` の純関数（ネットワークへ出ない処理）に対するテストを `test/` 配下に置き、vitest で実行します。
+
+```bash
+pnpm test        # 全テストを実行する
+pnpm test:watch  # ウォッチ実行
+```
+
+GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
+
 ## 4. アクティビティ駆動フレームワークについて
 
 碧衣の設計は、以下の2層で捉えると理解しやすくなります。
@@ -93,12 +104,16 @@ lineai_aoi_profiles/
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
+├── test/                  # ルート src/ に対する vitest のテスト（詳細は test/README.md）
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
 │       ├── index.ts             # Cloud Functions エントリポイント
 │       ├── lib/                 # Cloud Functions 共通処理
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
+├── .github/
+│   └── workflows/
+│       └── test.yml      # プッシュ時に pnpm test を実行する GitHub Actions
 └── .claude/
     ├── coding_agent.md    # コーディングエージェントモードのガイドライン
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
@@ -226,6 +241,7 @@ lineai_aoi_profiles/
 | スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） / `review_song_feedback`（楽曲フィードバックの定期レビュー） |
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
+| 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録（`from_aoi` / `night_handover` / `up_mountain` 等）でレスポンスが読み込めない大きさになるため、使う `type` が決まっている処理では絞って取得する（調べモードは `line_text` / `line_image` / `from_aoi` に固定）。`date` 範囲との併用で複合インデックスが要らないよう、絞り込みは取得後にクライアント側で行う |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |

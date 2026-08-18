@@ -10,9 +10,10 @@
 - **`get_google_calendar_events`**
   - `dateFrom`: 2日前の日付（YYYY-MM-DD）
   - `dateTo`: 翌日の日付（YYYY-MM-DD）
-- **`get_firestore_docs`**: `dateFrom` に2日前の日付、`dateTo` に本日の日付（いずれも YYYY-MM-DD）を指定
+- **`get_firestore_docs`**: `dateFrom` に2日前の日付、`dateTo` に本日の日付（いずれも YYYY-MM-DD）を指定し、**`--type "up_mountain,off_mountain"` を付けて絞り込む**
   - 一泊以上の山行では、門灯モードの `up_mountain` は**入山日（本日より前）**に記録されています。`dateFrom`・`dateTo` をともに本日に固定すると、日跨ぎの山行では下記（A）の判定が構造的に成立しないため、必ず範囲で取得してください。
-  - 取得範囲に未対応の `up_mountain` が見つからず、カレンダーの終日予定（`allDayLastDate`）などから**3日以上前に入山した山行**が読み取れる場合は、`dateFrom` を入山予定日まで遡らせて取り直して構いません。
+  - 先行処理で使うのは `up_mountain` と `off_mountain` の照合だけです。範囲を広げた取得で長文の `night_handover` / `from_aoi` / `line_text` などが混ざるとレスポンスが肥大化するため、`--type` で絞ってください。
+  - 取得範囲に未対応の `up_mountain` が見つからず、カレンダーの終日予定（`allDayLastDate`）などから**3日以上前に入山した山行**が読み取れる場合は、`dateFrom` を入山予定日まで遡らせて取り直して構いません（取り直し時も同じ `--type` を付けてください）。
 
 取得結果をもとに、登山日程を次の優先順位で確定してください。
 

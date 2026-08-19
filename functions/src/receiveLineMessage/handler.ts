@@ -108,7 +108,7 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
       }
 
       if (event.type !== "message") {
-        continue;
+        throw new Error(`Unsupported event: type=${event.type}, message.type=N/A`);
       }
 
       const message = event.message;
@@ -179,6 +179,8 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
         });
         continue;
       }
+
+      throw new Error(`Unsupported event: type=${event.type}, message.type=${message.type}`);
     }
 
     res.status(200).send("OK");

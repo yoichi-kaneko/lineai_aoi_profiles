@@ -263,4 +263,77 @@ describe("createReceiveLineMessageHandler", () => {
     expect(sent).toEqual([{ code: 200, body: "OK" }]);
     expect(adds).toHaveLength(0);
   });
+
+  it("未対応イベントは例外を投げる", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+    });
+
+    await expect(
+      handler(
+        {
+          headers: { "x-line-signature": "sig" },
+          rawBody: Buffer.from("body"),
+          body: {
+            destination: "dest",
+            events: [
+              {
+                type: "follow",
+                timestamp: Date.now(),
+                source: { type: "user", userId: "user-1" },
+                replyToken: "reply",
+                mode: "active",
+                webhookEventId: "w1",
+                deliveryContext: { isRedelivery: false },
+              } as unknown as HandlerRequest["body"]["events"][number],
+            ],
+          },
+        },
+        response,
+      ),
+    ).rejects.toThrow("Unsupported event: type=follow, message.type=N/A");
+
+    expect(sent).toEqual([]);
+    expect(adds).toHaveLength(0);
+  });
+
+  it("未対応メッセージタイプは例外を投げる", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+    });
+
+    await expect(
+      handler(
+        {
+          headers: { "x-line-signature": "sig" },
+          rawBody: Buffer.from("body"),
+          body: {
+            destination: "dest",
+            events: [
+              {
+                type: "message",
+                timestamp: Date.now(),
+                source: { type: "user", userId: "user-1" },
+                message: { type: "sticker", id: "m1", packageId: "1", stickerId: "1" },
+                replyToken: "reply",
+                mode: "active",
+                webhookEventId: "w1",
+                deliveryContext: { isRedelivery: false },
+              } as unknown as HandlerRequest["body"]["events"][number],
+            ],
+          },
+        },
+        response,
+      ),
+    ).rejects.toThrow("Unsupported event: type=message, message.type=sticker");
+
+    expect(sent).toEqual([]);
+    expect(adds).toHaveLength(0);
+  });
 });

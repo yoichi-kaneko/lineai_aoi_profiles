@@ -16,7 +16,7 @@ const MIME_TO_EXT: Record<string, string> = {
   "image/tiff": ".tiff",
 };
 
-function getFilenameFromResponse(response: Response, url: string): string {
+export function getFilenameFromResponse(response: Response, url: string): string {
   // Content-Disposition ヘッダーからファイル名を取得
   const disposition = response.headers.get("content-disposition");
   if (disposition) {
@@ -38,6 +38,9 @@ function getFilenameFromResponse(response: Response, url: string): string {
   const ext = MIME_TO_EXT[contentType] ?? ".bin";
   return `image_${Date.now()}${ext}`;
 }
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("download_image.ts");
 
 async function main() {
   const url = process.argv[2];
@@ -101,7 +104,9 @@ async function main() {
   }, null, 2));
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

@@ -61,7 +61,7 @@ interface Checkin {
   comments?: { count: number };
 }
 
-function formatCheckin(checkin: Checkin): Record<string, unknown> {
+export function formatCheckin(checkin: Checkin): Record<string, unknown> {
   const venue = checkin.venue ?? {};
   const location = venue.location ?? {};
   const categories = venue.categories ?? [];
@@ -101,7 +101,7 @@ function formatCheckin(checkin: Checkin): Record<string, unknown> {
   return formatted;
 }
 
-function buildMeta(params: {
+export function buildMeta(params: {
   isComplete: boolean;
   returnedCount: number;
   totalAvailable?: number | null;
@@ -141,6 +141,28 @@ async function makeRequest(
   return response.json() as Promise<Record<string, unknown>>;
 }
 
+export function resolveJstDateRange(startDateArg: string, endDateArg: string): {
+  afterTimestamp: number;
+  beforeTimestamp: number;
+} {
+  const startDate = new Date(startDateArg);
+  const endDate = new Date(endDateArg);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    throw new Error("日付は YYYY-MM-DD 形式で指定してください");
+  }
+
+  const afterTimestamp = Math.floor((startDate.getTime() - JST_OFFSET_MS) / 1000);
+  const endDatePlusOne = new Date(endDate);
+  endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+  const beforeTimestamp = Math.floor((endDatePlusOne.getTime() - JST_OFFSET_MS) / 1000);
+
+  return { afterTimestamp, beforeTimestamp };
+}
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("get_checkins.ts");
+
 async function main() {
   const startDateArg = process.argv[2];
   const endDateArg = process.argv[3];
@@ -151,21 +173,14 @@ async function main() {
     process.exit(1);
   }
 
-  const startDate = new Date(startDateArg);
-  const endDate = new Date(endDateArg);
-
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    console.error("日付は YYYY-MM-DD 形式で指定してください");
+  let afterTimestamp: number;
+  let beforeTimestamp: number;
+  try {
+    ({ afterTimestamp, beforeTimestamp } = resolveJstDateRange(startDateArg, endDateArg));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
-
-  // YYYY-MM-DD はUTC 00:00:00として解釈されるため、JSTオフセット分を引いてJST 00:00:00に補正する
-  const afterTimestamp = Math.floor((startDate.getTime() - JST_OFFSET_MS) / 1000);
-
-  // end_date の翌日JST 00:00:00をbeforeTimestampとすることで当日終わりまで含める
-  const endDatePlusOne = new Date(endDate);
-  endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
-  const beforeTimestamp = Math.floor((endDatePlusOne.getTime() - JST_OFFSET_MS) / 1000);
 
   const data = await makeRequest("/users/self/checkins", {
     limit: LIMIT,
@@ -197,7 +212,9 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error.message || error);
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error.message || error);
+    process.exit(1);
+  });
+}

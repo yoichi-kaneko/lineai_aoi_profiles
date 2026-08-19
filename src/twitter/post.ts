@@ -22,7 +22,7 @@ function rejectOutsideTmp(imageFilePath: string): never {
  * tmp/ 外・シンボリックリンク経由の脱出は拒否する。
  * （generate_gpt_image の savedPaths は絶対パスのため、相対のみだと投稿が失敗する）
  */
-function resolveUploadImagePath(imageFilePath: string): string {
+export function resolveUploadImagePath(imageFilePath: string): string {
   if (!isAbsolute(imageFilePath) && !imageFilePath.startsWith(TMP_PREFIX)) {
     rejectOutsideTmp(imageFilePath);
   }
@@ -58,6 +58,9 @@ function resolveUploadImagePath(imageFilePath: string): string {
 
   return realFilePath;
 }
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("post.ts");
 
 async function main() {
   const textFilePath = process.argv[2];
@@ -96,4 +99,6 @@ async function main() {
   console.log(JSON.stringify(result.data, null, 2));
 }
 
-main().catch(handleCliError);
+if (isDirectRun) {
+  main().catch(handleCliError);
+}

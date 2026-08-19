@@ -54,7 +54,7 @@ export type YamapPlan = {
 //   - https://yamap.com/plans/code/{CODE}
 //   - https://yamap.com/plans/code/{CODE}/printing -> 末尾の /printing を除去して使用
 // それ以外のURLはエラーとして扱う
-function normalizeYamapUrl(url: string): string {
+export function normalizeYamapUrl(url: string): string {
   const exactPattern = /^https:\/\/yamap\.com\/plans\/code\/[^/]+$/;
   const printingPattern = /^https:\/\/yamap\.com\/plans\/code\/[^/]+(\/printing)$/;
 
@@ -240,7 +240,7 @@ function sumBy(checkpoints: YamapCheckpoint[], key: "distance" | "cumulativeUp" 
   }, 0);
 }
 
-function buildReport(plan: YamapPlan, timezone: number): string {
+export function buildReport(plan: YamapPlan, timezone: number): string {
   const checkpoints = plan.checkpoints ?? [];
   const paceMultiplier = isFiniteNumber(plan.paceMultiplier) ? plan.paceMultiplier : 100;
   const lines: string[] = [];

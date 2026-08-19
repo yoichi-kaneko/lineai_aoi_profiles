@@ -18,7 +18,7 @@ const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 /** 解決済みパスの実体が許可ディレクトリ内に収まることを確認して返す（シンボリックリンク経由の脱出を拒否） */
-function assertRealPathInsideDir(
+export function assertRealPathInsideDir(
   resolvedPath: string,
   allowedDir: string,
   outsideErrorMessage: string,
@@ -110,7 +110,7 @@ const TMP_REFERENCE_PREFIX = "tmp/";
  * ファイル名のみ → 参照画像ディレクトリ（GENERATE_IMAGE_IMPORT_DIR）配下、
  * `tmp/` 前置の相対パス → プロジェクトの tmp/ 配下（綴葉モードの代表写真など、実行時に取得したファイル用）
  */
-function resolveReferenceImagePath(file: string, importDirPath: string): string {
+export function resolveReferenceImagePath(file: string, importDirPath: string): string {
   if (file.startsWith(TMP_REFERENCE_PREFIX)) {
     // tmp/ 配下以外への参照（../ による脱出など）を拒否する
     const tmpDir = resolve(PROJECT_ROOT, "tmp");
@@ -143,7 +143,7 @@ function resolveReferenceImagePath(file: string, importDirPath: string): string 
   );
 }
 
-function parseReferenceFileNames(rawFileNames: string): string[] {
+export function parseReferenceFileNames(rawFileNames: string): string[] {
   const fileNames = rawFileNames
     .split(",")
     .map((fileName) => fileName.trim())
@@ -231,6 +231,9 @@ function saveGeneratedImages(
   return savedPaths;
 }
 
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("generate_image.ts");
+
 async function main() {
   const promptFilePath = process.argv[2];
   const rawFileNames = process.argv[3];
@@ -287,10 +290,12 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(
-    "エラーが発生しました:",
-    error instanceof Error ? error.message : String(error),
-  );
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error(
+      "エラーが発生しました:",
+      error instanceof Error ? error.message : String(error),
+    );
+    process.exit(1);
+  });
+}

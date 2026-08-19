@@ -5,8 +5,10 @@
         "functions"
     ],
     "scripts": {
-        "test": "vitest run",
-        "test:watch": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:functions": "pnpm --filter aoi-functions test",
+    "test:all": "pnpm test && pnpm test:functions"
     },
     "dependencies": {
         "@doist/todoist-sdk": "^9.1.0",

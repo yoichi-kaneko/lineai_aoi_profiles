@@ -16,7 +16,7 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function calcPreviewSize(
+export function calcPreviewSize(
   originalWidth: number,
   originalHeight: number,
   maxSize = 512
@@ -33,6 +33,9 @@ function calcPreviewSize(
     height: Math.round(originalHeight * ratio),
   };
 }
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("upload_image.ts");
 
 async function main() {
   const relativeFilePath = process.argv[2];
@@ -85,7 +88,9 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

@@ -10,7 +10,7 @@ const PROJECT_ROOT = resolve(__dirname, "../../");
 dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
 
 /** Mureka API が返す歌詞・タイトル中のリテラルエスケープや記号混入を正規化する */
-function normalizeMurekaLyrics(text: string): string {
+export function normalizeMurekaLyrics(text: string): string {
   return text
     .replace(/\\n/g, "\n")
     .replace(/\\r/g, "\r")
@@ -27,6 +27,9 @@ function getApiKey(): string {
   }
   return key;
 }
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("generate_lyrics.ts");
 
 async function main() {
   const promptFilePath = process.argv[2];
@@ -65,7 +68,9 @@ async function main() {
   }, null, 2));
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

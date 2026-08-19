@@ -2,6 +2,42 @@
 
 このディレクトリには Google Cloud Functions 用のコードが格納されています。
 
+## テスト
+
+`functions/` は独立ワークスペースとして `functions/test/` に Vitest を持ちます。
+ルート `test/` とは分離し、CommonJS 出力や Functions 固有の依存関係をここで閉じます。
+
+```bash
+cd functions
+pnpm test        # functions のみ
+pnpm test:watch  # ウォッチ実行
+
+# ルートから全体実行
+cd ..
+pnpm test:all
+```
+
+### 現在のカバー範囲
+
+- 直接テスト:
+  - `src/receiveLineMessage/parseRating.ts`
+  - `src/receiveLineMessage/parseImageFeedback.ts`
+  - `src/receiveLineMessage/parseSongFeedback.ts`
+  - `src/firebase/noteTypes.ts`
+  - `src/receiveLineMessage/routing.ts`
+  - `src/receiveLineMessage/jstDate.ts`
+  - `src/receiveLineMessage/handler.ts`
+  - `src/lib/execEc2Command.ts`
+- 間接カバー:
+  - `src/receiveLineMessage/index.ts` は handler 登録のみのため、`handler.ts` のテストで間接カバーする
+  - `src/index.ts` は `receiveLineMessage/index.ts` の import のみのため、個別テストは持たない
+
+方針:
+
+- 実 Firestore / LINE / AWS には接続せず、モックで分岐と保存内容を検証する
+- group/room の無視、署名検証、ユーザー制限、フィードバック隔離、EC2 トリガー抑止/発火を自動テストで担保する
+- 署名検証や Functions Framework 登録の薄い部分は、依存注入可能な `createReceiveLineMessageHandler()` を中心に検証する
+
 ## 関数一覧
 
 ### `receiveLineMessage`
@@ -26,7 +62,7 @@ LINE Webhook からのリクエストを受け取る HTTP 関数。
 
 #### EC2 コマンドのトリガー
 
-`src/receiveLineMessage/index.ts` の冒頭で定義された `TRIGGER_MODE_MAP` のいずれかのキーワードに前方一致するテキストメッセージ（フィードバックの振り分けに該当しなかったもの）を受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
+`src/receiveLineMessage/routing.ts` の `TRIGGER_MODE_MAP` に定義されたキーワードへ前方一致するテキストメッセージ（フィードバックの振り分けに該当しなかったもの）を受信すると、AWS SSM 経由で EC2 インスタンス上のコマンドを実行します。
 
 現在のトリガーキーワードとモード:
 

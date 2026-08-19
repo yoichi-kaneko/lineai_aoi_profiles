@@ -5,7 +5,11 @@
  * 構文的に正しいが構造が不正なフィクスチャで拒否／正規化を確認する。
  */
 import { describe, expect, it } from "vitest";
-import { extractPageData } from "../../src/yamap/fetch_plan.js";
+import {
+  buildReport,
+  extractPageData,
+  normalizeYamapUrl,
+} from "../../src/yamap/fetch_plan.js";
 
 function wrapNextData(json: string): string {
   return `<!DOCTYPE html><html><body><script id="__NEXT_DATA__" type="application/json">${json}</script></body></html>`;
@@ -74,5 +78,69 @@ describe("extractPageData", () => {
     const { timezone } = extractPageData(wrapPageProps({ plan: { title: "tz" } }));
 
     expect(timezone).toBe(9);
+  });
+});
+
+describe("normalizeYamapUrl", () => {
+  it("計画書URLをそのまま受け付ける", () => {
+    expect(normalizeYamapUrl("https://yamap.com/plans/code/ABC123")).toBe(
+      "https://yamap.com/plans/code/ABC123",
+    );
+  });
+
+  it("printing URL は末尾を除去する", () => {
+    expect(normalizeYamapUrl("https://yamap.com/plans/code/ABC123/printing")).toBe(
+      "https://yamap.com/plans/code/ABC123",
+    );
+  });
+
+  it("他の URL は拒否する", () => {
+    expect(() => normalizeYamapUrl("https://yamap.com/activities/123")).toThrow(
+      "URLのフォーマットが正しくありません。",
+    );
+  });
+});
+
+describe("buildReport", () => {
+  it("計画レポートを整形する", () => {
+    const report = buildReport(
+      {
+        title: "南アルプス縦走",
+        description: "風に注意",
+        startAt: 1783724400,
+        finishAt: 1783810800,
+        memberCount: 2,
+        courseConstant: 25,
+        paceMultiplier: 110,
+        user: { name: "kanek" },
+        maps: [{ name: "赤石岳" }],
+        checkpoints: [
+          {
+            arrivalDayNumber: 1,
+            arrivalTimeInSeconds: 21600,
+            name: "登山口",
+            distance: 0,
+            cumulativeUp: 0,
+            cumulativeDown: 0,
+          },
+          {
+            arrivalDayNumber: 1,
+            arrivalTimeInSeconds: 25200,
+            name: "山小屋",
+            stayType: "sleep",
+            distance: 1234,
+            cumulativeUp: 999.9,
+            cumulativeDown: 12.5,
+          },
+        ],
+      },
+      9,
+    );
+
+    expect(report).toContain("計画タイトル: 南アルプス縦走");
+    expect(report).toContain("コース定数: 25 (きつい)");
+    expect(report).toContain("ペース倍率: 110% (やや速い)");
+    expect(report).toContain("1日目: 合計55分 / 距離1.2km / のぼり999m / くだり12m");
+    expect(report).toContain("06:55 山小屋（宿泊地）");
   });
 });

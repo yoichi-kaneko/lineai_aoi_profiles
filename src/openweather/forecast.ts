@@ -127,11 +127,11 @@ interface ErrorWeatherResponse {
 
 type WeatherResponse = SuccessWeatherResponse | ErrorWeatherResponse;
 
-function isErrorResponse(response: WeatherResponse): response is ErrorWeatherResponse {
+export function isErrorResponse(response: WeatherResponse): response is ErrorWeatherResponse {
   return "cod" in response && "message" in response;
 }
 
-function formatDateTime(timestamp: number): string {
+export function formatDateTime(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleString("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
@@ -142,7 +142,7 @@ function formatDateTime(timestamp: number): string {
   });
 }
 
-function formatDate(timestamp: number): string {
+export function formatDate(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleDateString("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
@@ -150,6 +150,9 @@ function formatDate(timestamp: number): string {
     day: "2-digit",
   });
 }
+
+const isDirectRun =
+  !!process.argv[1] && process.argv[1].endsWith("forecast.ts");
 
 async function main() {
   const latArg = process.argv[2];
@@ -232,7 +235,9 @@ ${dailyForecast}
   console.log(forecastText);
 }
 
-main().catch((error) => {
-  console.error("エラーが発生しました:", error);
-  process.exit(1);
-});
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error("エラーが発生しました:", error);
+    process.exit(1);
+  });
+}

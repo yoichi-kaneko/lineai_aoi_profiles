@@ -4,7 +4,9 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "functions-framework --target=receiveLineMessage"
+    "start": "functions-framework --target=receiveLineMessage",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.0.0",
@@ -14,7 +16,8 @@
     "google-auth-library": "^9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^22.15.29",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.10"
   }
 }

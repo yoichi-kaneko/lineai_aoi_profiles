@@ -70,7 +70,7 @@ function loadTokens(): Record<string, any> {
  * 指定タイムゾーンにおける、与えられた日付のUTCオフセット文字列を返す
  * 例: "Asia/Tokyo" -> "+09:00", "America/New_York" (EST) -> "-05:00"
  */
-function getTimezoneOffsetString(timezone: string, dateStr: string): string {
+export function getTimezoneOffsetString(timezone: string, dateStr: string): string {
   const [year, month, day] = dateStr.split("T")[0].split("-").map(Number);
   // その日の正午UTC を基準にオフセットを取得 (DST境界の誤検知を防ぐため)
   const refDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
@@ -90,13 +90,13 @@ function getTimezoneOffsetString(timezone: string, dateStr: string): string {
 }
 
 /** ISO datetime 文字列 (例: "2026-03-08T00:00:00") にタイムゾーンオフセットを付加して RFC3339 に変換 */
-function toRFC3339(datetime: string, timezone: string): string {
+export function toRFC3339(datetime: string, timezone: string): string {
   const offset = getTimezoneOffsetString(timezone, datetime);
   return `${datetime}${offset}`;
 }
 
 /** 文字列が実在する "YYYY-MM-DD" 形式の日付かを検証する */
-function isValidDateString(dateStr: string): boolean {
+export function isValidDateString(dateStr: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
 
   const date = new Date(`${dateStr}T00:00:00.000Z`);
@@ -104,7 +104,7 @@ function isValidDateString(dateStr: string): boolean {
 }
 
 /** "YYYY-MM-DD" の前日を "YYYY-MM-DD" で返す (実行環境のローカルタイムゾーンに影響されないよう UTC 基準で計算) */
-function previousDay(dateStr: string): string {
+export function previousDay(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);
@@ -129,7 +129,7 @@ export function resolveAllDayLastDate(event: calendar_v3.Schema$Event): string |
   return previousDay(endDate);
 }
 
-function formatEvent(event: calendar_v3.Schema$Event): object {
+export function formatEvent(event: calendar_v3.Schema$Event): object {
   const allDayLastDate = resolveAllDayLastDate(event);
 
   return {

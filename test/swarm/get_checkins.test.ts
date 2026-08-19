@@ -55,4 +55,20 @@ describe("swarm/get_checkins", () => {
       beforeTimestamp: 1704121200,
     });
   });
+
+  it("存在しない日付を拒否する", () => {
+    expect(() => resolveJstDateRange("2024-02-30", "2024-03-01")).toThrow(
+      "日付は YYYY-MM-DD 形式で指定してください",
+    );
+    expect(() => resolveJstDateRange("2023-02-28", "2023-02-29")).toThrow(
+      "日付は YYYY-MM-DD 形式で指定してください",
+    );
+  });
+
+  it("DST 境界日でも UTC 基準で beforeTimestamp を計算する", () => {
+    expect(resolveJstDateRange("2024-03-10", "2024-03-10")).toEqual({
+      afterTimestamp: 1709996400,
+      beforeTimestamp: 1710082800,
+    });
+  });
 });

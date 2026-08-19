@@ -13,6 +13,17 @@ describe("util/download_image", () => {
     );
   });
 
+  it("危険な Content-Disposition のファイル名を拒否する", () => {
+    const response = new Response(null, {
+      headers: {
+        "content-disposition": "attachment; filename*=UTF-8''..%2F.env",
+      },
+    });
+    expect(() => getFilenameFromResponse(response, "https://example.com/fallback.jpg")).toThrow(
+      "安全でないファイル名です: ../.env",
+    );
+  });
+
   it("URL の basename を使う", () => {
     const response = new Response(null, { headers: {} });
     expect(getFilenameFromResponse(response, "https://example.com/images/pic.webp")).toBe(

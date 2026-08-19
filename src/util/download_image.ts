@@ -22,7 +22,11 @@ export function getFilenameFromResponse(response: Response, url: string): string
   if (disposition) {
     const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
     if (match?.[1]) {
-      return decodeURIComponent(match[1].trim());
+      const filename = decodeURIComponent(match[1].trim());
+      if (filename !== path.basename(filename) || filename === "." || filename === "..") {
+        throw new Error(`安全でないファイル名です: ${filename}`);
+      }
+      return filename;
     }
   }
 

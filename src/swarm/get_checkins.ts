@@ -141,20 +141,28 @@ async function makeRequest(
   return response.json() as Promise<Record<string, unknown>>;
 }
 
+function parseStrictUtcDate(value: string): Date {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error("日付は YYYY-MM-DD 形式で指定してください");
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new Error("日付は YYYY-MM-DD 形式で指定してください");
+  }
+
+  return date;
+}
+
 export function resolveJstDateRange(startDateArg: string, endDateArg: string): {
   afterTimestamp: number;
   beforeTimestamp: number;
 } {
-  const startDate = new Date(startDateArg);
-  const endDate = new Date(endDateArg);
-
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    throw new Error("日付は YYYY-MM-DD 形式で指定してください");
-  }
+  const startDate = parseStrictUtcDate(startDateArg);
+  const endDate = parseStrictUtcDate(endDateArg);
 
   const afterTimestamp = Math.floor((startDate.getTime() - JST_OFFSET_MS) / 1000);
-  const endDatePlusOne = new Date(endDate);
-  endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+  const endDatePlusOne = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
   const beforeTimestamp = Math.floor((endDatePlusOne.getTime() - JST_OFFSET_MS) / 1000);
 
   return { afterTimestamp, beforeTimestamp };

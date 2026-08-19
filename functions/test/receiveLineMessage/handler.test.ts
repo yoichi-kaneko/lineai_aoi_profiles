@@ -88,6 +88,23 @@ describe("createReceiveLineMessageHandler", () => {
     expect(adds).toHaveLength(0);
   });
 
+  it("LINE_CHANNEL_SECRET 未設定なら 500 で署名検証しない", async () => {
+    process.env.LINE_CHANNEL_SECRET = "";
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const validateSignatureFn = vi.fn(() => true);
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn,
+    });
+
+    await handler(createTextRequest("こんにちは"), response);
+
+    expect(sent).toEqual([{ code: 500, body: "LINE_CHANNEL_SECRET is not configured" }]);
+    expect(validateSignatureFn).not.toHaveBeenCalled();
+    expect(adds).toHaveLength(0);
+  });
+
   it("許可ユーザー不一致なら 403", async () => {
     const { firestore } = createFirestoreMock();
     const { response, sent } = createResponseMock();
@@ -123,6 +140,34 @@ describe("createReceiveLineMessageHandler", () => {
         kind: "rating",
         score: 5,
         comment: "ルリが可愛い",
+        target_date: "2026-06-12",
+      }),
+    );
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("楽曲フィードバックは notes に入れず専用コレクションへ保存する", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("楽曲評価 2026-06-12 4 サビが好き"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].collection).toBe("song_feedback");
+    expect(adds[0].data.type).toBe("song_feedback");
+    expect(adds[0].data.description).toBe(
+      JSON.stringify({
+        kind: "rating",
+        score: 4,
+        comment: "サビが好き",
         target_date: "2026-06-12",
       }),
     );
@@ -175,6 +220,40 @@ describe("createReceiveLineMessageHandler", () => {
               webhookEventId: "w1",
               deliveryContext: { isRedelivery: false },
             },
+          ],
+        },
+      },
+      response,
+    );
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(0);
+  });
+
+  it("不完全な message イベントは無視して 200 を返す", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+    });
+
+    await handler(
+      {
+        headers: { "x-line-signature": "sig" },
+        rawBody: Buffer.from("body"),
+        body: {
+          destination: "dest",
+          events: [
+            {
+              type: "message",
+              timestamp: Date.now(),
+              source: { type: "user", userId: "user-1" },
+              replyToken: "reply",
+              mode: "active",
+              webhookEventId: "w1",
+              deliveryContext: { isRedelivery: false },
+            } as unknown as HandlerRequest["body"]["events"][number],
           ],
         },
       },

@@ -3,7 +3,8 @@
 ルートの `src/` に対するテストを置く。`functions/` は独立したワークスペースパッケージのため、そちらのテストは `functions/test/` に置く。
 
 ```bash
-pnpm test        # 全テストを実行する
+pnpm test        # ルートのテストを実行する
+pnpm test:functions # functions のテストを実行する
 pnpm test:watch  # ウォッチ実行
 pnpm test:all    # ルート + functions の全テスト
 ```

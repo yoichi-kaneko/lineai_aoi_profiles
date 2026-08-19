@@ -77,6 +77,11 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
       ? signatureHeader[0]
       : signatureHeader;
 
+    if (!channelSecret) {
+      res.status(500).send("LINE_CHANNEL_SECRET is not configured");
+      return;
+    }
+
     if (!signature || !req.rawBody || !validateSignatureFn(req.rawBody, channelSecret, signature)) {
       res.status(401).send("Unauthorized");
       return;
@@ -102,11 +107,20 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
         }
       }
 
-      if (event.type === "message" && event.message.type === "text") {
-        const message = event.message as webhook.TextMessageContent;
+      if (event.type !== "message") {
+        continue;
+      }
+
+      const message = event.message;
+      if (!message) {
+        continue;
+      }
+
+      if (message.type === "text") {
+        const textMessage = message as webhook.TextMessageContent;
         const dateValue = startOfJstDay(new Date(event.timestamp));
 
-        const imageFeedback = parseImageFeedback(message.text);
+        const imageFeedback = parseImageFeedback(textMessage.text);
         if (imageFeedback) {
           await addFeedbackDoc(
             deps.firestore,
@@ -119,7 +133,7 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
           continue;
         }
 
-        const songFeedback = parseSongFeedback(message.text);
+        const songFeedback = parseSongFeedback(textMessage.text);
         if (songFeedback) {
           await addFeedbackDoc(
             deps.firestore,
@@ -134,12 +148,12 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
 
         await deps.firestore.collection("notes").add({
           date: Timestamp.fromDate(dateValue),
-          description: message.text,
+          description: textMessage.text,
           type: NOTE_TYPE.LINE_TEXT,
           createdAt: Timestamp.fromDate(now()),
         });
 
-        const triggerMode = findTriggerMode(message.text);
+        const triggerMode = findTriggerMode(textMessage.text);
         if (triggerMode) {
           try {
             await execEc2CommandFn(triggerMode);
@@ -151,24 +165,20 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
       }
 
       if (
-        event.type === "message" &&
-        event.message.type === "image" &&
-        (event.message as webhook.ImageMessageContent).contentProvider.type === "line"
+        message.type === "image" &&
+        (message as webhook.ImageMessageContent).contentProvider.type === "line"
       ) {
-        const message = event.message as webhook.ImageMessageContent;
+        const imageMessage = message as webhook.ImageMessageContent;
         const dateValue = startOfJstDay(new Date(event.timestamp));
 
         await deps.firestore.collection("notes").add({
           date: Timestamp.fromDate(dateValue),
-          description: JSON.stringify({ id: message.id }),
+          description: JSON.stringify({ id: imageMessage.id }),
           type: NOTE_TYPE.LINE_IMAGE,
           createdAt: Timestamp.fromDate(now()),
         });
         continue;
       }
-
-      const messageType = event.type === "message" ? event.message.type : "N/A";
-      throw new Error(`Unsupported event: type=${event.type}, message.type=${messageType}`);
     }
 
     res.status(200).send("OK");

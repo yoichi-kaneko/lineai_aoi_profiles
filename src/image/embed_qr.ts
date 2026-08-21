@@ -13,7 +13,7 @@ const DEFAULT_QR_SIZE = 190;
 /** QR 本体の指定として受け付ける範囲（px） */
 const MIN_QR_SIZE = 120;
 const MAX_QR_SIZE = 400;
-/** カード内の余白（px）。QR 規格のクワイエットゾーンを兼ねる */
+/** カード内の余白（px）。QR PNG（クワイエットゾーン込み）の外側の見た目用 */
 const CARD_PADDING = 14;
 /** カードの角丸半径・枠線の太さ（px） */
 const CARD_RADIUS = 18;
@@ -222,7 +222,8 @@ async function renderQrCard(url: string, qrSize: number): Promise<Buffer> {
   const qrPng = await QRCode.toBuffer(url, {
     type: "png",
     errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
-    margin: 0,
+    // 規格どおり4モジュール分のクワイエットゾーンを QR PNG 内に含める
+    margin: 4,
     width: qrSize,
     color: { dark: QR_DARK, light: QR_LIGHT },
   });

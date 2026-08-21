@@ -96,6 +96,7 @@ lineai_aoi_profiles/
 │   ├── google_calendar/   # Google Calendar 予定取得・OAuth認証
 │   ├── google_drive/      # Google Drive ファイルダウンロード・OAuth認証
 │   ├── google_map/        # Google Maps API（ジオコーディング）
+│   ├── image/             # 画像へのQRコード埋め込み（ローカル画像処理）
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── mureka/            # Mureka 楽曲・歌詞生成
 │   ├── openai/            # OpenAI GPT 画像生成
@@ -144,7 +145,7 @@ lineai_aoi_profiles/
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
-| 綴葉（つづりは） | `daily message (綴葉): YYYY-MM-DD` | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、SNS（Twitter/X）へ**代筆投稿**する。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
+| 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 

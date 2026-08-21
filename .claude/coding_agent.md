@@ -40,6 +40,7 @@ lineai_aoi_profiles/
 │   ├── google_calendar/    # Google Calendar 予定取得・OAuth認証
 │   ├── google_drive/       # Google Drive ファイルダウンロード・OAuth認証
 │   ├── google_map/         # Google Maps ジオコーディング
+│   ├── image/              # 画像へのQRコード埋め込み（ローカル画像処理）
 │   ├── line/               # LINE メッセージ送信・画像ダウンロード
 │   ├── mureka/             # Mureka 楽曲・歌詞生成
 │   ├── openai/             # OpenAI GPT 画像生成
@@ -72,6 +73,7 @@ lineai_aoi_profiles/
 │       ├── download_line_image/
 │       ├── download_mureka_audio/
 │       ├── download_todoist_attachment/
+│       ├── embed_qr_code/
 │       ├── fetch_yamap_activity/
 │       ├── fetch_yamap_plan/
 │       ├── generate_gemini_image/

@@ -20,8 +20,11 @@ describe("twitter/post", () => {
 
   afterEach(() => {
     rmSync(join(tmpDir, "twitter-post-image.png"), { force: true });
-    rmSync(join(projectRoot, "twitter-secret.png"), { force: true });
+    // シンボリックリンクはリンク先より先に消す。リンク先を先に消すとリンクが
+    // 壊れた状態になり、rmSync の force がリンク自体を残したまま握り潰してしまう
+    // （残骸が次回実行の symlinkSync を EEXIST で失敗させる）
     rmSync(join(tmpDir, "twitter-escape.png"), { force: true });
+    rmSync(join(projectRoot, "twitter-secret.png"), { force: true });
     exitSpy.mockRestore();
     errorSpy.mockRestore();
   });

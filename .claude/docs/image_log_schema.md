@@ -37,6 +37,8 @@
 | `mode` | どのモード由来か | `night` / `off_mountain` |
 | `shot_size` | 抽選したショットサイズ（**偏り検知の主役**） | `close_up` / `bust_shot` / `waist_up` / `knee_shot` / `full_body` / `wide_shot` |
 | `camera_direction` | 抽選したカメラ方向（**偏り検知の主役**） | `front` / `three_quarter` / `profile` / `back` / `over_the_shoulder` |
+| `shot_size_rerolled_from` | （**任意**・再抽選時のみ）構図2軸の成立チェックで除外した、元のショットサイズ抽選結果。抽選順の配列 | `shot_size` と同じ語彙の配列（例：`["knee_shot"]`） |
+| `shot_size_reroll_reason` | （**任意**・再抽選時のみ）2軸どうしが構図として成立しにくいと判断した理由（1文） | 文字列 |
 | `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
@@ -47,6 +49,29 @@
 - `shot_size` / `camera_direction` は画像生成ガイドライン（[../../assets/image_guideline.md](../../assets/image_guideline.md) セクション8③）の語彙を `random_choice` で抽選します。ログには**上表の英語スネークケースの正規化値**で記録してください（例：「バストアップ（bust shot）」→ `bust_shot`、「斜め前（three-quarter view）」→ `three_quarter`）。柱C の偏り集計が値の表記揺れに影響されないようにするためです。
 - `companions` は各抽選の単一結果を統合し、`ruri` → `["ruri"]`、`hotaru` → `["hotaru"]`、`none` → `[]` と正規化します。両方が登場する場合の canonical order は `["ruri","hotaru"]` です。`none` という文字列は配列へ保存しないでください。
 - どの選択肢にも当てはめにくい場合のみ、最も近いものを選ぶか、`scene_category` は `other` を使ってください。
+
+### 構図2軸の再抽選が発生した場合
+[画像生成ガイドライン](../../assets/image_guideline.md) セクション8③の **抽選した2軸の成立チェック** で、抽選した2軸が構図として成立しにくいと判断し、ショットサイズを引き直した場合のみ `shot_size_rerolled_from` / `shot_size_reroll_reason` を追加します。柱C の偏り集計が実態と乖離しないようにするための記録です。
+
+- `shot_size` には**実際にプロンプトへ入れた（引き直し後の）値**を入れます。`camera_direction` は再抽選の対象外なので、常に最初の抽選結果です。
+- 引き直しが複数回に及んだ場合は、除外した値を**抽選順**に並べて配列に入れます（例：`["knee_shot","close_up"]`）。
+- 再抽選が無かった日は、この2つの**キー自体を省略**してください（空配列・空文字列は入れません）。
+
+```json
+{
+  "cloudinary_url": "https://res.cloudinary.com/.../xxxx.png",
+  "mode": "night",
+  "shot_size": "waist_up",
+  "camera_direction": "over_the_shoulder",
+  "shot_size_rerolled_from": ["knee_shot"],
+  "shot_size_reroll_reason": "肩越しは背後へ寄る構図、膝上はカメラを引く構図で、両立させると肩越しの狙い（見ている対象を一緒に見せる）が失われるため",
+  "outfit": "outfit_c",
+  "scene_category": "outing",
+  "time_of_day": "night",
+  "companions": [],
+  "prompt_digest": "大塚のクラフトビアバーで、卓上のジョッキに手を添える碧衣。"
+}
+```
 
 ## 記録コマンド
 

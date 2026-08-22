@@ -160,7 +160,7 @@
 
 - `mode`: `night` ／ `date`: 本日（YYYY-MM-DD）
 - `cloudinary_url`: ステップ3の `send_line_image` アップロード出力の `originalUrl`
-- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
+- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）。[画像生成ガイドライン](../assets/image_guideline.md) セクション8③の **構図軸の再抽選ログ** に従い、許可された理由で初回の抽選結果から値を変えた場合は、採用した値を `shot_size` / `camera_direction` に入れたうえで、変更した軸ごとに `shot_size_rerolled_from` / `shot_size_reroll_reason` および（カメラ方向を変えた場合のみ）`camera_direction_rerolled_from` / `camera_direction_reroll_reason` も記録する
 - `outfit`: 採用した衣装（outfit_a〜d）
 - `companions`: ステップ2で `random_choice` 抽選したルリ・蛍の登場可否を、スキーマに従う正規化済み配列（`[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]`）で記録する。抽選結果を選び直した場合は実際にプロンプトへ入れた内容を使い、`none` は保存しない
 - `scene_category` / `time_of_day` / `prompt_digest`: ステップ1・2の分析とプロンプトから判断

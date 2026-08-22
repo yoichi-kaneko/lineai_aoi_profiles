@@ -128,7 +128,7 @@
 
 - `mode`: `off_mountain` ／ `date`: 本日（YYYY-MM-DD）
 - `cloudinary_url`: ステップ3／4の `send_line_image` アップロード出力の `originalUrl`（同一画像のため宛先ごとに分けない）
-- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）
+- `shot_size` / `camera_direction`: ステップ2で `random_choice` 抽選した構図軸（正規化値）。[画像生成ガイドライン](../assets/image_guideline.md) セクション8③の **構図軸の再抽選ログ** に従い、許可された理由で初回の抽選結果から値を変えた場合は、採用した値を `shot_size` / `camera_direction` に入れたうえで、変更した軸ごとに `shot_size_rerolled_from` / `shot_size_reroll_reason` および（カメラ方向を変えた場合のみ）`camera_direction_rerolled_from` / `camera_direction_reroll_reason` も記録する
 - `outfit`: 採用した衣装（登山シーンが基本のため通常は `outfit_b`）
 - `scene_category`: 山行のため通常は `hike`
 - `companions`: ステップ2で `random_choice` 抽選したルリの登場可否を、正規化済み配列の `["ruri"]` または `[]` で記録する（山行シーンでは蛍は抽選対象外）。抽選結果を選び直した場合は実際にプロンプトへ入れた内容を使い、`none` は保存しない

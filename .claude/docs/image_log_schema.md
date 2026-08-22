@@ -35,10 +35,12 @@
 |---|---|---|
 | `cloudinary_url` | 送信画像の Cloudinary URL（永続）。`send_line_image` のアップロード出力 `originalUrl` をそのまま入れる | URL 文字列 |
 | `mode` | どのモード由来か | `night` / `off_mountain` |
-| `shot_size` | 抽選したショットサイズ（**偏り検知の主役**） | `close_up` / `bust_shot` / `waist_up` / `knee_shot` / `full_body` / `wide_shot` |
-| `camera_direction` | 抽選したカメラ方向（**偏り検知の主役**） | `front` / `three_quarter` / `profile` / `back` / `over_the_shoulder` |
-| `shot_size_rerolled_from` | （**任意**・再抽選時のみ）構図2軸の成立チェックで除外した、元のショットサイズ抽選結果。抽選順の配列 | `shot_size` と同じ語彙の配列（例：`["knee_shot"]`） |
-| `shot_size_reroll_reason` | （**任意**・再抽選時のみ）2軸どうしが構図として成立しにくいと判断した理由（1文） | 文字列 |
+| `shot_size` | 採用したショットサイズ（**偏り検知の主役**。再抽選があれば引き直し後の値） | `close_up` / `bust_shot` / `waist_up` / `knee_shot` / `full_body` / `wide_shot` |
+| `camera_direction` | 採用したカメラ方向（**偏り検知の主役**。再抽選があれば引き直し後の値） | `front` / `three_quarter` / `profile` / `back` / `over_the_shoulder` |
+| `shot_size_rerolled_from` | （**任意**・ショットサイズを再抽選した場合のみ）初回抽選から除外したショットサイズ。抽選順の配列 | `shot_size` と同じ語彙の配列（例：`["knee_shot"]`） |
+| `shot_size_reroll_reason` | （**任意**・ショットサイズを再抽選した場合のみ）再抽選と判断した理由（1文） | 文字列 |
+| `camera_direction_rerolled_from` | （**任意**・カメラ方向を再抽選した場合のみ）初回抽選から除外したカメラ方向 | `camera_direction` と同じ語彙（例：`"back"`） |
+| `camera_direction_reroll_reason` | （**任意**・カメラ方向を再抽選した場合のみ）再抽選と判断した理由（1文） | 文字列 |
 | `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
@@ -50,12 +52,18 @@
 - `companions` は各抽選の単一結果を統合し、`ruri` → `["ruri"]`、`hotaru` → `["hotaru"]`、`none` → `[]` と正規化します。両方が登場する場合の canonical order は `["ruri","hotaru"]` です。`none` という文字列は配列へ保存しないでください。
 - どの選択肢にも当てはめにくい場合のみ、最も近いものを選ぶか、`scene_category` は `other` を使ってください。
 
-### 構図2軸の再抽選が発生した場合
-[画像生成ガイドライン](../../assets/image_guideline.md) セクション8③の **抽選した2軸の成立チェック** で、抽選した2軸が構図として成立しにくいと判断し、ショットサイズを引き直した場合のみ `shot_size_rerolled_from` / `shot_size_reroll_reason` を追加します。柱C の偏り集計が実態と乖離しないようにするための記録です。
+### 構図軸の再抽選が発生した場合
+[画像生成ガイドライン](../../assets/image_guideline.md) セクション8③の **構図軸の再抽選ログ** に従い、許可された理由で初回の抽選結果から値を変えた場合は、該当する再抽選キーを追加します。対象は次の2パターンです。
 
-- `shot_size` には**実際にプロンプトへ入れた（引き直し後の）値**を入れます。`camera_direction` は再抽選の対象外なので、常に最初の抽選結果です。
-- 引き直しが複数回に及んだ場合は、除外した値を**抽選順**に並べて配列に入れます（例：`["knee_shot","close_up"]`）。
-- 再抽選が無かった日は、この2つの**キー自体を省略**してください（空配列・空文字列は入れません）。
+1. **シーンとの噛み合わせ** — 抽選結果がシーンとどうしても合わないため、ショットサイズまたはカメラ方向（または両方）を選び直した場合
+2. **抽選した2軸の成立チェック** — 2軸どうしが構図として成立しにくいため、ショットサイズのみ引き直した場合
+
+柱C の偏り集計が実態と乖離しないようにするための記録です。
+
+- `shot_size` / `camera_direction` には**実際にプロンプトへ入れた（引き直し後の）値**を入れます。
+- ショットサイズを変えた場合は `shot_size_rerolled_from` / `shot_size_reroll_reason` を追加します。引き直しが複数回に及んだ場合は、除外した値を**抽選順**に並べて配列に入れます（例：`["knee_shot","close_up"]`）。
+- カメラ方向を変えた場合は `camera_direction_rerolled_from` / `camera_direction_reroll_reason` を追加します（初回抽選から1値のみ）。
+- 再抽選が無かった日は、上記4キー（`shot_size_rerolled_from` / `shot_size_reroll_reason` / `camera_direction_rerolled_from` / `camera_direction_reroll_reason`）は**すべて省略**してください（空配列・空文字列は入れません）。
 
 ```json
 {

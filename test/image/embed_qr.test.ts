@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { realpathSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   assertEmbeddableUrl,
   assertPositionInsideBase,
@@ -7,6 +10,9 @@ import {
   resolveAnchorPosition,
   resolveBaseImagePath,
 } from "../../src/image/embed_qr";
+
+/** このテストファイル（test/image/）から2階層上がプロジェクトルート */
+const PROJECT_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 /** 綴葉モードで実際に扱うレポート画像のサイズ（generate_image.ts が固定） */
 const REPORT_BASE = { width: 1536, height: 1024 };
@@ -152,9 +158,13 @@ describe("assertPositionInsideBase", () => {
 
 describe("resolveBaseImagePath", () => {
   it("プロジェクトルート内の実在ファイルを解決する", () => {
-    expect(resolveBaseImagePath("assets/images/report_template.png")).toMatch(
-      /assets\/images\/report_template\.png$/,
+    // 期待値も同じ手順で組み立てる。パス区切りは OS 依存（Windows は `\`）のため、
+    // `/` を含む正規表現で照合すると Windows で落ちる。
+    const expected = realpathSync(
+      path.resolve(PROJECT_ROOT, "assets", "images", "report_template.png"),
     );
+
+    expect(resolveBaseImagePath("assets/images/report_template.png")).toBe(expected);
   });
 
   it("プロジェクトルート外への脱出を拒否する", () => {

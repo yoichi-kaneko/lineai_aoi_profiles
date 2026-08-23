@@ -152,7 +152,7 @@ EOF
 
 スキルへ渡す内容は以下の通りです。いずれも**一時ファイルに保存**してからスキルを実行してください（改行はそのまま改行として書いてよく、`\n` への置換は不要。`generate_mureka_song` スキルの手順に従う）。
 
-- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください
+- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください。超過していた場合は、[assets/songs_guideline.md](../assets/songs_guideline.md) セクション3「目安を超えた場合の削り方」の順序（description の文を減らす → instrument の括弧内ディスクリプタを削る）に従って調整してください
 - **`lyrics`** → `tmp/mureka_song_lyrics.txt`: ステップ4で生成した最適化済みの歌詞
 
 `prompt` は以下の形式で `tmp/mureka_song_prompt.txt` に書き込まれる最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。

@@ -24,7 +24,7 @@ test/
 ├── firebase/
 │   ├── noteTypes.test.ts      # NOTE_TYPE の許可値
 │   ├── runLogModes.test.ts    # JST 時間帯境界
-│   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）と type 絞り込み
+│   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）・type 絞り込み・出力整形
 ├── google_calendar/
 │   └── get_events.test.ts     # 終日予定の最終日計算・日付検証・RFC3339 変換
 ├── image/

@@ -64,12 +64,19 @@ cd {プロジェクトルートの絶対パス}
 node <<'EOF'
 const fs = require("fs");
 const raw = fs.readFileSync("tmp/song_from_aoi.json", "utf8");
-const docs = JSON.parse(raw.slice(0, raw.lastIndexOf("]") + 1));
+const end = raw.lastIndexOf("]");
+const docs = end === -1 ? [] : JSON.parse(raw.slice(0, end + 1));
+let found = 0;
 for (const doc of docs) {
   const body = doc.description || "";
   const section = body.match(/【天気予報の概要】[\s\S]*?(?=\n【|$)/);
-  if (section) console.log(body.split("\n")[0] + "\n" + section[0] + "\n");
+  if (section) {
+    found++;
+    console.log(body.split("\n")[0] + "\n" + section[0] + "\n");
+  }
 }
+if (docs.length === 0) console.log("該当する from_aoi の記録がありません（0件）");
+else if (found === 0) console.log("【天気予報の概要】の節を抽出できませんでした");
 EOF
 ```
 
@@ -79,7 +86,8 @@ EOF
 
 - **`tmp/song_from_aoi.json` を Read ツールで開かないでください**。全文を読んでしまうと二段構えの意味がなくなります。このファイルはフェーズA のステップ1で使い切る作業用で、後続のステップやフェーズBからは参照しません
 - **`grep` で節を抜こうとしないでください**。CLI の出力は `JSON.stringify(..., null, 2)` のため `description` 内の改行が `\n` へエスケープされて**1件が1行に潰れており**、行単位の `grep` は節ではなくそのドキュメント全文（最大7KB）を返します。加えて実行環境のロケールは `C.UTF-8` で、`[^】]` のような日本語の文字クラス否定はバイト単位で誤動作します
-- 抽出結果が0件だった場合（見出しの表記揺れなどで拾えないとき）は、対象日を直近2〜3日に絞って `--type "from_aoi"` を取り直し、その範囲だけを標準出力で読んでください。7日分を標準出力で取り直さないこと
+- 「**該当する from_aoi の記録がありません（0件）**」と出た場合は、その期間に暁モードの引き継ぎ記録が無い（または保存されていない）ということです。取得し直しても結果は変わらないため、天候の傾向は空欄のまま、他の材料でステップ2へ進んでください
+- 「**`【天気予報の概要】` の節を抽出できませんでした**」と出た場合は、記録はあるのに見出しが拾えていない（表記揺れなど）ということです。対象日を直近2〜3日に絞って `--type "from_aoi"` を取り直し、その範囲だけを標準出力で読んでください。7日分を標準出力で取り直さないこと
 
 ### ステップ2：歌詞の下書き
 

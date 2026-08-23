@@ -24,6 +24,15 @@
   "genres": ["Celtic Folk", "Ambient Pop"],
   "tags": ["Ethereal", "Meditative", "Calm", "Introspective", "Minimalist"],
   "theme_digest": "雨の記憶と待つ時間から、雲の切れ間を信じる夜の情景へ転写した。",
+  "color_axes": {
+    "tempo": "slow_ballad",
+    "vocal": "whispery",
+    "intro": "piano_solo",
+    "bridge": false,
+    "outro": "quiet_convergence",
+    "tonality": "minor",
+    "english_ratio": "japanese_only"
+  },
   "lyrics": "[Verse 1]\n...",
   "task_id": "mureka-task-id"
 }
@@ -36,6 +45,7 @@
 | `genres` | `tmp/mureka_song_prompt.txt` の `genres:` に入れたジャンル | 文字列配列 |
 | `tags` | `tmp/mureka_song_prompt.txt` の `tags:` に入れたタグ | 文字列配列 |
 | `theme_digest` | インスピレーション源を、元の出来事が特定されない粒度で要約した1〜2文 | 文字列 |
+| `color_axes` | 採用した彩り軸（[songs_guideline.md](../../assets/songs_guideline.md) セクション5）の抽選・選択結果 | 下記「彩り軸の正規化値」 |
 | `lyrics` | Mureka に渡した最終歌詞全文 | 文字列 |
 | `task_id` | `generate_mureka_song` が返した Mureka の task_id | 文字列 |
 
@@ -52,6 +62,20 @@
 | パッケージE：幻想（Celtic / Fantasy Folk） | `celtic_fantasy_folk` |
 | パッケージF：和風（Shakuhachi / Koto フュージョン） | `japanese_fusion` |
 | パッケージG：残響（Shoegaze / Dream Pop） | `shoegaze_dream_pop` |
+
+### 彩り軸の正規化値
+
+`color_axes` は [../../assets/songs_guideline.md](../../assets/songs_guideline.md) セクション5 の抽選軸（5-1）・自由選択軸（5-2）の選択結果を、以下のキーと値で記録します。5-2 の「直近3曲と同じ選択が続いている軸は必ず抽選」という判定を、次回以降のフェーズAが客観的に行うための土台であり、表記が揺れると連続判定が働きません。**7キーすべてを必ず記録**してください。
+
+| キー | 対応する軸 | 取りうる値 |
+|---|---|---|
+| `tempo` | 5-1 テンポ感 | `slow_ballad` / `mid_tempo` / `uptempo` / `dynamic_tempo_shift` |
+| `vocal` | 5-1 ボーカル表現 | `whispery` / `breathy` / `soaring` / `powerful` / `conversational` |
+| `intro` | 5-2 曲構成の型（イントロの入り方） | `piano_solo` / `pad_ambient` / `vocal_first` / `rhythm_first` |
+| `bridge` | 5-2 曲構成の型（ブリッジの有無） | 真偽値（あり = `true` / なし = `false`） |
+| `outro` | 5-2 曲構成の型（アウトロの型） | `reverb_fade` / `quiet_convergence` / `motif_reprise` |
+| `tonality` | 5-2 明暗 | `major` / `minor` / `oscillating` |
+| `english_ratio` | 5-2 英語フレーズの混在率 | `japanese_only` / `chorus_phrase` / `scattered_words` |
 
 ## 記録コマンド
 

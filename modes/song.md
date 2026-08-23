@@ -30,18 +30,56 @@
 
 - **`get_google_calendar_events`**: `dateFrom` を7日前、`dateTo` を7日後に指定
 - **`get_swarm_checkins`**: `start_date` を7日前、`end_date` を本日に指定
-- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定し、**`--type "line_text,line_image,from_aoi"` を付けて絞り込む**
-  - 7日分を絞り込まずに取得すると、`night_handover` / `up_mountain` / `stay_mountain` / `off_mountain` といった長文の引き継ぎ記録がすべて含まれ、レスポンスが一度に読み込めない大きさ（100KB近く）に膨らみます。本モードで使うのは、ユーザー自身の言葉・画像（`line_text` / `line_image`）と、暁モードが残した天候の傾向（`from_aoi`）であり、引き継ぎ記録の詳細な申し送り事項は不要です
+- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定し、**`--type "line_text,line_image"` を付けて絞り込む**。ユーザー自身の言葉と画像はこれで揃い、7日分でも6KB程度に収まるため、そのまま標準出力で読んで構いません
+  - 絞り込まずに取得すると、`night_handover` / `up_mountain` / `stay_mountain` / `off_mountain` といった長文の引き継ぎ記録がすべて含まれ、レスポンスが一度に読み込めない大きさ（100KB近く）に膨らみます。本モードに引き継ぎ記録の詳細な申し送り事項は不要です
   - 各モードの引き継ぎ記録から山行の様子を補いたい場合は、対象日を絞ったうえで別途 `--type` を指定して取得してください（7日分をまとめて取り直さないこと）
+- **`get_firestore_docs`（`from_aoi`）**: 天候の傾向は暁モードの引き継ぎ記録 `from_aoi` から拾いますが、これは1日あたり2,000〜3,000字あり、7日分では50KBを超えます。**上の `line_text` / `line_image` と同時に取得すると、再び一度に読めない大きさに戻ります**。`from_aoi` だけは切り離し、下記「`from_aoi` からの天候の傾向の抽出」の二段構えで取得してください
 - **`get_firestore_docs`（`--collection song_logs`）**: `dateFrom` を21日前、`dateTo` を本日に指定し、直近の楽曲生成ログを取得。取得できた場合は作成日の新しい順に2〜3件を、ステップ2〜3の重複回避に使う
 
 収集後、以下の観点からインスピレーションキーワードを抽出してください。
 
 - **出来事の傾向**: 1週間の間に起こった出来事の概要
-- **天気の傾向**: Firestoreの `from_aoi`（暁モードが記録した天気予報の概要）から読み取れる天候の傾向
+- **天気の傾向**: `from_aoi` の `【天気予報の概要】` 節（下記「`from_aoi` からの天候の傾向の抽出」で取り出したもの）から読み取れる、1週間の天候の傾向
 - **訪れた場所**: 登山や外出で足を運んだ場所
 - **時期・季節**: 現在の季節感や直近の行事
 - **直近楽曲との違い**: `song_logs` の `description` JSON から `title` / `package` / `theme_digest` を読み取り、直近の曲で使った主要モチーフ・情景・曲調を控える
+
+#### `from_aoi` からの天候の傾向の抽出
+
+本モードが `from_aoi` から使うのは天候の傾向だけで、登山予定の分析や移動予定の詳細は楽曲のインスピレーションには不要です。全文を読まずに済むよう、一時ファイルへ落としてから必要な節だけを抜き出してください。
+
+**手順1：一時ファイルへ保存する**（標準出力に流さない）
+
+```bash
+cd {プロジェクトルートの絶対パス}
+pnpm exec tsx src/firebase/get_docs.ts "{7日前}" "{本日}" --type "from_aoi" > tmp/song_from_aoi.json
+```
+
+**手順2：天候の節だけを抜き出して読む**
+
+暁モードは天候の傾向を `【天気予報の概要】` の見出しで記録しています（[modes/morning.md](morning.md) のステップ4「見出し表記の約束」）。以下をそのまま実行してください。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+node <<'EOF'
+const fs = require("fs");
+const raw = fs.readFileSync("tmp/song_from_aoi.json", "utf8");
+const docs = JSON.parse(raw.slice(0, raw.lastIndexOf("]") + 1));
+for (const doc of docs) {
+  const body = doc.description || "";
+  const section = body.match(/【天気予報の概要】[\s\S]*?(?=\n【|$)/);
+  if (section) console.log(body.split("\n")[0] + "\n" + section[0] + "\n");
+}
+EOF
+```
+
+出力は8KB前後に収まり、そのまま読めます。各記録の1行目（`暁モード引き継ぎ（8/17）。...`）を添えて出力するので、どの日の天候かはそこで判別してください（`date` フィールドは JSON 化の際に UTC 秒へ変換されるため、そのまま日付に直すと1日ずれます）。
+
+**注意**
+
+- **`tmp/song_from_aoi.json` を Read ツールで開かないでください**。全文を読んでしまうと二段構えの意味がなくなります。このファイルはフェーズA のステップ1で使い切る作業用で、後続のステップやフェーズBからは参照しません
+- **`grep` で節を抜こうとしないでください**。CLI の出力は `JSON.stringify(..., null, 2)` のため `description` 内の改行が `\n` へエスケープされて**1件が1行に潰れており**、行単位の `grep` は節ではなくそのドキュメント全文（最大7KB）を返します。加えて実行環境のロケールは `C.UTF-8` で、`[^】]` のような日本語の文字クラス否定はバイト単位で誤動作します
+- 抽出結果が0件だった場合（見出しの表記揺れなどで拾えないとき）は、対象日を直近2〜3日に絞って `--type "from_aoi"` を取り直し、その範囲だけを標準出力で読んでください。7日分を標準出力で取り直さないこと
 
 ### ステップ2：歌詞の下書き
 

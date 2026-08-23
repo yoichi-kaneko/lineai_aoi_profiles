@@ -65,14 +65,25 @@ node <<'EOF'
 const fs = require("fs");
 const raw = fs.readFileSync("tmp/song_from_aoi.json", "utf8");
 const end = raw.lastIndexOf("]");
-const docs = end === -1 ? [] : JSON.parse(raw.slice(0, end + 1));
+if (end === -1) {
+  console.error("from_aoi の取得に失敗しています（JSON 配列が見つかりません）");
+  process.exit(1);
+}
+const docs = JSON.parse(raw.slice(0, end + 1));
+if (!Array.isArray(docs)) {
+  console.error("from_aoi の取得結果が配列ではありません");
+  process.exit(1);
+}
+const jstDate = (d) =>
+  d && typeof d._seconds === "number"
+    ? new Date(d._seconds * 1000).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" })
+    : "日付不明";
 let found = 0;
 for (const doc of docs) {
-  const body = doc.description || "";
-  const section = body.match(/【天気予報の概要】[\s\S]*?(?=\n【|$)/);
+  const section = (doc.description || "").match(/【天気予報の概要】[\s\S]*?(?=\n【|$)/);
   if (section) {
     found++;
-    console.log(body.split("\n")[0] + "\n" + section[0] + "\n");
+    console.log(jstDate(doc.date) + "\n" + section[0] + "\n");
   }
 }
 if (docs.length === 0) console.log("該当する from_aoi の記録がありません（0件）");
@@ -80,12 +91,13 @@ else if (found === 0) console.log("【天気予報の概要】の節を抽出で
 EOF
 ```
 
-出力は8KB前後に収まり、そのまま読めます。各記録の1行目（`暁モード引き継ぎ（8/17）。...`）を添えて出力するので、どの日の天候かはそこで判別してください（`date` フィールドは JSON 化の際に UTC 秒へ変換されるため、そのまま日付に直すと1日ずれます）。
+出力は8KB前後に収まり、そのまま読めます。各節の前には、その記録の `date` を日本時間で整形した日付（`2026/8/17` 形式）を添えて出力します（`date` は JSON 化の際に UTC 秒（`_seconds`）へ変換されるため、タイムゾーンを指定せずに日付へ直すと1日ずれます。上のスクリプトは `Asia/Tokyo` を明示しています）。
 
 **注意**
 
 - **`tmp/song_from_aoi.json` を Read ツールで開かないでください**。全文を読んでしまうと二段構えの意味がなくなります。このファイルはフェーズA のステップ1で使い切る作業用で、後続のステップやフェーズBからは参照しません
 - **`grep` で節を抜こうとしないでください**。CLI の出力は `JSON.stringify(..., null, 2)` のため `description` 内の改行が `\n` へエスケープされて**1件が1行に潰れており**、行単位の `grep` は節ではなくそのドキュメント全文（最大7KB）を返します。加えて実行環境のロケールは `C.UTF-8` で、`[^】]` のような日本語の文字クラス否定はバイト単位で誤動作します
+- 「**from_aoi の取得に失敗しています（JSON 配列が見つかりません）**」と出た場合は、手順1のコマンド自体が失敗して `tmp/song_from_aoi.json` が空（または JSON になっていない）ということで、記録が0件だった場合とは区別されます（0件のときは `[]` が書き出され、下の「0件」のメッセージになります）。手順1から1回だけやり直し、それでも同じであればこのステップは諦め、天候の傾向は空欄のままステップ2へ進んでください
 - 「**該当する from_aoi の記録がありません（0件）**」と出た場合は、その期間に暁モードの引き継ぎ記録が無い（または保存されていない）ということです。取得し直しても結果は変わらないため、天候の傾向は空欄のまま、他の材料でステップ2へ進んでください
 - 「**`【天気予報の概要】` の節を抽出できませんでした**」と出た場合は、記録はあるのに見出しが拾えていない（表記揺れなど）ということです。対象日を直近2〜3日に絞って `--type "from_aoi"` を取り直し、その範囲だけを標準出力で読んでください。7日分を標準出力で取り直さないこと
 
@@ -160,7 +172,7 @@ EOF
 
 スキルへ渡す内容は以下の通りです。いずれも**一時ファイルに保存**してからスキルを実行してください（改行はそのまま改行として書いてよく、`\n` への置換は不要。`generate_mureka_song` スキルの手順に従う）。
 
-- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください。超過していた場合は、[assets/songs_guideline.md](../assets/songs_guideline.md) セクション3「目安を超えた場合の削り方」の順序（description の文を減らす → instrument の括弧内ディスクリプタを削る）に従って調整してください
+- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください。超過していた場合は、[assets/songs_guideline.md](../assets/songs_guideline.md) セクション3「目安を超えた場合の削り方」の順序（まず描写の重複を解消する → それでも収まらなければ description の文を減らす → instrument の括弧内ディスクリプタを削る）に従って調整してください
 - **`lyrics`** → `tmp/mureka_song_lyrics.txt`: ステップ4で生成した最適化済みの歌詞
 
 `prompt` は以下の形式で `tmp/mureka_song_prompt.txt` に書き込まれる最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。

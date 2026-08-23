@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ArgumentError,
   filterDocsByType,
+  formatDocsOutput,
   parseArgs,
   parseTypeFilter,
   resolveDateRange,
@@ -185,5 +186,52 @@ describe("filterDocsByType", () => {
 
   it("一致するものがなければ空配列を返す", () => {
     expect(filterDocsByType(docs, ["off_mountain"])).toEqual([]);
+  });
+});
+describe("formatDocsOutput", () => {
+  const options = { collection: "notes", dateFrom: "2026-08-16", dateTo: "2026-08-23" };
+
+  /** modes/song.md の from_aoi 抽出と同じ切り出し方で、JSON 部分だけを取り出す。 */
+  const parseDocs = (output: string) => JSON.parse(output.slice(0, output.lastIndexOf("]") + 1));
+
+  it("0件でも JSON 配列を先に出す（読み手が JSON.parse できる形にする）", () => {
+    const output = formatDocsOutput([], [], { ...options, types: ["from_aoi"] });
+
+    expect(parseDocs(output)).toEqual([]);
+  });
+
+  it("0件のときは該当なしのメッセージを添える", () => {
+    const output = formatDocsOutput([], [], { ...options, types: ["from_aoi"] });
+
+    expect(output).toContain(
+      "dateFrom=2026-08-16, dateTo=2026-08-23（コレクション: notes, type: from_aoi）に一致するドキュメントはありませんでした。"
+    );
+  });
+
+  it("取得できた場合はドキュメントの JSON と件数を返す", () => {
+    const docs = [{ id: "1", type: "line_text" }];
+    const output = formatDocsOutput(docs, docs, options);
+
+    expect(parseDocs(output)).toEqual(docs);
+    expect(output).toContain("コレクション: notes から 1 件取得しました。");
+  });
+
+  it("type 絞り込みで落ちた件数を添える", () => {
+    const allDocs = [
+      { id: "1", type: "line_text" },
+      { id: "2", type: "night_handover" },
+    ];
+    const output = formatDocsOutput([allDocs[0]], allDocs, { ...options, types: ["line_text"] });
+
+    expect(output).toContain(
+      "コレクション: notes, type: line_text から 1 件取得しました。（type 絞り込みで 1 件を除外）"
+    );
+  });
+
+  it("落ちたものが無ければ除外の表記を付けない", () => {
+    const docs = [{ id: "1", type: "line_text" }];
+    const output = formatDocsOutput(docs, docs, { ...options, types: ["line_text"] });
+
+    expect(output).not.toContain("除外");
   });
 });

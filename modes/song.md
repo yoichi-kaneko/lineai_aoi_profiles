@@ -30,18 +30,76 @@
 
 - **`get_google_calendar_events`**: `dateFrom` を7日前、`dateTo` を7日後に指定
 - **`get_swarm_checkins`**: `start_date` を7日前、`end_date` を本日に指定
-- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定し、**`--type "line_text,line_image,from_aoi"` を付けて絞り込む**
-  - 7日分を絞り込まずに取得すると、`night_handover` / `up_mountain` / `stay_mountain` / `off_mountain` といった長文の引き継ぎ記録がすべて含まれ、レスポンスが一度に読み込めない大きさ（100KB近く）に膨らみます。本モードで使うのは、ユーザー自身の言葉・画像（`line_text` / `line_image`）と、暁モードが残した天候の傾向（`from_aoi`）であり、引き継ぎ記録の詳細な申し送り事項は不要です
+- **`get_firestore_docs`**: `dateFrom` を7日前、`dateTo` を本日に指定し、**`--type "line_text,line_image"` を付けて絞り込む**。ユーザー自身の言葉と画像はこれで揃い、7日分でも6KB程度に収まるため、そのまま標準出力で読んで構いません
+  - 絞り込まずに取得すると、`night_handover` / `up_mountain` / `stay_mountain` / `off_mountain` といった長文の引き継ぎ記録がすべて含まれ、レスポンスが一度に読み込めない大きさ（100KB近く）に膨らみます。本モードに引き継ぎ記録の詳細な申し送り事項は不要です
   - 各モードの引き継ぎ記録から山行の様子を補いたい場合は、対象日を絞ったうえで別途 `--type` を指定して取得してください（7日分をまとめて取り直さないこと）
+- **`get_firestore_docs`（`from_aoi`）**: 天候の傾向は暁モードの引き継ぎ記録 `from_aoi` から拾いますが、これは1日あたり2,000〜3,000字あり、7日分では50KBを超えます。**上の `line_text` / `line_image` と同時に取得すると、再び一度に読めない大きさに戻ります**。`from_aoi` だけは切り離し、下記「`from_aoi` からの天候の傾向の抽出」の二段構えで取得してください
 - **`get_firestore_docs`（`--collection song_logs`）**: `dateFrom` を21日前、`dateTo` を本日に指定し、直近の楽曲生成ログを取得。取得できた場合は作成日の新しい順に2〜3件を、ステップ2〜3の重複回避に使う
 
 収集後、以下の観点からインスピレーションキーワードを抽出してください。
 
 - **出来事の傾向**: 1週間の間に起こった出来事の概要
-- **天気の傾向**: Firestoreの `from_aoi`（暁モードが記録した天気予報の概要）から読み取れる天候の傾向
+- **天気の傾向**: `from_aoi` の `【天気予報の概要】` 節（下記「`from_aoi` からの天候の傾向の抽出」で取り出したもの）から読み取れる、1週間の天候の傾向
 - **訪れた場所**: 登山や外出で足を運んだ場所
 - **時期・季節**: 現在の季節感や直近の行事
 - **直近楽曲との違い**: `song_logs` の `description` JSON から `title` / `package` / `theme_digest` / `color_axes` を読み取り、直近の曲で使った主要モチーフ・情景・曲調を控える。`color_axes` は新しい順に3件分を控え、ステップ3の彩り軸の選択（同じ選択が3曲続いている軸の判定）に使う
+
+#### `from_aoi` からの天候の傾向の抽出
+
+本モードが `from_aoi` から使うのは天候の傾向だけで、登山予定の分析や移動予定の詳細は楽曲のインスピレーションには不要です。全文を読まずに済むよう、一時ファイルへ落としてから必要な節だけを抜き出してください。
+
+**手順1：一時ファイルへ保存する**（標準出力に流さない）
+
+```bash
+cd {プロジェクトルートの絶対パス}
+pnpm exec tsx src/firebase/get_docs.ts "{7日前}" "{本日}" --type "from_aoi" > tmp/song_from_aoi.json
+```
+
+**手順2：天候の節だけを抜き出して読む**
+
+暁モードは天候の傾向を `【天気予報の概要】` の見出しで記録しています（[modes/morning.md](morning.md) のステップ4「見出し表記の約束」）。以下をそのまま実行してください。
+
+```bash
+cd {プロジェクトルートの絶対パス}
+node <<'EOF'
+const fs = require("fs");
+const raw = fs.readFileSync("tmp/song_from_aoi.json", "utf8");
+const end = raw.lastIndexOf("]");
+if (end === -1) {
+  console.error("from_aoi の取得に失敗しています（JSON 配列が見つかりません）");
+  process.exit(1);
+}
+const docs = JSON.parse(raw.slice(0, end + 1));
+if (!Array.isArray(docs)) {
+  console.error("from_aoi の取得結果が配列ではありません");
+  process.exit(1);
+}
+const jstDate = (d) =>
+  d && typeof d._seconds === "number"
+    ? new Date(d._seconds * 1000).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" })
+    : "日付不明";
+let found = 0;
+for (const doc of docs) {
+  const section = (doc.description || "").match(/【天気予報の概要】[\s\S]*?(?=\n【|$)/);
+  if (section) {
+    found++;
+    console.log(jstDate(doc.date) + "\n" + section[0] + "\n");
+  }
+}
+if (docs.length === 0) console.log("該当する from_aoi の記録がありません（0件）");
+else if (found === 0) console.log("【天気予報の概要】の節を抽出できませんでした");
+EOF
+```
+
+出力は8KB前後に収まり、そのまま読めます。各節の前には、その記録の `date` を日本時間で整形した日付（`2026/8/17` 形式）を添えて出力します（`date` は JSON 化の際に UTC 秒（`_seconds`）へ変換されるため、タイムゾーンを指定せずに日付へ直すと1日ずれます。上のスクリプトは `Asia/Tokyo` を明示しています）。
+
+**注意**
+
+- **`tmp/song_from_aoi.json` を Read ツールで開かないでください**。全文を読んでしまうと二段構えの意味がなくなります。このファイルはフェーズA のステップ1で使い切る作業用で、後続のステップやフェーズBからは参照しません
+- **`grep` で節を抜こうとしないでください**。CLI の出力は `JSON.stringify(..., null, 2)` のため `description` 内の改行が `\n` へエスケープされて**1件が1行に潰れており**、行単位の `grep` は節ではなくそのドキュメント全文（最大7KB）を返します。加えて実行環境のロケールは `C.UTF-8` で、`[^】]` のような日本語の文字クラス否定はバイト単位で誤動作します
+- 「**from_aoi の取得に失敗しています（JSON 配列が見つかりません）**」と出た場合は、手順1のコマンド自体が失敗して `tmp/song_from_aoi.json` が空（または JSON になっていない）ということで、記録が0件だった場合とは区別されます（0件のときは `[]` が書き出され、下の「0件」のメッセージになります）。手順1から1回だけやり直し、それでも同じであればこのステップは諦め、天候の傾向は空欄のままステップ2へ進んでください
+- 「**該当する from_aoi の記録がありません（0件）**」と出た場合は、その期間に暁モードの引き継ぎ記録が無い（または保存されていない）ということです。取得し直しても結果は変わらないため、天候の傾向は空欄のまま、他の材料でステップ2へ進んでください
+- 「**`【天気予報の概要】` の節を抽出できませんでした**」と出た場合は、記録はあるのに見出しが拾えていない（表記揺れなど）ということです。対象日を直近2〜3日に絞って `--type "from_aoi"` を取り直し、その範囲だけを標準出力で読んでください。7日分を標準出力で取り直さないこと
 
 ### ステップ2：歌詞の下書き
 
@@ -115,7 +173,7 @@
 
 スキルへ渡す内容は以下の通りです。いずれも**一時ファイルに保存**してからスキルを実行してください（改行はそのまま改行として書いてよく、`\n` への置換は不要。`generate_mureka_song` スキルの手順に従う）。
 
-- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください
+- **`prompt`** → `tmp/mureka_song_prompt.txt`: ステップ3で作成した楽曲の指示（instrument / genres / tags / description）。**ラベルと改行コードを含めた最終結合後の文字列を1024文字以内**に収めてください。超過していた場合は、[assets/songs_guideline.md](../assets/songs_guideline.md) セクション3「目安を超えた場合の削り方」の順序（まず描写の重複を解消する → それでも収まらなければ description の文を減らす → instrument の括弧内ディスクリプタを削る）に従って調整してください
 - **`lyrics`** → `tmp/mureka_song_lyrics.txt`: ステップ4で生成した最適化済みの歌詞
 
 `prompt` は以下の形式で `tmp/mureka_song_prompt.txt` に書き込まれる最終形で文字数を確認してください。各要素の本文だけでなく、`instrument:` / `genres:` / `tags:` / `description:` のラベルと改行も1024文字制限に含まれます。

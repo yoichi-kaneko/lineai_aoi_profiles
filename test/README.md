@@ -24,7 +24,7 @@ test/
 ├── firebase/
 │   ├── noteTypes.test.ts      # NOTE_TYPE の許可値
 │   ├── runLogModes.test.ts    # JST 時間帯境界
-│   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）と type 絞り込み
+│   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）・type 絞り込み・出力整形
 ├── google_calendar/
 │   └── get_events.test.ts     # 終日予定の最終日計算・日付検証・RFC3339 変換
 ├── image/
@@ -54,6 +54,11 @@ Firestore / Todoist / Twitter / Cloudinary / Mureka / Swarm / OpenWeather / 画�
 CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 「直接起動されたときだけ走らせる」ガード（`src/firebase/get_docs.ts` の `isDirectRun` 参照）で囲み、
 判断ロジックを純関数として `export` してからテストを書く。
+
+ファイルパスを検証するテストでは、`/assets/images/...$` のような**区切り文字を直書きした正規表現で照合しない**こと。
+開発環境は macOS / Windows が混在し、CI は Linux（`ubuntu-latest`）のため、Windows では区切りが `\` になって落ちる。
+期待値も `path.resolve` / `path.join`（必要なら `realpathSync`）で組み立て、実装と同じ手順で作った文字列と突き合わせる
+（`test/image/embed_qr.test.ts` の `resolveBaseImagePath` 参照）。
 
 ## 直接カバー / 間接カバー
 

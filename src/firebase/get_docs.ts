@@ -176,6 +176,37 @@ export function filterDocsByType<T>(docs: readonly T[], types?: string[]): T[] {
   });
 }
 
+/**
+ * 標準出力へ流す本文を組み立てる。
+ *
+ * 0件でも JSON 配列（`[]`）を先に出すのは、`--type` で絞った結果をファイルへ落として
+ * JSON として読み直す使い方があるため（`modes/song.md` の `from_aoi` 抽出）。
+ * メッセージだけでは、解析側が空文字を `JSON.parse` して落ちる。
+ */
+export function formatDocsOutput(
+  results: readonly unknown[],
+  allDocs: readonly unknown[],
+  options: Pick<GetDocsOptions, "collection" | "dateFrom" | "dateTo" | "types">
+): string {
+  const { collection, dateFrom, dateTo, types } = options;
+  const scope = `コレクション: ${collection}${types ? `, type: ${types.join(" / ")}` : ""}`;
+  const body = JSON.stringify(results, null, 2);
+
+  if (results.length === 0) {
+    return (
+      `${body}\n\n` +
+      `dateFrom=${dateFrom}, dateTo=${dateTo}（${scope}）に一致するドキュメントはありませんでした。`
+    );
+  }
+
+  const excluded = allDocs.length - results.length;
+
+  return (
+    `${body}\n\n${scope} から ${results.length} 件取得しました。` +
+    (excluded > 0 ? `（type 絞り込みで ${excluded} 件を除外）` : "")
+  );
+}
+
 function printUsage() {
   console.error(
     "使用方法: npx tsx src/firebase/get_docs.ts <dateFrom(YYYY-MM-DD)> <dateTo(YYYY-MM-DD)> [--collection <name>] [--type <type[,type...]>]"
@@ -218,21 +249,8 @@ async function main() {
 
   const allDocs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   const results = filterDocsByType(allDocs, types);
-  const scope = `コレクション: ${collection}${types ? `, type: ${types.join(" / ")}` : ""}`;
 
-  if (results.length === 0) {
-    console.log(
-      `dateFrom=${dateFrom}, dateTo=${dateTo}（${scope}）に一致するドキュメントはありませんでした。`
-    );
-  } else {
-    const excluded = allDocs.length - results.length;
-
-    console.log(JSON.stringify(results, null, 2));
-    console.log(
-      `\n${scope} から ${results.length} 件取得しました。` +
-        (excluded > 0 ? `（type 絞り込みで ${excluded} 件を除外）` : "")
-    );
-  }
+  console.log(formatDocsOutput(results, allDocs, { collection, dateFrom, dateTo, types }));
 
   await finishFirestoreCli(db);
 }

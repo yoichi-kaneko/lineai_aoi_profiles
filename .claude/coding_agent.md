@@ -20,9 +20,10 @@ lineai_aoi_profiles/
 ├── .env.example            # 環境変数テンプレート
 ├── assets/
 │   ├── image_guideline.md         # 画像生成ガイドライン本体（核／彩りの2層・衣装・プロンプト構成フレームワーク）
+│   ├── image_guideline_hike.md    # 山行シーンの構図ガイド（山行シーンのときだけオンデマンド参照）
 │   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（6パターン・オンデマンド参照）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
-│   ├── scribe_image_guideline.md  # SNS投稿画像ガイドライン（綴葉モード用。詳細はTODO・整備中）
+│   ├── scribe_image_guideline.md  # SNS投稿画像ガイドライン（綴葉モード用）
 │   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
 ├── modes/
 │   ├── morning.md          # 暁モード定義
@@ -66,6 +67,9 @@ lineai_aoi_profiles/
 │   │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
 │   │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
 │   │   ├── long_sleep_execution.md   # 長時間処理の実行方法（sleep・タイムアウト時の扱い）
+│   │   ├── mountain_notice_guide.md  # 山行連絡モード（継灯・帰灯）の共通手順
+│   │   ├── night_image_theme.md      # 小夜モードの画像テーマ抽選（候補・重み・当選後の扱い）
+│   │   ├── song_from_aoi_extract.md  # 調べモードの from_aoi からの天候傾向の抽出手順
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
 │       ├── download_google_drive_file/
@@ -131,9 +135,13 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `modes/song.md` | 調べモード（楽曲生成）の実行手順・判断ロジック |
 | `modes/scribe.md` | 綴葉モード（YAMAPレポートのSNS代筆投稿）の実行手順・判断ロジック |
 | `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト・構成フレームワーク本体 |
+| `assets/image_guideline_hike.md` | 山行シーンの構図ルール（遠景の主役・碧衣とルリの向き・正面構図のポーズ・副素材）。山行シーンのときだけ参照する |
 | `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（6パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |
-| `assets/scribe_image_guideline.md` | 綴葉モードのSNS投稿画像ガイドライン（詳細はTODO・整備中） |
+| `assets/scribe_image_guideline.md` | 綴葉モードのSNS投稿画像ガイドライン |
+| `.claude/docs/mountain_notice_guide.md` | 継灯・帰灯が共通で使う山行コンテキストの確定と時刻の採用優先順位 |
+| `.claude/docs/night_image_theme.md` | 小夜モードの画像テーマ抽選（候補の作り方・重みの表・当選後の扱い） |
+| `.claude/docs/song_from_aoi_extract.md` | 調べモードが `from_aoi` から天候の傾向だけを取り出す手順 |
 
 ### 2. スキルの実装
 
@@ -214,6 +222,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` を `isDirect
 
 ## 注意事項
 
+- **移行の経緯はプロファイルに書かない**。仕様変更・機能移設の経緯（「従来は〜だったが〜へ移設した」「以前は〜の運用だった」など）は、残す必要があると判断したものだけを [README.md](../README.md) に書き、`aoi.md` / `modes/*.md` / `assets/*.md` / `.claude/rules/*.md` / `.claude/docs/*.md` といったプロファイル側には書かないこと。これらは碧衣が実行のたびに読み込むファイルであり、経緯は現在の判断に寄与しないうえ、加筆が累積してコンテキストを圧迫する原因になる。プロファイルには**現在のルールだけ**を書き、「今はこうしない」という禁止事項が必要な場合も、過去の運用を説明せず禁止だけを書く。経緯を追う必要が生じたときは git 履歴を参照する
 - 同時実行・複数回実行のシステム的防止（原子的な実行予約・分散ロック・idempotency key・再実行フラグによるガード等）は導入しない方針。現状は `send_daily_line.sh` の `run_logs` 実行前スキップ（`morning` / `noon` / `night` のみ・ベストエフォート）に留め、手動起動モードの再実行回避は運用者判断に委ねる。レビュー指摘や一般的なベストプラクティスを理由に追加実装しないこと。詳細は [README.md](../README.md) の「二重実行防止」セクションを参照
 - `.env` はGit管理外（`.gitignore`に含まれる）。直接編集・コミットしないこと
 - `tmp/` は各処理（モード）内でのみ使う揮発的な一時ファイル置き場。コミット不要。処理開始時に前回の残骸があっても内容を確認・参照せず、固定名ファイルは上書きして使う（本番フローでは `send_daily_line.sh` が起動ごとに `refresh_tmp.sh` で掃除する）

@@ -88,7 +88,7 @@ lineai_aoi_profiles/
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe）
-├── assets/                # 画像素材・ガイドライン
+├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／楽曲）
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
 │   ├── firebase/          # Firebase / Firestore アクセス
@@ -122,13 +122,17 @@ lineai_aoi_profiles/
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
-    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用など）
-    │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ
+    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順）
+    │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
     │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ
     │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
     │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
-    │   └── long_sleep_execution.md   # 長時間 sleep の実行方法
+    │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
+    │   ├── mountain_notice_guide.md  # 山行連絡モード（継灯・帰灯）の共通手順
+    │   ├── night_image_theme.md      # 小夜モードの画像テーマ抽選
+    │   ├── song_from_aoi_extract.md  # 調べモードの from_aoi 抽出手順
+    │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
     └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
 ```
 

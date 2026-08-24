@@ -81,6 +81,24 @@
 }
 ```
 
+## モード別の値
+
+記録するのは**画像を生成したモードだけ**です（生成をスキップした場合はログも記録しません）。モードごとに固定・既定となる値は次のとおりです。
+
+| キー | 小夜（`night`） | 帰灯（`off_mountain`） |
+|---|---|---|
+| `mode` | `night` | `off_mountain` |
+| `date` | 本日（YYYY-MM-DD） | 本日（YYYY-MM-DD） |
+| `cloudinary_url` | 報告送信に使った `send_line_image` の出力 `originalUrl` | 同左。家族グループ・ユーザーへ**同じ画像**を送るため、宛先ごとに分けず**ログは1件のみ**記録する |
+| `outfit` | 採用した衣装（`outfit_a`〜`outfit_d`） | 登山シーンが基本のため通常は `outfit_b` |
+| `scene_category` | 分析結果から判断（`home` / `outing` / `hike` / `other`） | 山行のため通常は `hike` |
+| `companions` | ルリ・蛍の抽選結果を正規化した配列 | ルリの抽選結果のみ（山行シーンでは蛍は抽選対象外）。`["ruri"]` または `[]` |
+| `shot_size` / `camera_direction` | 抽選した構図軸の正規化値（値を変えた場合は前節「構図軸の再抽選が発生した場合」に従う） | 同左 |
+| `time_of_day` / `prompt_digest` | 各モードの分析とプロンプトから判断 | 同左 |
+
+- `companions` は、抽選結果を選び直した場合は**実際にプロンプトへ入れた内容**を使い、`none` は保存しません。
+- **LINE送信が失敗していても `originalUrl` が取得できていれば記録してください**。アップロードも失敗して URL が無い場合はスキップして構いません。
+
 ## 記録コマンド
 
 JSON はシェルのクォートで壊れやすいため、**`tmp/image_log.json` に Write ツールで書き出してから** `--description-file` で渡します（`tmp/line_message.txt` と同じ方式）。

@@ -145,4 +145,4 @@
   - 山行中のFirestore記録から読み取れた印象（天候・景観など）
   - noon.md や night.md に伝えた方がよいと判断したトピックがあれば、任意で添えてください。
 - **type**: type 引数に `off_mountain`（`NOTE_TYPE.OFF_MOUNTAIN` と同値）を必ず指定してください。noon.md・night.md が帰灯モードの記録と確実に識別するために使用します。
-- **記録手順**: 記録内容の本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" "off_mountain" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。
+- **記録手順**: [aoi.md の「共通ステップ：Firestoreへの記録」](../aoi.md) に従ってください。

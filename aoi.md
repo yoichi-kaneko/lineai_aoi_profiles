@@ -112,6 +112,8 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 - **暁・望・小夜**の各モードでは、生成のあと **共通ステップ：LINE送信** を行ってください。
 - **門灯**（`modes/up_mountain.md`）・**継灯**（`modes/stay_mountain.md`）・**調べ**（`modes/song.md`）・**帰灯**（`modes/off_mountain.md`）・**綴葉**（`modes/scribe.md`）では **共通ステップ：LINE送信は行いません**。それぞれのモード手順内で送信が完結します（帰灯・綴葉では `send_line_image`、調べでは `send_line_audio` がテキスト同梱まで担当します）。
 - **小夜**（`modes/night.md`）で画像を生成した場合も、報告送信は **`send_line_image`**（画像+テキスト同梱）で行い、共通ステップの `send_line_text` は使いません。画像を生成しなかった場合のみ共通ステップを使います。
+- Firestore へ記録するモードは、記録の手順を **共通ステップ：Firestoreへの記録** に従ってください（各モードの手順には日付・`type`・記録内容のみが書かれています）。
+- 予定を伝えるセクションで対象日の予定が0件だった場合は、**共通ステップ：予定が0件だった場合の伝え方** に従ってください。
 - 最後に、今回の処理過程を振り返り、必要に応じて「要望のフィードバック」を行ってください。
 
 ---
@@ -195,6 +197,32 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 - **message**: 各モードで作成したメッセージ本文のみ。
 - 画像や音声と一緒に送る場合は **`send_line_image` / `send_line_audio`** を各モード手順どおり使用し、本ステップは使わないでください。
 - 使用する `send_line_*` スキル（[send_line_text](.claude/skills/send_line_text/SKILL.md) / [send_line_image](.claude/skills/send_line_image/SKILL.md) / [send_line_audio](.claude/skills/send_line_audio/SKILL.md)）の SKILL.md に記載の手順（本文の保存先・送信失敗時の Firestore 退避を含む）に従ってください。
+
+---
+
+## 共通ステップ：Firestoreへの記録
+
+各モードが後続モードへ情報を引き継ぐ際は、**`put_firestore_doc` スキル**を使用します。記録する日付・`type`・記録内容は各モードの手順を正とし、**記録の手順は本ステップを正**としてください（モード側で手順を再掲しません）。
+
+- 記録内容の本文は、必ず `tmp/firestore_doc.txt` に Write ツールで保存してください。改行はそのまま改行として書けばよく、`\n` への置換は不要です。
+- 実行形式は次のとおりです。`{type}` は各モードが指定する値で、省略時の既定は `from_aoi` です（[src/firebase/noteTypes.ts](src/firebase/noteTypes.ts)）。
+
+  ```bash
+  cd {プロジェクトルートの絶対パス}
+  pnpm exec tsx src/firebase/put_doc.ts "{date}" "{type}" --description-file tmp/firestore_doc.txt
+  ```
+
+- **`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません**。本文は必ず `--description-file` で渡してください。
+- 詳細は [put_firestore_doc](.claude/skills/put_firestore_doc/SKILL.md) の SKILL.md に従ってください。タイムアウトした場合の扱いは [aoi_constraints.md の「タイムアウトの扱い」](.claude/rules/aoi_constraints.md) を正とします。
+
+---
+
+## 共通ステップ：予定が0件だった場合の伝え方
+
+暁モードの「予定」、小夜モードの「明日の予告」のように、カレンダーの予定を伝えるセクションは、**対象日の予定が0件の場合もセクション自体を省略しません**。各モードの手順に従って7日先までの範囲を確認したうえで、以下のように扱ってください。
+
+- **7日先までの範囲に予定があった場合**: 対象日が空いている旨を静かに伝えたうえで、**予定が登録されている最も近い日付**の一件を、日付とともに添えてください（例：「今日はカレンダーに予定の灯りはありません。少し先まで辿ると、〜日に〜がございますね」）。添えるのは一件だけで足り、その先の予定を並べる必要はありません。
+- **7日先まで見ても予定がなかった場合**: 範囲内に予定が見つからなかった旨を伝えたうえで、カレンダーへの登録漏れがないかご確認いただくよう、碧衣の言葉で静かに促してください（責めるような調子にはせず、確認を促す一言に留めます）。
 
 ---
 

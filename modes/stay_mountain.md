@@ -73,4 +73,4 @@ Firestore に `type` = `up_mountain` の記録があり、今回の山小屋到�
   - まだ下山しておらず、翌日も山行が続くこと
 - **任意で添えるとよいもの**: 当日の行程から読み取れた様子（天候・景観など。小夜モードの振り返り・画像生成の参考になる）
 - **type**: type 引数に `stay_mountain`（`NOTE_TYPE.STAY_MOUNTAIN` と同値）を必ず指定してください。小夜モードが継灯モードの記録と確実に識別するために使用します。
-- **記録手順**: 記録内容の本文を必ず `tmp/firestore_doc.txt` に保存し、`pnpm exec tsx src/firebase/put_doc.ts "{date}" "stay_mountain" --description-file tmp/firestore_doc.txt` の形式で実行してください。`tmp/firestore_doc.txt` を本文の位置引数として渡してはいけません。
+- **記録手順**: [aoi.md の「共通ステップ：Firestoreへの記録」](../aoi.md) に従ってください。

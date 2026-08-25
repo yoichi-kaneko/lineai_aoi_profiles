@@ -21,6 +21,7 @@
 {
   "title": "薄明の航跡",
   "package": "ambient_folk",
+  "instrument": "Acoustic Guitar (fingerpicked), Piano (soft touch), Strings (warm pad), Field Recording (rain)",
   "genres": ["Celtic Folk", "Ambient Pop"],
   "tags": ["Ethereal", "Meditative", "Calm", "Introspective", "Minimalist"],
   "theme_digest": "雨の記憶と待つ時間から、雲の切れ間を信じる夜の情景へ転写した。",
@@ -42,12 +43,19 @@
 |---|---|---|
 | `title` | `generate_mureka_lyrics` が返した曲タイトル。手直しした場合は最終タイトル | 文字列 |
 | `package` | 採用したスタイルパッケージ（正規化値） | 下記「スタイルパッケージ正規化値」 |
+| `instrument` | `tmp/mureka_song_prompt.txt` の `instrument:` に入れた楽器・音色の指定 | 文字列（下記「編成（`instrument`）の記録形式」） |
 | `genres` | `tmp/mureka_song_prompt.txt` の `genres:` に入れたジャンル | 文字列配列 |
 | `tags` | `tmp/mureka_song_prompt.txt` の `tags:` に入れたタグ | 文字列配列 |
 | `theme_digest` | インスピレーション源を、元の出来事が特定されない粒度で要約した1〜2文 | 文字列 |
 | `color_axes` | 採用した彩り軸（[songs_guideline.md](../../assets/songs_guideline.md) セクション5）の抽選・選択結果 | 下記「彩り軸の正規化値」 |
 | `lyrics` | Mureka に渡した最終歌詞全文 | 文字列 |
 | `task_id` | `generate_mureka_song` が返した Mureka の task_id | 文字列 |
+
+### 編成（`instrument`）の記録形式
+
+`instrument` は、Mureka へ渡した最終プロンプト（`tmp/mureka_song_prompt.txt`）の `instrument:` 行から、**ラベル `instrument: ` を除いた本文をそのまま1つの文字列で**記録します。楽器ごとの配列には分割しないでください。ガイドライン（[../../assets/songs_guideline.md](../../assets/songs_guideline.md) セクション3 の `instrument`）は楽器名に `Piano (soft touch)` のような括弧付きディスクリプタを添える形式であり、カンマで機械的に分割すると括弧内の記述が壊れるためです。
+
+記録の目的は、**編成・音の厚み・コーラスへのフィードバックを、実際に指定した編成と突き合わせて検証できるようにする**ことです（従来は `genres` / `tags` からの推測しかできませんでした）。正規化値は定めず、プロンプトの原文をそのまま残すことで、レビュー時に定性的な読み取りができれば足ります。
 
 ### スタイルパッケージ正規化値
 

@@ -77,8 +77,9 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 
 望モード（noon）
   ├─ get_firestore_docs ──→ 暁・門灯・帰灯（先行実行時）からの情報を受け取り、報告内容に組み込む
-  └─ put_firestore_doc ──→ Firestore（任意）
-       ・状況判定ラベル＋特記1行（小夜に伝えるべき内容がある場合のみ）
+  └─ put_firestore_doc ──→ Firestore（必須）
+       ・状況判定ラベル（＋小夜に伝えるべき内容があれば特記1行）
+       ・特記事項が無くても省略しない（記録の欠落は、小夜が「望が起動しなかった」と読む手掛かりになる）
 
 綴葉モード（scribe）  ※手動起動のみ・小夜の前に実行
   ├─ get_todoist_completed_tasks / get_todoist_comments ──→ 当日の登山レポート（YAMAP）を特定・読解
@@ -90,7 +91,7 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 小夜モード（night）
   ├─ get_firestore_docs ──→ 暁・望・門灯・継灯・帰灯・綴葉からの情報を受け取る
   │    ・天気予報情報 → ステップ2の画像生成で情景の参考にする
-  │    ・望の任意記録 → 状況判定ラベルと特記事項の参考にする
+  │    ・望の記録 → 状況判定ラベルと特記事項の参考にする（記録が無い場合は望が起動しなかったと判断する）
   │    ・綴葉の scribe_handover → 「登山レポートへの想い」の素材にする（活動記録は取得し直さない。SNS投稿の成否は引き継ぎの記載に従う）
   │    ・その他 → 報告内容に組み込む
   └─ put_firestore_doc ──→ Firestore（type: night_handover）

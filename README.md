@@ -49,7 +49,7 @@ pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
 ```
 
-GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
+GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test:all` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -114,7 +114,7 @@ lineai_aoi_profiles/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
 ├── .github/
 │   └── workflows/
-│       └── test.yml      # プッシュ時に pnpm test を実行する GitHub Actions
+│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
 └── .claude/
     ├── coding_agent.md    # コーディングエージェントモードのガイドライン
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
@@ -122,7 +122,8 @@ lineai_aoi_profiles/
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
-    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順）
+    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順・開発の Git 運用）
+    │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
     │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ

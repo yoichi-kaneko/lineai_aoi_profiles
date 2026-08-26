@@ -24,7 +24,7 @@ lineai_aoi_profiles/
 │   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（6パターン・オンデマンド参照）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
 │   ├── scribe_image_guideline.md  # SNS投稿画像ガイドライン（綴葉モード用）
-│   └── images/             # キャラクター設定画像（base / outfit_a〜d / room / ruri / hotaru）
+│   └── images/             # キャラクター設定画像（base / outfit_a〜e / room / ruri / hotaru）
 ├── modes/
 │   ├── morning.md          # 暁モード定義
 │   ├── noon.md             # 望モード定義

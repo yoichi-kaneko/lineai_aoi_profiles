@@ -41,7 +41,7 @@
 | `shot_size_reroll_reason` | （**任意**・ショットサイズを再抽選した場合のみ）再抽選と判断した理由（1文） | 文字列 |
 | `camera_direction_rerolled_from` | （**任意**・カメラ方向を再抽選した場合のみ）初回抽選から除外したカメラ方向 | `camera_direction` と同じ語彙（例：`"back"`） |
 | `camera_direction_reroll_reason` | （**任意**・カメラ方向を再抽選した場合のみ）再抽選と判断した理由（1文） | 文字列 |
-| `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` |
+| `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` / `outfit_e` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
 | `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` の単一結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
@@ -90,7 +90,7 @@
 | `mode` | `night` | `off_mountain` |
 | `date` | 本日（YYYY-MM-DD） | 本日（YYYY-MM-DD） |
 | `cloudinary_url` | 報告送信に使った `send_line_image` の出力 `originalUrl` | 同左。家族グループ・ユーザーへ**同じ画像**を送るため、宛先ごとに分けず**ログは1件のみ**記録する |
-| `outfit` | 採用した衣装（`outfit_a`〜`outfit_d`） | 登山シーンが基本のため通常は `outfit_b` |
+| `outfit` | 採用した衣装（`outfit_a`〜`outfit_e`） | 登山シーンが基本のため通常は `outfit_b` |
 | `scene_category` | 分析結果から判断（`home` / `outing` / `hike` / `other`） | 山行のため通常は `hike` |
 | `companions` | ルリ・蛍の抽選結果を正規化した配列 | ルリの抽選結果のみ（山行シーンでは蛍は抽選対象外）。`["ruri"]` または `[]` |
 | `shot_size` / `camera_direction` | 抽選した構図軸の正規化値（値を変えた場合は前節「構図軸の再抽選が発生した場合」に従う） | 同左 |

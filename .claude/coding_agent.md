@@ -60,7 +60,8 @@ lineai_aoi_profiles/
 │   │   ├── aoi_user_profile.md # ユーザーに関する基本情報
 │   │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
 │   │   └── aoi_constraints.md  # 注意事項（口調など）
-│   ├── docs/               # 補助ドキュメント（Firestore スキーマ・退避運用など）
+│   ├── docs/               # 補助ドキュメント（Firestore スキーマ・退避運用・開発の Git 運用など）
+│   │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
 │   │   ├── image_log_schema.md       # image_logs（柱A）のスキーマ・記録コマンド
 │   │   ├── image_feedback_schema.md  # image_feedback（柱B）のスキーマ・パース仕様
 │   │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ・記録コマンド
@@ -72,6 +73,8 @@ lineai_aoi_profiles/
 │   │   ├── song_from_aoi_extract.md  # 調べモードの from_aoi からの天候傾向の抽出手順
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
+│       ├── dev_apply_pr_review/    # 開発者向け（PR レビュー対応）
+│       ├── dev_ship_change/        # 開発者向け（実装〜PR 作成）
 │       ├── download_google_drive_file/
 │       ├── download_image/
 │       ├── download_line_image/
@@ -164,6 +167,19 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 - 環境変数の読み込み: `dotenv` で `../../.env`（`src/{module}/` から2階層上）を参照
 - エラー時は `console.error` + `process.exit(1)`
 - Firestore 系（`src/firebase/`）は初期化・タイムアウト・終了処理を `src/firebase/client.ts` に集約している。新しい Firestore CLI を追加する場合は `initFirestore()` / `withFirestoreTimeout()` / `finishFirestoreCli()` / `handleFirestoreCliError()` を使い、`initializeApp` を直に書かないこと（詳細は [README.md](../README.md) の「タイムアウト・リトライ」層3を参照）
+
+## Git 運用
+
+ブランチ命名・コミットメッセージ・プッシュ前の確認・PR 本文の規約は [docs/dev_git_workflow.md](docs/dev_git_workflow.md) を参照する。
+
+一連の作業は開発用スキルとしてまとめてある。
+
+| スキル | 用途 |
+|---|---|
+| [dev_ship_change](skills/dev_ship_change/SKILL.md) | 修正の実装からコミット・プッシュ・PR 作成までを一括で行う |
+| [dev_apply_pr_review](skills/dev_apply_pr_review/SKILL.md) | PR のレビューコメントを収集・検証し、妥当なものを修正してプッシュする |
+
+いずれも開発作業専用であり、碧衣の各モード（暁・望・小夜など）の実行には使用しない。
 
 ## パッケージ管理
 

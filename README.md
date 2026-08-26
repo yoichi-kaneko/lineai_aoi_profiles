@@ -122,7 +122,8 @@ lineai_aoi_profiles/
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
-    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順）
+    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順・開発の Git 運用）
+    │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
     │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ

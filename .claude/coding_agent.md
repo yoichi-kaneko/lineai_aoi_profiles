@@ -112,7 +112,7 @@ lineai_aoi_profiles/
 │   └── yamap/              # YAMAP 計画書・活動記録のパースと整形のテスト
 ├── .github/
 │   └── workflows/
-│       └── test.yml        # プッシュ時に pnpm test を実行する GitHub Actions
+│       └── test.yml        # プッシュ時に pnpm test:all を実行する GitHub Actions
 └── tmp/                    # 一時ファイル（画像など）
 ```
 
@@ -220,7 +220,7 @@ Google Calendar の `get_events.ts`、Firestore の `get_docs.ts`（引数解釈
 CLI スクリプトをテスト対象にする場合は、`main()` を `isDirectRun` ガードで囲み（`src/firebase/get_docs.ts` 参照）、
 判断ロジックを純関数として `export` すること。
 
-プッシュすると `.github/workflows/test.yml` が同じ `pnpm test` を実行する（外部 API へ接続しないためシークレット不要）。
+プッシュすると `.github/workflows/test.yml` が同じ `pnpm test:all` を実行する（外部 API へ接続しないためシークレット不要）。
 **取得に失敗する記録が見つかったら、フィクスチャとして追加してからロジックを直す**のが運用方針。
 構成・フィクスチャの追加手順は [test/README.md](../test/README.md) を参照。
 

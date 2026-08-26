@@ -40,10 +40,10 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 
 ## プッシュ前の確認
 
-- `pnpm test` が通ることを確認する。GitHub へプッシュすると `.github/workflows/test.yml` が同じコマンドを実行するため、ここで落ちるものは CI でも落ちる
+- `pnpm test:all` が通ることを確認する。GitHub へプッシュすると `.github/workflows/test.yml` が同じコマンドを実行するため、ここで落ちるものは CI でも落ちる（ルートの `pnpm test` に加え `functions` のテストも含む）
 
 ```bash
-pnpm test
+pnpm test:all
 ```
 
 - `.env`（Git 管理外）と `tmp/` 配下を変更に含めない

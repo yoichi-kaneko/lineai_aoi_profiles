@@ -49,7 +49,7 @@ pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
 ```
 
-GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
+GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test:all` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -114,7 +114,7 @@ lineai_aoi_profiles/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
 ├── .github/
 │   └── workflows/
-│       └── test.yml      # プッシュ時に pnpm test を実行する GitHub Actions
+│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
 └── .claude/
     ├── coding_agent.md    # コーディングエージェントモードのガイドライン
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）

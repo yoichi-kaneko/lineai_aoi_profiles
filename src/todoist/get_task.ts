@@ -10,6 +10,70 @@ dotenv.config({ path: resolve(__dirname, "../../.env") });
 import { TodoistApi, type Task } from "@doist/todoist-sdk";
 import { parseTaskId, TaskUrlError } from "./task_url.js";
 
+/** 完了済み検索の1ページ件数（API 上限 200）。 */
+export const COMPLETED_PAGE_LIMIT = 200;
+/** 完了済みを辿る最大ページ数。直近 1000 件までに限る。 */
+export const COMPLETED_MAX_PAGES = 5;
+
+/** getTask / 完了済み一覧の、この CLI が使う面だけ。 */
+export type TaskLookupApi = {
+  getTask: (id: string) => Promise<Task>;
+  getAllCompletedTasks: (args: {
+    limit: number;
+    offset: number;
+    annotateItems: boolean;
+  }) => Promise<{ items?: Task[] | null }>;
+};
+
+/** REST の 404（未完了としては存在しない）かどうか。 */
+export function isTaskNotFoundError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+  return "httpStatusCode" in error && (error as { httpStatusCode?: unknown }).httpStatusCode === 404;
+}
+
+export function findTaskById<T extends { id: string }>(tasks: readonly T[], taskId: string): T | undefined {
+  return tasks.find((task) => task.id === taskId);
+}
+
+/**
+ * 未完了を getTask で取り、404 なら直近の完了済みから ID 照合する。
+ * getTask はアクティブなタスク専用なので、完了済みは一覧側にフォールバックする。
+ */
+export async function fetchTaskIncludingCompleted(
+  taskId: string,
+  api: TaskLookupApi
+): Promise<Task> {
+  try {
+    return await api.getTask(taskId);
+  } catch (error) {
+    if (!isTaskNotFoundError(error)) {
+      throw error;
+    }
+  }
+
+  for (let page = 0; page < COMPLETED_MAX_PAGES; page++) {
+    const response = await api.getAllCompletedTasks({
+      limit: COMPLETED_PAGE_LIMIT,
+      offset: page * COMPLETED_PAGE_LIMIT,
+      annotateItems: true,
+    });
+    const items = response.items ?? [];
+    const found = findTaskById(items, taskId);
+    if (found) {
+      return found;
+    }
+    if (items.length < COMPLETED_PAGE_LIMIT) {
+      break;
+    }
+  }
+
+  throw new Error(
+    `タスクが見つかりません: ${taskId}（未完了のタスクにも、直近の完了済みにもありません）`
+  );
+}
+
 function getApiToken(): string {
   const token = process.env.TODOIST_API_TOKEN;
   if (!token) {
@@ -37,10 +101,10 @@ export function formatTask(task: Task): object {
 }
 
 function printUsage() {
-  console.error("使用方法: npx tsx src/todoist/get_task.ts <task_id | task_url>");
-  console.error('例: npx tsx src/todoist/get_task.ts "6hMrP2PjpPv46vQq"');
+  console.error("使用方法: pnpm exec tsx src/todoist/get_task.ts <task_id | task_url>");
+  console.error('例: pnpm exec tsx src/todoist/get_task.ts "6hMrP2PjpPv46vQq"');
   console.error(
-    '例: npx tsx src/todoist/get_task.ts "https://app.todoist.com/app/task/todoist-6hMrP2PjpPv46vQq"'
+    '例: pnpm exec tsx src/todoist/get_task.ts "https://app.todoist.com/app/task/todoist-6hMrP2PjpPv46vQq"'
   );
 }
 
@@ -71,7 +135,7 @@ async function main() {
   }
 
   const api = new TodoistApi(getApiToken());
-  const task = await api.getTask(taskId);
+  const task = await fetchTaskIncludingCompleted(taskId, api);
   console.log(JSON.stringify(formatTask(task), null, 2));
 }
 

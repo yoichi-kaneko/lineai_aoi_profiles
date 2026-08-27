@@ -88,13 +88,13 @@ function getApiToken(): string {
 }
 
 function printUsage() {
-  console.error("使用方法: npx tsx src/todoist/get_comments.ts <task_id | task_url> [--include-policy]");
-  console.error('例: npx tsx src/todoist/get_comments.ts "6hMrP2PjpPv46vQq"');
+  console.error("使用方法: pnpm exec tsx src/todoist/get_comments.ts <task_id | task_url> [--include-policy]");
+  console.error('例: pnpm exec tsx src/todoist/get_comments.ts "6hMrP2PjpPv46vQq"');
   console.error(
-    '例: npx tsx src/todoist/get_comments.ts "https://app.todoist.com/app/task/todoist-6hMrP2PjpPv46vQq"'
+    '例: pnpm exec tsx src/todoist/get_comments.ts "https://app.todoist.com/app/task/todoist-6hMrP2PjpPv46vQq"'
   );
   console.error(
-    "既定では 【対応方針】 で始まる開発用のコメントを除外します。開発フローで方針を読むときだけ --include-policy を付けてください。"
+    "既定では 【対応方針】 または [対応方針] で始まる開発用のコメントを除外します。開発フローで方針を読むときだけ --include-policy を付けてください。"
   );
 }
 

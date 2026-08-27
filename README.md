@@ -200,7 +200,7 @@ lineai_aoi_profiles/
 | 役割 | ユーザーの TODO タスクの読み込み・作成・コメント取得を担う |
 | サービスURL | https://developer.todoist.com/api/v1/ |
 | スキル | `get_todoist_tasks` / `get_todoist_completed_tasks` / `get_todoist_task` / `get_todoist_comments` / `put_todoist_task` / `download_todoist_attachment` |
-| コメント運用 | コメントは「碧衣宛」と「開発上の対応方針（`【対応方針】` で始まる）」の2系統。[`get_todoist_comments`](.claude/skills/get_todoist_comments/SKILL.md) は既定で後者を除外し、除外件数のみ `excludedPolicyComments` として返す。方針を読むのは開発用スキル [`dev_apply_todoist_request`](.claude/skills/dev_apply_todoist_request/SKILL.md) のみ |
+| コメント運用 | コメントは「碧衣宛」と「開発上の対応方針（`【対応方針】` または `[対応方針]` で始まる）」の2系統。[`get_todoist_comments`](.claude/skills/get_todoist_comments/SKILL.md) は既定で後者を除外し、除外件数のみ `excludedPolicyComments` として返す。方針を読むのは開発用スキル [`dev_apply_todoist_request`](.claude/skills/dev_apply_todoist_request/SKILL.md) のみ |
 
 ### Google Maps API
 

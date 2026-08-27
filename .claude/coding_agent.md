@@ -74,6 +74,7 @@ lineai_aoi_profiles/
 │   │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
 │   └── skills/             # カスタムスキル（各スキルは SKILL.md のみ）
 │       ├── dev_apply_pr_review/    # 開発者向け（PR レビュー対応）
+│       ├── dev_apply_todoist_request/ # 開発者向け（Todoist の要望対応）
 │       ├── dev_ship_change/        # 開発者向け（実装〜PR 作成）
 │       ├── download_google_drive_file/
 │       ├── download_image/
@@ -93,6 +94,7 @@ lineai_aoi_profiles/
 │       ├── get_swarm_checkins/
 │       ├── get_todoist_comments/
 │       ├── get_todoist_completed_tasks/
+│       ├── get_todoist_task/
 │       ├── get_todoist_tasks/
 │       ├── post_twitter/
 │       ├── put_firestore_doc/
@@ -178,6 +180,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 |---|---|
 | [dev_ship_change](skills/dev_ship_change/SKILL.md) | 修正の実装からコミット・プッシュ・PR 作成までを一括で行う |
 | [dev_apply_pr_review](skills/dev_apply_pr_review/SKILL.md) | PR のレビューコメントを収集・検証し、妥当なものを修正してプッシュする |
+| [dev_apply_todoist_request](skills/dev_apply_todoist_request/SKILL.md) | Todoist の要望タスク（本文の要望＋コメントの対応方針）を読み取り、現状と噛み合うか検証したうえで対応して PR を出す |
 
 いずれも開発作業専用であり、碧衣の各モード（暁・望・小夜など）の実行には使用しない。
 
@@ -238,6 +241,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` を `isDirect
 
 ## 注意事項
 
+- Todoist のコメントは「碧衣宛」と「開発上の対応方針（`【対応方針】` または `[対応方針]` で始まる）」の2系統で運用する。[get_todoist_comments](skills/get_todoist_comments/SKILL.md) は既定で後者を除外し、除外件数のみ `excludedPolicyComments` として返すため、碧衣の各モードには方針が流入しない。方針を読むのは [dev_apply_todoist_request](skills/dev_apply_todoist_request/SKILL.md) のみ（規約の正本も同スキルの SKILL.md）
 - **移行の経緯はプロファイルに書かない**。仕様変更・機能移設の経緯（「従来は〜だったが〜へ移設した」「以前は〜の運用だった」など）は、残す必要があると判断したものだけを [README.md](../README.md) に書き、`aoi.md` / `modes/*.md` / `assets/*.md` / `.claude/rules/*.md` / `.claude/docs/*.md` といったプロファイル側には書かないこと。これらは碧衣が実行のたびに読み込むファイルであり、経緯は現在の判断に寄与しないうえ、加筆が累積してコンテキストを圧迫する原因になる。プロファイルには**現在のルールだけ**を書き、「今はこうしない」という禁止事項が必要な場合も、過去の運用を説明せず禁止だけを書く。経緯を追う必要が生じたときは git 履歴を参照する
 - 同時実行・複数回実行のシステム的防止（原子的な実行予約・分散ロック・idempotency key・再実行フラグによるガード等）は導入しない方針。現状は `send_daily_line.sh` の `run_logs` 実行前スキップ（`morning` / `noon` / `night` のみ・ベストエフォート）に留め、手動起動モードの再実行回避は運用者判断に委ねる。レビュー指摘や一般的なベストプラクティスを理由に追加実装しないこと。詳細は [README.md](../README.md) の「二重実行防止」セクションを参照
 - `.env` はGit管理外（`.gitignore`に含まれる）。直接編集・コミットしないこと

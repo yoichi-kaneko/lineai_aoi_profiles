@@ -35,6 +35,11 @@ test/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── swarm/
 │   └── get_checkins.test.ts   # JST 範囲計算・整形
+├── todoist/
+│   ├── put_task.test.ts       # タスク作成の引数解釈・description ファイルのパス検証
+│   ├── task_url.test.ts       # タスクURL・タスクIDの正規化
+│   ├── get_comments.test.ts   # 引数解釈・対応方針コメントの除外
+│   └── get_task.test.ts       # 未完了取得と完了済みフォールバック
 ├── twitter/
 │   └── post.test.ts           # tmp/ 内画像パス検証
 ├── util/
@@ -72,6 +77,9 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/firebase/noteTypes.ts`
 - `src/firebase/runLogModes.ts`
 - `src/todoist/put_task.ts`
+- `src/todoist/task_url.ts`
+- `src/todoist/get_comments.ts`
+- `src/todoist/get_task.ts`
 - `src/twitter/post.ts`
 - `src/cloudinary/upload_image.ts`
 - `src/mureka/generate_lyrics.ts`

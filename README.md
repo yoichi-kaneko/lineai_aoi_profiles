@@ -191,6 +191,7 @@ lineai_aoi_profiles/
 | 役割 | Google Calendar の予定に添付されたファイルを取得する |
 | サービスURL | https://developers.google.com/workspace/drive/api/guides/overview?hl=ja |
 | スキル | `download_google_drive_file` → [SKILL.md](.claude/skills/download_google_drive_file/SKILL.md) |
+| 備考 | **現在、このスキルを呼ぶフローはプロファイル側に存在しない。**小夜モードがカレンダーに添付された YAMAP 活動記録カードを解析していた頃の名残りで、カードを受け取るのが帰灯モード（LINE 経由）のみとなったことで参照元が無くなった。スキル（`.claude/skills/download_google_drive_file/`）と実装（`src/google_drive/`）は、カレンダー添付を読む必要が再び生じたときのために残している |
 
 ### Todoist API
 

@@ -144,7 +144,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（7パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |
 | `assets/scribe_image_guideline.md` | 綴葉モードのSNS投稿画像ガイドライン |
-| `.claude/docs/mountain_notice_guide.md` | 継灯・帰灯が共通で使う山行コンテキストの確定と時刻の採用優先順位 |
+| `.claude/docs/mountain_notice_guide.md` | 継灯・帰灯の判別基準と、両モードが共通で使う山行コンテキストの確定・時刻の採用優先順位 |
 | `.claude/docs/night_image_theme.md` | 小夜モードの画像テーマ抽選（候補の作り方・重みの表・当選後の扱い） |
 | `.claude/docs/song_from_aoi_extract.md` | 調べモードが `from_aoi` から天候の傾向だけを取り出す手順 |
 

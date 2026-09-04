@@ -59,7 +59,7 @@ pnpm exec tsx src/google_map/geocode.ts "{住所または地点名}"
 
 #### 1-2. どの候補も合致しない場合の引き直し
 
-候補がすべて想定と食い違う場合、または `ZERO_RESULTS` で終わった場合は、**県名や山域を添えて1回引き直してください**。
+候補がすべて想定と食い違う場合、または `count` が 0（`results` が空）の場合は、**県名や山域を添えて1回引き直してください**。
 
 ```bash
 pnpm exec tsx src/google_map/geocode.ts "神奈川県 丹沢"

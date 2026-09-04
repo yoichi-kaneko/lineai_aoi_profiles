@@ -72,6 +72,12 @@ async function geocode(address: string): Promise<GeocodeOutput> {
     params: { address, key: apiKey, language: "ja", region: "jp" },
   });
 
+  // ZERO_RESULTS はリクエスト成功・候補なし。呼び出し側が引き直し判断できるよう
+  // 空の results を返し、exit(1) にはしない。
+  if (data.status === Status.ZERO_RESULTS) {
+    return { query: address, count: 0, results: [] };
+  }
+
   if (data.status !== Status.OK) {
     console.error(`Geocoding失敗: ${data.error_message ?? data.status}`);
     process.exit(1);

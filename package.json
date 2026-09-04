@@ -13,6 +13,7 @@
     "dependencies": {
         "@doist/todoist-sdk": "^9.1.0",
         "@google/genai": "^1.0.1",
+        "@googlemaps/google-maps-services-js": "^3.4.2",
         "@line/bot-sdk": "^10.6.0",
         "cheerio": "^1.2.0",
         "cloudinary": "^2.9.0",

@@ -1,3 +1,4 @@
+import { Client, Status } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
@@ -22,32 +23,42 @@ interface GeocodeResult {
   place_id: string;
 }
 
+/**
+ * エラーから表示用のメッセージを取り出す。
+ * SDK が内部で使う axios のエラーは、そのまま出力すると
+ * リクエストURL（APIキーを含む）ごとログに残るため、必要な情報だけを抜き出す。
+ */
+function toErrorMessage(error: unknown): string {
+  const data = (
+    error as {
+      response?: { data?: { error_message?: string; status?: string } };
+    }
+  )?.response?.data;
+  const detail = data?.error_message ?? data?.status;
+  if (detail) {
+    return detail;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
 async function geocode(address: string): Promise<GeocodeResult> {
   const apiKey = getApiKey();
-  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
-  url.searchParams.append("address", address);
-  url.searchParams.append("key", apiKey);
+  const client = new Client();
 
-  const response = await fetch(url.toString());
-  const data = (await response.json()) as {
-    status: string;
-    error_message?: string;
-    results: Array<{
-      geometry: { location: { lat: number; lng: number } };
-      formatted_address: string;
-      place_id: string;
-    }>;
-  };
+  const { data } = await client.geocode({
+    params: { address, key: apiKey },
+  });
 
-  if (data.status !== "OK") {
+  if (data.status !== Status.OK) {
     console.error(`Geocoding失敗: ${data.error_message ?? data.status}`);
     process.exit(1);
   }
 
+  const [result] = data.results;
   return {
-    location: data.results[0].geometry.location,
-    formatted_address: data.results[0].formatted_address,
-    place_id: data.results[0].place_id,
+    location: result.geometry.location,
+    formatted_address: result.formatted_address,
+    place_id: result.place_id,
   };
 }
 
@@ -65,6 +76,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("エラーが発生しました:", error);
+  console.error("エラーが発生しました:", toErrorMessage(error));
   process.exit(1);
 });

@@ -117,6 +117,8 @@ lineai_aoi_profiles/
 │       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
 └── .claude/
     ├── coding_agent.md    # コーディングエージェントモードのガイドライン
+    ├── hooks/             # Claude Code のフック
+    │   └── session-start.sh      # クラウドセッション開始時に pnpm install を実行
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報

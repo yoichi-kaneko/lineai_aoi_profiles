@@ -55,6 +55,8 @@ lineai_aoi_profiles/
 │       ├── fetch_activity.ts   # 活動記録ページ
 │       └── format.ts           # 両者で共通の整形・ラベル判定
 ├── .claude/
+│   ├── hooks/              # Claude Code のフック
+│   │   └── session-start.sh    # クラウドセッション開始時の依存インストール
 │   ├── rules/              # 常時適用ルール（aoi.md から @import で参照される）
 │   │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
 │   │   ├── aoi_user_profile.md # ユーザーに関する基本情報
@@ -196,6 +198,8 @@ pnpm install
 # ルートの package.json の dependencies に追記してから実行
 pnpm install
 ```
+
+ブラウザのクラウドセッション（Claude Code on the web）は `node_modules` が無い状態で始まるため、`.claude/hooks/session-start.sh` を SessionStart フックとして登録し（`.claude/settings.json`）、セッション開始時に `pnpm install --frozen-lockfile` を実行している。`CLAUDE_CODE_REMOTE` が `true` のときだけ動くため、ローカルのターミナルセッションでは何もしない。
 
 ## スキル動作確認
 

@@ -5,6 +5,43 @@
 
 対象は開発作業のみで、碧衣の各モード（暁・望・小夜など）の実行には関係しません。
 
+## GitHub 操作の手段（`gh` / GitHub MCP ツール）
+
+PR の作成・参照・コメントは、実行環境によって使える手段が異なる。**`gh` が使えるなら `gh` を使い、使えなければ GitHub MCP ツール（`mcp__github__*`）で同じことを行う。**
+
+- ターミナルのローカルセッションには `gh` がある想定
+- ブラウザのクラウドセッション（Claude Code on the web）には `gh` が無く、代わりに GitHub MCP ツールが提供される
+
+作業の冒頭で一度だけ確認する。
+
+```bash
+command -v gh >/dev/null 2>&1 && gh auth status
+```
+
+`gh` が無い、または未認証だった場合は、以降の GitHub 操作を下表のとおり読み替える。`git`（ブランチ・コミット・プッシュ）はどちらの環境でも認証済みのため、読み替えの対象外。
+
+MCP ツールは `owner` / `repo` を引数で要求するため、リモートから取る。
+
+```bash
+git remote get-url origin
+```
+
+| 用途 | `gh` | GitHub MCP ツール |
+|---|---|---|
+| PR を作成する | `gh pr create --title ... --body-file ...` | `create_pull_request`（`title` / `head` / `base` / `body`） |
+| ブランチの PR を探す | `gh pr list --head {ブランチ}` | `list_pull_requests`（`head` は `{owner}:{ブランチ}` 形式、`state: "open"`） |
+| PR の情報を見る | `gh pr view {番号} --json ...` | `pull_request_read`（`method: "get"`） |
+| レビュー本文を取る | `gh pr view {番号} --json reviews` | `pull_request_read`（`method: "get_reviews"`） |
+| インラインコメントを取る | `gh api graphql`（`reviewThreads`） | `pull_request_read`（`method: "get_review_comments"`。スレッド単位で返る。`perPage` と `after` でページング） |
+| 通常のコメントを取る | `gh api .../issues/{番号}/comments` | `pull_request_read`（`method: "get_comments"`） |
+| PR にコメントする | `gh pr comment {番号} --body-file ...` | `add_issue_comment`（`issue_number` に PR 番号を渡す） |
+| インラインへ返信する | `gh api .../comments/{databaseId}/replies` | `add_reply_to_pull_request_comment`（`commentId` は数値のコメント ID、`pullNumber` も必須） |
+
+MCP ツールを使う場合の差分は2点。
+
+- **本文をファイル経由で渡せない。** `body` は文字列引数のため、下書きしたファイルを読み込んで渡す（下書きをスクラッチパッドに置くこと自体は変わらない）
+- **マージ系のツールは使わない。** `gh pr merge` を実行しないのと同じく、`merge_pull_request` も実行しない
+
 ## ブランチ
 
 - `main` 上で直接作業しない。変更を始める前に必ずブランチを切る
@@ -66,6 +103,7 @@ pnpm test:all
 gh pr create --title "{タイトル}" --body-file {本文ファイルのパス}
 ```
 
+- `gh` が使えない場合は `create_pull_request`（`title` / `head` / `base` / `body`）で作成する。本文はファイルに下書きしてから読み込み、`body` に渡す（前節「GitHub 操作の手段」を参照）
 - マージはスカッシュせず、`Merge pull request #N from ...` のマージコミットを作る運用（マージの実行はユーザーが行う）
 
 ## ファイル構成の記載を更新する

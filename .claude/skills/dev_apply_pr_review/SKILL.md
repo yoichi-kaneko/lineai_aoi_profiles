@@ -1,6 +1,6 @@
 ---
 name: dev_apply_pr_review
-description: 開発者向け。GitHub PR に寄せられたレビューコメントを gh コマンドで漏れなく収集し、各指摘の妥当性をこのリポジトリの方針に照らして検証したうえで、妥当なものを修正・コミット・プッシュする。「PRのレビューコメントに対応して」「指摘を見て直して」のように、既存 PR へのレビュー対応を任されたときに使う。碧衣のモード実行（暁・望・小夜など）では使用しない。
+description: 開発者向け。GitHub PR に寄せられたレビューコメントを gh コマンド（gh が使えない環境では GitHub MCP ツール）で漏れなく収集し、各指摘の妥当性をこのリポジトリの方針に照らして検証したうえで、妥当なものを修正・コミット・プッシュする。「PRのレビューコメントに対応して」「指摘を見て直して」のように、既存 PR へのレビュー対応を任されたときに使う。碧衣のモード実行（暁・望・小夜など）では使用しない。
 ---
 
 # dev_apply_pr_review
@@ -17,7 +17,7 @@ GitHub PR のレビューコメントを収集し、妥当性を検証したう�
 
 ## 前提
 
-- `gh` が認証済みであること
+- GitHub を操作する手段があること。`gh` が使えるならそれを使い、使えない環境（ブラウザのクラウドセッションなど）では GitHub MCP ツールで代替する。判定と読み替えは [dev_git_workflow.md](../../docs/dev_git_workflow.md) の「GitHub 操作の手段」に従う
 - 対象 PR のブランチがローカルにチェックアウトされていること（実ファイルを読んで指摘を検証するため）
 
 ## Claudeへの指示
@@ -34,6 +34,8 @@ GitHub PR のレビューコメントを収集し、妥当性を検証したう�
 gh pr list --head "$(git branch --show-current)" --state open --json number,title,url
 ```
 
+`gh` が使えない環境では `list_pull_requests`（`head` は `{owner}:{ブランチ}` 形式、`state: "open"`）を使います。
+
 0件または複数ヒットした場合は、推測せずユーザーに確認してください。
 
 特定できたら、ローカルが PR の HEAD と一致しているかを確認します。
@@ -42,6 +44,8 @@ gh pr list --head "$(git branch --show-current)" --state open --json number,titl
 gh pr view {番号} --json headRefOid,baseRefName,headRefName,title
 git rev-parse HEAD
 ```
+
+`gh` が使えない環境では、PR 側の情報を `pull_request_read`（`method: "get"`）で取り、`git rev-parse HEAD` と突き合わせます。
 
 `headRefOid` とローカル HEAD が食い違う場合、指摘の行番号がずれます。`git pull` で追いつくか、ユーザーに確認してから進めてください。
 
@@ -86,6 +90,18 @@ query($owner:String!, $repo:String!, $number:Int!, $cursor:String) {
 # (c) 通常のコメント（人間の補足・追加要望が入りやすい）
 gh api --paginate "repos/{owner}/{repo}/issues/{番号}/comments" --jq '.[] | {user: .user.login, body}'
 ```
+
+`gh` が使えない環境では、同じ3系統を `pull_request_read` の `method` で取り分けます。`owner` / `repo` は `git remote get-url origin` から取ります。
+
+| 系統 | `method` |
+|---|---|
+| (a) レビュー本文 | `get_reviews` |
+| (b) インラインコメント | `get_review_comments` |
+| (c) 通常のコメント | `get_comments` |
+
+- (b) は最初からスレッド単位で返るため、GraphQL のようにネストした `comments` を別クエリで追う必要はありません。続きがある場合は `perPage` と `after`（前ページの `endCursor`）でページングします
+- 解決済み・失効の判定は、返ってきたスレッドの情報（解決状態・行番号の失効）で行います。取得できる項目は実行して確かめてください
+- 手順7の返信に使う**数値のコメント ID**（GraphQL の `databaseId` に相当）は (b) の結果に含まれます。採否表まで保持してください
 
 収集時の注意:
 
@@ -150,11 +166,15 @@ git push
 gh pr comment {番号} --body-file {本文ファイルのパス}
 ```
 
+`gh` が使えない環境では `add_issue_comment`（`issue_number` に PR 番号、`body` に本文）を使います。MCP ツールは本文をファイルで受け取れないため、下書きしたファイルを読み込んで渡します。
+
 個別のインラインスレッドへ返信したい場合は、収集時に保持した `databaseId`（数値）を使います。GraphQL のグローバル `id` では REST が受け付けません。
 
 ```bash
 gh api "repos/{owner}/{repo}/pulls/{番号}/comments/{databaseId}/replies" --method POST -f body='{本文}'
 ```
+
+`gh` が使えない環境では `add_reply_to_pull_request_comment` を使います。`commentId` には同じ数値のコメント ID を渡し、`pullNumber` もあわせて指定します。
 
 ### 8. 報告する
 
@@ -162,7 +182,7 @@ gh api "repos/{owner}/{repo}/pulls/{番号}/comments/{databaseId}/replies" --met
 
 ## 注意
 
-- **マージは行わない。** `gh pr merge` を実行しないでください
+- **マージは行わない。** `gh pr merge` も、MCP の `merge_pull_request` も実行しないでください
 - **指摘を増やさない。** このスキルはレビュー対応であり、新規のコードレビューではありません。ついでに気づいた別の改善は、対応せず報告で触れるに留めます
 - **却下を黙って行わない。** 却下した指摘は必ず手順4の一覧と手順7のコメントに残します
 - 再レビューを促す場合、CodeRabbit は `@coderabbitai review`、Bugbot は `@cursor review` または `bugbot run` をコメントすると走ります（ユーザーから指示があったときのみ）

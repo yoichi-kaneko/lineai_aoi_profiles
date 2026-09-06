@@ -18,6 +18,8 @@ GitHub へプッシュすると `.github/workflows/test.yml` が同じ `pnpm tes
 test/
 ├── cloudinary/
 │   └── upload_image.test.ts   # プレビュー縮小計算
+├── codex/
+│   └── review.test.ts         # レビューの引数解釈・環境変数の解決・codex 引数の組み立て・子プロセスへ渡す環境変数の絞り込み
 ├── fixtures/
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
@@ -88,12 +90,14 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/util/random_choice.ts`
 - `src/util/download_image.ts`
 - `src/image/embed_qr.ts`
+- `src/codex/review.ts`
 
 ### 間接カバーまたは今回の対象外
 
 - 薄い CLI ラッパー（`src/line/send_*.ts` など）は下位モジュールのテストで間接カバーする。
 - OAuth 認証 (`src/google_calendar/auth.ts`, `src/google_drive/auth.ts`) は対話的かつ外部接続前提のため、自動テスト対象外とする。
 - 実 API への接続自体が本体の処理であるモジュールは、引数検証・パス検証・整形ロジックのみを自動テストし、疎通確認は手動で行う。
+- `src/codex/review.ts` の codex 起動そのもの（子プロセスの spawn・タイムアウト・終了コードの分岐）は、外部 CLI と外部 API に依存するため自動テスト対象外とする。純関数（引数解釈・環境変数の解決・引数の組み立て・環境変数の絞り込み）のみを直接テストし、`status` の5分岐（`ok` / `skipped` / `unavailable` / `timeout` / `error`）は手動で確認する。
 
 ## フィクスチャの方針
 

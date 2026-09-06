@@ -39,6 +39,7 @@ lineai_aoi_profiles/
 │   ├── firebase/           # Firebase / Firestore アクセス（run_logs・--collection で専用コレクションも）
 │   ├── gemini/             # Google Gemini 画像生成
 │   ├── google_calendar/    # Google Calendar 予定取得・OAuth認証
+│   ├── codex/              # Codex CLI による生成物レビュー（画像プロンプト・SNS本文）
 │   ├── google_drive/       # Google Drive ファイルダウンロード・OAuth認証
 │   ├── google_map/         # Google Maps ジオコーディング
 │   ├── image/              # 画像へのQRコード埋め込み（ローカル画像処理）
@@ -63,6 +64,7 @@ lineai_aoi_profiles/
 │   │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
 │   │   └── aoi_constraints.md  # 注意事項（口調など）
 │   ├── docs/               # 補助ドキュメント（Firestore スキーマ・退避運用・開発の Git 運用など）
+│   │   ├── codex_review.md           # codex レビューの依頼文の組み立てと指摘の反映の作法
 │   │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
 │   │   ├── image_log_schema.md       # image_logs（柱A）のスキーマ・記録コマンド
 │   │   ├── image_feedback_schema.md  # image_feedback（柱B）のスキーマ・パース仕様
@@ -104,6 +106,7 @@ lineai_aoi_profiles/
 │       ├── random_choice/
 │       ├── review_image_feedback/
 │       ├── review_song_feedback/
+│       ├── review_with_codex/
 │       ├── run_aoi_daily/
 │       ├── run_aoi_scribe/
 │       ├── send_line_audio/
@@ -111,6 +114,7 @@ lineai_aoi_profiles/
 │       └── send_line_text/
 ├── test/                   # ルート src/ に対するテスト（詳細は test/README.md）
 │   ├── fixtures/           # テスト用フィクスチャ（活動記録の縮小 JSON）
+│   ├── codex/              # codex レビューの引数解釈・環境変数の絞り込みのテスト
 │   ├── firebase/           # get_firestore_docs の引数解釈・type 絞り込みのテスト
 │   ├── google_calendar/    # 終日予定の最終日計算のテスト
 │   └── yamap/              # YAMAP 計画書・活動記録のパースと整形のテスト
@@ -149,6 +153,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `.claude/docs/mountain_notice_guide.md` | 継灯・帰灯の判別基準と、両モードが共通で使う山行コンテキストの確定・時刻の採用優先順位 |
 | `.claude/docs/night_image_theme.md` | 小夜モードの画像テーマ抽選（候補の作り方・重みの表・当選後の扱い） |
 | `.claude/docs/song_from_aoi_extract.md` | 調べモードが `from_aoi` から天候の傾向だけを取り出す手順 |
+| `.claude/docs/codex_review.md` | codex レビューの依頼文の骨格・観点セット3種・指摘の採否と反映の作法 |
 
 ### 2. スキルの実装
 
@@ -169,7 +174,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 **TypeScript実装の慣習:**
 - 実行方法: プロジェクトルートで `pnpm exec tsx src/{module}/{main}.ts [引数]`
 - 環境変数の読み込み: `dotenv` で `../../.env`（`src/{module}/` から2階層上）を参照
-- エラー時は `console.error` + `process.exit(1)`
+- エラー時は `console.error` + `process.exit(1)`。例外として `src/codex/review.ts` は補助工程のため、`unavailable` / `timeout` / `error` でも終了コード 0 と `status` を返して正常終了する（引数不正のみ終了コード 1）
 - Firestore 系（`src/firebase/`）は初期化・タイムアウト・終了処理を `src/firebase/client.ts` に集約している。新しい Firestore CLI を追加する場合は `initFirestore()` / `withFirestoreTimeout()` / `finishFirestoreCli()` / `handleFirestoreCliError()` を使い、`initializeApp` を直に書かないこと（詳細は [README.md](../README.md) の「タイムアウト・リトライ」層3を参照）
 
 ## Git 運用

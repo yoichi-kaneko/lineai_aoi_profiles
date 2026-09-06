@@ -18,6 +18,7 @@ LINE AI「碧衣」のキャラクター設定や応答プロファイルを管�
 
 - [Node.js](https://nodejs.org/)（LTS 推奨）
 - [pnpm](https://pnpm.io/) 10.x（`package.json` の `packageManager` に合わせる）
+- [Codex CLI](https://github.com/openai/codex)（任意）— 生成物のレビュー（`review_with_codex`）に使用します。**未導入でも構いません**。その場合はレビューがスキップされるだけで、碧衣の各モードは最後まで完走します
 
 ### 手順
 
@@ -31,7 +32,14 @@ pnpm install
 # 3. 環境変数を設定
 cp .env.example .env
 # .env を編集して各 API キー・認証情報を設定
+
+# 4. （任意）Codex CLI を導入してレビュー工程を有効にする
+npm install -g @openai/codex
+codex login --with-api-key   # API キーを標準入力から渡す（対話不要。headless 向け）
+codex --version              # 動作確認
 ```
+
+日次実行を担う EC2 側でレビューを効かせる場合も、上記の手順4を同じように実行してください。`~/.codex/config.toml` は最小構成で構いません（モデルは `.env` の `CODEX_REVIEW_MODEL` が未設定のとき、この設定の既定値が使われます）。**認証が切れた場合もレビューがスキップされるだけで、日次処理は完走します**。
 
 ### スキル実行時の注意
 
@@ -91,6 +99,7 @@ lineai_aoi_profiles/
 ├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／楽曲）
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
+│   ├── codex/             # Codex CLI による生成物レビュー（画像プロンプト・SNS本文）
 │   ├── firebase/          # Firebase / Firestore アクセス
 │   ├── gemini/            # Google Gemini 画像生成
 │   ├── google_calendar/   # Google Calendar 予定取得・OAuth認証
@@ -125,6 +134,7 @@ lineai_aoi_profiles/
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
     ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順・開発の Git 運用）
+    │   ├── codex_review.md           # codex レビューの依頼文の組み立てと指摘の反映の作法
     │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
@@ -311,6 +321,19 @@ lineai_aoi_profiles/
 | サービスURL | https://platform.openai.com |
 | スキル | `generate_gpt_image` → [SKILL.md](.claude/skills/generate_gpt_image/SKILL.md) |
 
+### OpenAI Codex CLI
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | OpenAI Codex CLI |
+| 役割 | 碧衣が生成した画像生成プロンプト・SNS投稿本文を、実行前に一往復だけレビューする外部レビュアー |
+| サービスURL | https://github.com/openai/codex |
+| スキル | `review_with_codex` → [SKILL.md](.claude/skills/review_with_codex/SKILL.md) |
+
+備考: 画像生成エンジンが OpenAI の GPT Image であるため、同じ提供元のモデルにプロンプトを読ませ、アングル・オブジェクトの位置関係・説明の順序といった観点で指摘を受けます。レビュー観点と依頼文の組み立ては [codexレビュー](.claude/docs/codex_review.md) を正とします。**任意の工程**であり、codex が未導入・未認証・時間切れのいずれでもレビューがスキップされるだけで、碧衣の処理は止まりません。
+
+なお `codex exec --sandbox read-only` は**全ディスクの読み取りを許し、読み取り範囲を絞る設定は存在しません**（v0.153.4 で実測）。そのため `src/codex/review.ts` は、codex をリポジトリ外の一時ディレクトリで起動し、渡す環境変数も許可リストで絞って（`.env` の認証情報を引き渡さないで）実行します。あわせて依頼文側でもファイルの読み取りを禁じています。
+
 ### Cloudinary
 
 | 項目 | 内容 |
@@ -397,6 +420,8 @@ Claude プロンプト層でも degradation を定義しています（[aoi_cons
 ツール呼び出しが失敗した場合は1回だけ再試行し、それでも失敗した場合はそのステップをスキップして処理を継続します。
 ただし**タイムアウトは「失敗」ではなく「結果不明」**として別扱いとし、書き込み・送信系は確認なしに再実行しません。
 
+補助工程である codex レビュー（`review_with_codex`）は、この一般則の**明示的な例外**です。codex が未導入・未認証・時間切れ・実行失敗のいずれの場合も、`src/codex/review.ts` は終了コード 0 と `status` を返して正常終了し、碧衣は**再試行せず**レビュー前の成果物のまま次の手順へ進みます。レビューは品質を底上げする任意の工程であり、その失敗で日次モードの実行時間を消費することの方が損失が大きいためです。
+
 ### 対応する障害パターン
 
 | 障害パターン | 対策 |
@@ -406,6 +431,7 @@ Claude プロンプト層でも degradation を定義しています（[aoi_cons
 | 一時的な障害（API瞬断など） | シェルリトライ + Claudeルールによるスキップ |
 | Firestore（gRPC）の接続が詰まる | CLI 自身が30秒で打ち切り、終了コード `124` で結果不明を明示 |
 | コマンドがBashツールの時間切れでバックグラウンドへ回される | 完了を確認してからターンを終える。書き込み・送信は再実行しない（[aoi_constraints.md](.claude/rules/aoi_constraints.md) / [long_sleep_execution.md](.claude/docs/long_sleep_execution.md)） |
+| codex レビューが失敗・時間切れになる | `review.ts` が自前タイムアウト（既定240秒）で打ち切り、`status` を返して正常終了。碧衣は再試行せずレビュー前の成果物で続行 |
 
 ## 9. ライセンスについて
 

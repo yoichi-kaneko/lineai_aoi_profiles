@@ -27,6 +27,7 @@
   "scene_category": "home",
   "time_of_day": "night",
   "companions": ["ruri"],
+  "codex_review": "applied",
   "prompt_digest": "自室の窓辺で夜景を眺めながら、一日を労う碧衣。ルリが肩に。"
 }
 ```
@@ -45,6 +46,7 @@
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
 | `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` の単一結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
+| `codex_review` | プロンプトの外部レビュー（[codexレビュー](codex_review.md)）の結果。値の対応は同ドキュメントのセクション6を正とする | `applied`（指摘を反映） / `not_applied`（指摘はあったが全て不採用） / `no_findings`（指摘なし） / `skipped`（レビューが行われなかった） |
 | `prompt_digest` | プロンプトの要約（全文は重いので要点1〜2文のみ） | 文字列 |
 
 ### 値の正規化について
@@ -77,6 +79,7 @@
   "scene_category": "outing",
   "time_of_day": "night",
   "companions": [],
+  "codex_review": "no_findings",
   "prompt_digest": "大塚のクラフトビアバーで、卓上のジョッキに手を添える碧衣。"
 }
 ```
@@ -94,6 +97,7 @@
 | `scene_category` | 分析結果から判断（`home` / `outing` / `hike` / `other`） | 山行のため通常は `hike` |
 | `companions` | ルリ・蛍の抽選結果を正規化した配列 | ルリの抽選結果のみ（山行シーンでは蛍は抽選対象外）。`["ruri"]` または `[]` |
 | `shot_size` / `camera_direction` | 抽選した構図軸の正規化値（値を変えた場合は前節「構図軸の再抽選が発生した場合」に従う） | 同左 |
+| `codex_review` | [画像生成ガイドライン](../../assets/image_guideline.md) セクション3の共通手順3（プロンプトのレビュー）の結果 | 同左 |
 | `time_of_day` / `prompt_digest` | 各モードの分析とプロンプトから判断 | 同左 |
 
 - `companions` は、抽選結果を選び直した場合は**実際にプロンプトへ入れた内容**を使い、`none` は保存しません。

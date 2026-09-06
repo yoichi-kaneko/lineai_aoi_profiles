@@ -9,7 +9,7 @@ dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { readFileSync } from "fs";
+import { loadJsonCredential } from "../util/credentials";
 
 /**
  * Firestore 操作を打ち切るまでの既定時間（ミリ秒）。
@@ -41,19 +41,17 @@ export class FirestoreTimeoutError extends Error {
   }
 }
 
-export function getFirebaseConfigPath(): string {
-  const configPath = process.env.FIREBASE_CONFIG_PATH;
-  if (!configPath) {
-    console.error("環境変数 FIREBASE_CONFIG_PATH が設定されていません");
-    process.exit(1);
-  }
-  return configPath;
-}
-
-/** サービスアカウントで Firebase Admin を初期化し、Firestore インスタンスを返す */
+/**
+ * サービスアカウントで Firebase Admin を初期化し、Firestore インスタンスを返す。
+ *
+ * 資格情報は `FIREBASE_CONFIG_JSON`（中身）があればそれを使い、
+ * 無ければ `FIREBASE_CONFIG_PATH` の指すファイルを読む。
+ */
 export function initFirestore(): Firestore {
-  const configPath = getFirebaseConfigPath();
-  const serviceAccount = JSON.parse(readFileSync(configPath, "utf-8")) as ServiceAccount;
+  const serviceAccount = loadJsonCredential(
+    "FIREBASE_CONFIG_JSON",
+    "FIREBASE_CONFIG_PATH"
+  ) as ServiceAccount;
 
   initializeApp({
     credential: cert(serviceAccount),

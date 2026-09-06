@@ -50,7 +50,7 @@ lineai_aoi_profiles/
 │   ├── swarm/              # Swarm チェックイン取得
 │   ├── todoist/            # Todoist タスク操作
 │   ├── twitter/            # Twitter（X）投稿
-│   ├── util/               # 汎用ユーティリティ
+│   ├── util/               # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/              # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 │       ├── fetch_plan.ts       # 山行計画ページ
 │       ├── fetch_activity.ts   # 活動記録ページ
@@ -176,6 +176,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 - 環境変数の読み込み: `dotenv` で `../../.env`（`src/{module}/` から2階層上）を参照
 - エラー時は `console.error` + `process.exit(1)`。例外として `src/codex/review.ts` は補助工程のため、`unavailable` / `timeout` / `error` でも終了コード 0 と `status` を返して正常終了する（引数不正のみ終了コード 1）
 - Firestore 系（`src/firebase/`）は初期化・タイムアウト・終了処理を `src/firebase/client.ts` に集約している。新しい Firestore CLI を追加する場合は `initFirestore()` / `withFirestoreTimeout()` / `finishFirestoreCli()` / `handleFirestoreCliError()` を使い、`initializeApp` を直に書かないこと（詳細は [README.md](../README.md) の「タイムアウト・リトライ」層3を参照）
+- JSON 形式の資格情報は `src/util/credentials.ts` の `loadJsonCredential()` で読む。`readFileSync` でパスを直に読まないこと。クラウドセッション向けに「中身を入れた環境変数」を優先する分岐がここに集約してある（Google OAuth 用の薄い層は `src/util/google_oauth.ts`）
 
 ## Git 運用
 
@@ -247,6 +248,12 @@ CLI スクリプトをテスト対象にする場合は、`main()` を `isDirect
 - `OPEN_WEATHER_APP_ID` - OpenWeatherMap
 - `SWARM_OAUTH_TOKEN` - Swarm
 - `MUREKA_API_KEY` / `MUREKA_MODEL` / `MUREKA_VOCAL_ID`（任意） - Mureka楽曲生成
+
+ブラウザのクラウドセッションは資格情報のファイルを置けないため、パスを渡す3つの変数
+（`FIREBASE_CONFIG_PATH` / `GOOGLE_OAUTH_CREDENTIALS` / `GOOGLE_SKILLS_TOKEN_PATH`）は、
+JSON の中身を直接渡す変数（`FIREBASE_CONFIG_JSON` / `GOOGLE_OAUTH_CREDENTIALS_JSON` /
+`GOOGLE_OAUTH_TOKENS_JSON`）でも渡せる。中身が設定されていればパス指定より優先される。
+手順は [README.md](../README.md) の「クラウドセッションへの資格情報の受け渡し」を参照。
 
 ## 注意事項
 

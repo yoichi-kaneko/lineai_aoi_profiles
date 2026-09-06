@@ -10,7 +10,7 @@ description: 指定した日付範囲（dateFrom〜dateTo、YYYY-MM-DD）に一�
 ## 概要
 
 - **コレクション**: 既定は `notes`（`--collection <name>` で変更可能）
-- **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用
+- **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用（`FIREBASE_CONFIG_JSON` に中身を直接設定した場合はそちらを優先）
 - **引数**: `dateFrom`（YYYY-MM-DD）と `dateTo`（YYYY-MM-DD）の2つ。任意で `--collection <name>` / `--type <type[,type...]>`
 - **動作**: `dateFrom` の0:00:00 〜 `dateTo` の23:59:59.999 の範囲（`date` フィールド）に一致するドキュメントを取得する（`--type` 指定時は該当する `type` のみを出力する）
 
@@ -40,6 +40,8 @@ pnpm install
 ```
 FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ```
+
+ブラウザのクラウドセッションではファイルを置けないため、代わりに環境変数 `FIREBASE_CONFIG_JSON` にサービスアカウント JSON の中身（またはその base64）を設定します。設定されていればパス指定より優先されます（[README](../../../README.md#クラウドセッションへの資格情報の受け渡し)）。
 
 ## 実行方法
 

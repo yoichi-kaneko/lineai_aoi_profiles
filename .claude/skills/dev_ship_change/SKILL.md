@@ -17,7 +17,7 @@ description: 開発者向け。リポジトリへの修正を、ブランチ作�
 
 ## 前提
 
-- `gh` が認証済みであること
+- GitHub を操作する手段があること。`gh` が使えるならそれを使い、使えない環境（ブラウザのクラウドセッションなど）では GitHub MCP ツールで代替する。判定と読み替えは [dev_git_workflow.md](../../docs/dev_git_workflow.md) の「GitHub 操作の手段」に従う
 - 作業ツリーに、今回の変更と無関係な未コミットの差分が無いこと（ある場合は手順1で確認する）
 
 ## Claudeへの指示
@@ -78,6 +78,8 @@ git push -u origin $(git branch --show-current)
 gh pr create --title "{タイトル}" --body-file {本文ファイルのパス}
 ```
 
+`gh` が使えない環境では、同じ内容を `create_pull_request`（`title` / `head` / `base` / `body`）で作成します。MCP ツールは本文をファイルで受け取れないため、下書きしたファイルを読み込んで `body` に渡します。`owner` / `repo` は `git remote get-url origin` から取ります（[dev_git_workflow.md](../../docs/dev_git_workflow.md) の「GitHub 操作の手段」）。
+
 タイトル・本文の構成、`## 確認いただきたい点` 節、フッターの扱いは [dev_git_workflow.md](../../docs/dev_git_workflow.md) の「プルリクエスト」に従います。
 
 ### 6. 報告する
@@ -86,9 +88,9 @@ gh pr create --title "{タイトル}" --body-file {本文ファイルのパス}
 
 ## 注意
 
-- **マージは行わない。** レビューとマージはユーザーの判断です。`gh pr merge` を実行しないでください
+- **マージは行わない。** レビューとマージはユーザーの判断です。`gh pr merge` も、MCP の `merge_pull_request` も実行しないでください
 - **`main` へ直接プッシュしない。** 手順1のブランチ確認を飛ばさないこと
-- 既に同じブランチの PR が存在する場合は、新規作成せずプッシュのみで済みます。`gh pr list --head $(git branch --show-current)` で確認してください
+- 既に同じブランチの PR が存在する場合は、新規作成せずプッシュのみで済みます。`gh pr list --head $(git branch --show-current)`（`gh` が無い場合は `list_pull_requests` に `head: "{owner}:{ブランチ}"`）で確認してください
 
 ## 他スキルとの役割分担
 

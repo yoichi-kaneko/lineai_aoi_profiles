@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_REDIRECT_URI,
   extractOAuthCredentials,
+  parseLocalRedirectListener,
   resolveGoogleSkillsTokenPath,
 } from "../../src/util/google_oauth.js";
 
@@ -69,6 +70,43 @@ describe("util/google_oauth", () => {
       expect(() => extractOAuthCredentials({})).toThrow(message);
       expect(() => extractOAuthCredentials(null)).toThrow(message);
       expect(() => extractOAuthCredentials("keys.json")).toThrow(message);
+    });
+  });
+
+  describe("parseLocalRedirectListener", () => {
+    it("localhost のポートと pathname を取り出す", () => {
+      expect(parseLocalRedirectListener("http://localhost:9999/cb")).toEqual({
+        redirectUri: "http://localhost:9999/cb",
+        port: 9999,
+        pathname: "/cb",
+      });
+    });
+
+    it("既定のコールバックも同じ形で分解する", () => {
+      expect(parseLocalRedirectListener(DEFAULT_REDIRECT_URI)).toEqual({
+        redirectUri: DEFAULT_REDIRECT_URI,
+        port: 3000,
+        pathname: "/oauth2callback",
+      });
+    });
+
+    it("127.0.0.1 も受ける", () => {
+      expect(parseLocalRedirectListener("http://127.0.0.1:3000/oauth2callback")).toEqual({
+        redirectUri: "http://127.0.0.1:3000/oauth2callback",
+        port: 3000,
+        pathname: "/oauth2callback",
+      });
+    });
+
+    it("http://localhost 以外やポート無しは拒否する", () => {
+      expect(() => parseLocalRedirectListener("https://localhost:3000/cb")).toThrow(
+        "http://localhost のみ対応"
+      );
+      expect(() => parseLocalRedirectListener("http://example.com:3000/cb")).toThrow(
+        "localhost または 127.0.0.1"
+      );
+      expect(() => parseLocalRedirectListener("http://localhost/cb")).toThrow("ポート番号");
+      expect(() => parseLocalRedirectListener("not-a-url")).toThrow("redirect_uri が不正");
     });
   });
 

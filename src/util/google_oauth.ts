@@ -20,6 +20,16 @@ export const OAUTH_CREDENTIALS_JSON_ENV = "GOOGLE_OAUTH_CREDENTIALS_JSON";
 /** トークンの中身を直接渡すための環境変数（クラウドセッション用） */
 export const OAUTH_TOKENS_JSON_ENV = "GOOGLE_OAUTH_TOKENS_JSON";
 
+/** auth.ts がローカルで待ち受けるための、redirect_uri の分解結果 */
+export interface LocalRedirectListener {
+  /** OAuth2Client / generateAuthUrl に渡す URI（入力と同じ） */
+  redirectUri: string;
+  /** http.createServer の listen 先 */
+  port: number;
+  /** コールバックの pathname（例: /oauth2callback） */
+  pathname: string;
+}
+
 /**
  * OAuth クライアントのキーファイル相当の JSON から、必要な項目を取り出す。
  *
@@ -51,6 +61,50 @@ export function extractOAuthCredentials(json: unknown): OAuthCredentials {
     client_secret: source.client_secret,
     redirect_uri: redirectUri,
   };
+}
+
+/**
+ * auth.ts 用に redirect_uri を分解する。
+ *
+ * ローカルの http サーバで待つ前提のため、`http://localhost`（または 127.0.0.1）かつ
+ * ポート番号付きのみを受け付ける。OAuth2Client と待ち受けが別の URI になると
+ * redirect_uri_mismatch になるため、認証フローではこの結果をそのまま使うこと。
+ */
+export function parseLocalRedirectListener(redirectUri: string): LocalRedirectListener {
+  let url: URL;
+  try {
+    url = new URL(redirectUri);
+  } catch {
+    throw new Error(
+      `redirect_uri が不正です: ${redirectUri}（例: ${DEFAULT_REDIRECT_URI}）`
+    );
+  }
+
+  if (url.protocol !== "http:") {
+    throw new Error(
+      `redirect_uri は http://localhost のみ対応です: ${redirectUri}`
+    );
+  }
+
+  if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+    throw new Error(
+      `redirect_uri のホストは localhost または 127.0.0.1 である必要があります: ${redirectUri}`
+    );
+  }
+
+  if (!url.port) {
+    throw new Error(
+      `redirect_uri にポート番号を含めてください（例: ${DEFAULT_REDIRECT_URI}）: ${redirectUri}`
+    );
+  }
+
+  const port = Number(url.port);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`redirect_uri のポート番号が不正です: ${redirectUri}`);
+  }
+
+  const pathname = url.pathname || "/";
+  return { redirectUri, port, pathname };
 }
 
 /**

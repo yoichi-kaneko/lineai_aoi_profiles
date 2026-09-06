@@ -23,6 +23,7 @@ import {
   getGoogleSkillsTokenPath,
   loadGoogleOAuthCredentials,
   OAUTH_TOKENS_JSON_ENV,
+  parseLocalRedirectListener,
 } from "../util/google_oauth";
 
 // プロジェクトルートの .env を読み込む
@@ -35,9 +36,6 @@ const SCOPES = [
   "https://www.googleapis.com/auth/drive.readonly",
 ];
 
-const REDIRECT_PORT = 3000;
-const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/oauth2callback`;
-
 function loadExistingTokens(tokenPath: string): Record<string, any> {
   try {
     return JSON.parse(readFileSync(tokenPath, "utf-8"));
@@ -49,11 +47,12 @@ function loadExistingTokens(tokenPath: string): Record<string, any> {
 async function main() {
   const accountMode = process.env.GOOGLE_ACCOUNT_MODE || "normal";
   const credentials = loadGoogleOAuthCredentials();
+  const redirect = parseLocalRedirectListener(credentials.redirect_uri);
 
   const oauth2Client = new OAuth2Client({
     clientId: credentials.client_id,
     clientSecret: credentials.client_secret,
-    redirectUri: REDIRECT_URI,
+    redirectUri: redirect.redirectUri,
   });
 
   const authUrl = oauth2Client.generateAuthUrl({
@@ -72,14 +71,14 @@ async function main() {
   console.log();
   console.log(authUrl);
   console.log();
-  console.log(`認証後、localhost:${REDIRECT_PORT} にリダイレクトされます...`);
+  console.log(`認証後、${redirect.redirectUri} にリダイレクトされます...`);
   console.log("─".repeat(60));
 
   // ローカルサーバーでコールバックを待機
   const code = await new Promise<string>((resolveCode, reject) => {
     const server = http.createServer((req, res) => {
-      const url = new URL(req.url || "/", `http://localhost:${REDIRECT_PORT}`);
-      if (url.pathname !== "/oauth2callback") {
+      const url = new URL(req.url || "/", `http://localhost:${redirect.port}`);
+      if (url.pathname !== redirect.pathname) {
         res.writeHead(404);
         res.end();
         return;
@@ -111,7 +110,7 @@ async function main() {
       resolveCode(authCode);
     });
 
-    server.listen(REDIRECT_PORT, () => {
+    server.listen(redirect.port, () => {
       // サーバー起動済み、ブラウザ操作を待機
     });
 

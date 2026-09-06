@@ -122,6 +122,14 @@ export function buildChildEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 
 /** 自前タイムアウトの既定値（秒）。Bash ツール既定の 300 秒の内側に収める */
 const DEFAULT_TIMEOUT_SEC = 240;
+/**
+ * `setTimeout` に渡せる遅延の上限（秒）。
+ * Node.js のタイマーは符号付き 32bit 整数（最大 2147483647 ms）のため、
+ * それを超える秒数は受け付けず既定値へ戻す。
+ */
+const MAX_TIMEOUT_SEC = 2_147_483;
+/** `codex --version` の確認打ち切り（ミリ秒） */
+const VERSION_CHECK_TIMEOUT_MS = 10_000;
 /** stderr を保持する上限（バイト）。失敗時の手掛かりだけを残す */
 const MAX_STDERR_BYTES = 2000;
 /** SIGTERM 後に強制終了へ切り替えるまでの猶予（ミリ秒） */
@@ -159,7 +167,14 @@ export function resolveConfig(
   const timeoutRaw = (env.CODEX_REVIEW_TIMEOUT_SEC ?? "").trim();
   if (timeoutRaw.length > 0) {
     if (/^[1-9]\d*$/.test(timeoutRaw)) {
-      timeoutSec = Number(timeoutRaw);
+      const parsed = Number(timeoutRaw);
+      if (parsed > MAX_TIMEOUT_SEC) {
+        warn(
+          `CODEX_REVIEW_TIMEOUT_SEC は ${MAX_TIMEOUT_SEC} 秒以下で指定してください（既定の ${DEFAULT_TIMEOUT_SEC} 秒を使います）: ${timeoutRaw}`,
+        );
+      } else {
+        timeoutSec = parsed;
+      }
     } else {
       warn(
         `CODEX_REVIEW_TIMEOUT_SEC は 1 以上の整数で指定してください（既定の ${DEFAULT_TIMEOUT_SEC} 秒を使います）: ${timeoutRaw}`,
@@ -275,7 +290,9 @@ function isCodexAvailable(useShell: boolean): boolean {
       shell: useShell,
       stdio: "ignore",
       windowsHide: true,
+      timeout: VERSION_CHECK_TIMEOUT_MS,
     });
+    // timeout 時は result.error が ETIMEDOUT になり、unavailable として扱う
     return !result.error && result.status === 0;
   } catch {
     return false;

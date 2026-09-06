@@ -35,7 +35,7 @@ cp .env.example .env
 
 # 4. （任意）Codex CLI を導入してレビュー工程を有効にする
 npm install -g @openai/codex
-codex login --with-api-key   # API キーを標準入力から渡す（対話不要。headless 向け）
+printenv OPENAI_API_KEY | codex login --with-api-key   # API キーを標準入力から渡す（対話不要。headless 向け）
 codex --version              # 動作確認
 ```
 

@@ -27,7 +27,7 @@ description: 碧衣が生成した成果物（画像生成プロンプト・SNS�
 
 ```bash
 npm install -g @openai/codex
-codex login --with-api-key   # または codex login
+printenv OPENAI_API_KEY | codex login --with-api-key   # または codex login（対話）
 codex --version              # 動作確認
 ```
 

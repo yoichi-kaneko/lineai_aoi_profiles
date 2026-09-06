@@ -73,6 +73,23 @@ describe("codex/review", () => {
       expect(warnings[0]).toContain("CODEX_REVIEW_TIMEOUT_SEC");
     });
 
+    it("setTimeout 上限を超えるタイムアウトは既定値へ落として警告する", () => {
+      const warnings: string[] = [];
+      const config = resolveConfig(
+        { CODEX_REVIEW_TIMEOUT_SEC: "2147484" },
+        (message) => warnings.push(message),
+      );
+      expect(config.timeoutMs).toBe(240_000);
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain("2147483");
+    });
+
+    it("setTimeout 上限ちょうどのタイムアウトは受け入れる", () => {
+      expect(resolveConfig({ CODEX_REVIEW_TIMEOUT_SEC: "2147483" }).timeoutMs).toBe(
+        2_147_483_000,
+      );
+    });
+
     it("推論強度は許可された値のみ採用し、それ以外は未指定へ落とす", () => {
       expect(resolveConfig({ CODEX_REVIEW_EFFORT: "LOW" }).effort).toBe("low");
 

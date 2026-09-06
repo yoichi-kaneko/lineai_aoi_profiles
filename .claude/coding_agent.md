@@ -174,7 +174,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 **TypeScript実装の慣習:**
 - 実行方法: プロジェクトルートで `pnpm exec tsx src/{module}/{main}.ts [引数]`
 - 環境変数の読み込み: `dotenv` で `../../.env`（`src/{module}/` から2階層上）を参照
-- エラー時は `console.error` + `process.exit(1)`
+- エラー時は `console.error` + `process.exit(1)`。例外として `src/codex/review.ts` は補助工程のため、`unavailable` / `timeout` / `error` でも終了コード 0 と `status` を返して正常終了する（引数不正のみ終了コード 1）
 - Firestore 系（`src/firebase/`）は初期化・タイムアウト・終了処理を `src/firebase/client.ts` に集約している。新しい Firestore CLI を追加する場合は `initFirestore()` / `withFirestoreTimeout()` / `finishFirestoreCli()` / `handleFirestoreCliError()` を使い、`initializeApp` を直に書かないこと（詳細は [README.md](../README.md) の「タイムアウト・リトライ」層3を参照）
 
 ## Git 運用

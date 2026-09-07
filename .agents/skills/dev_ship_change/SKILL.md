@@ -2,7 +2,6 @@
 name: dev_ship_change
 description: 開発者向け。リポジトリへの修正を、ブランチ作成から実装・コミット・push・PR作成まで一括で行う。「修正してPRまで出して」「ブランチを切って対応して」のように、変更を仕上げてPull Requestとして提出するところまで任されたときに使う。碧衣のモード実行では使用しない。
 ---
-<!-- このファイルは .agents/skills/ の共有正本から自動生成されます。直接編集せず pnpm agent-config:sync を実行してください。 -->
 
 # dev_ship_change
 

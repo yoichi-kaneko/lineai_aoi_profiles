@@ -55,9 +55,19 @@ codex --version              # 動作確認
 ```bash
 pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
+pnpm test:all    # Agent 設定の同期検査、ルート、functions の全テスト
 ```
 
 GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test:all` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
+
+### 開発エージェント設定
+
+Claude Code と Codex が共有する開発・レビュー規則は [AGENTS.md](AGENTS.md) を入口とし、詳細を [`docs/agent/`](docs/agent/) に分けています。共有開発 Skill は `.agents/skills/` が編集元です。`.claude/skills/` 側の生成物を直接編集せず、次のコマンドで同期・検査してください。
+
+```bash
+pnpm agent-config:sync   # 共有 Skill を Claude Code 向けに反映
+pnpm agent-config:check  # 正本と生成物の不一致を検出
+```
 
 ## 4. アクティビティ駆動フレームワークについて
 
@@ -89,7 +99,8 @@ GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm t
 
 ```
 lineai_aoi_profiles/
-├── CLAUDE.md              # エージェントのモード切り替え定義
+├── AGENTS.md              # 開発・レビューの共通常時指示
+├── CLAUDE.md              # Claude Code のモード切り替え定義
 ├── README.md              # 本ファイル
 ├── aoi.md                 # 碧衣のプロファイル定義
 ├── package.json           # pnpm パッケージ管理（ルート）
@@ -115,6 +126,13 @@ lineai_aoi_profiles/
 │   ├── util/              # 汎用ユーティリティ
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── test/                  # ルート src/ に対する vitest のテスト（詳細は test/README.md）
+├── scripts/
+│   └── sync-agent-config.mjs # 共有開発 Skill の同期・差分検査
+├── docs/
+│   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
+│       ├── development.md
+│       ├── git-workflow.md
+│       └── review-policy.md
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）
 ├── functions/             # Google Cloud Functions コード
 │   └── src/
@@ -124,8 +142,14 @@ lineai_aoi_profiles/
 ├── .github/
 │   └── workflows/
 │       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
+├── .agents/
+│   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
+│       ├── dev_ship_change/
+│       └── dev_apply_pr_review/
+├── .cursor/
+│   └── BUGBOT.md          # Bugbot 固有の薄い入口
+├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口
 └── .claude/
-    ├── coding_agent.md    # コーディングエージェントモードのガイドライン
     ├── hooks/             # Claude Code のフック
     │   └── session-start.sh      # クラウドセッション開始時に pnpm install を実行
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
@@ -133,9 +157,8 @@ lineai_aoi_profiles/
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報
     │   ├── aoi_messaging.md    # 個人宛・家族グループ宛のメッセージ作法
     │   └── aoi_constraints.md  # 注意事項（口調など）
-    ├── docs/              # 補助ドキュメント（Firestore スキーマ・退避運用・モード横断の判断手順・開発の Git 運用）
+    ├── docs/              # 碧衣向け補助ドキュメント（スキーマ・退避運用・モード横断の判断手順）
     │   ├── codex_review.md           # codex レビューの依頼文の組み立てと指摘の反映の作法
-    │   ├── dev_git_workflow.md       # 開発作業のブランチ・コミット・PR 規約（開発者向け）
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
     │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ
@@ -146,7 +169,7 @@ lineai_aoi_profiles/
     │   ├── night_image_theme.md      # 小夜モードの画像テーマ抽選
     │   ├── song_from_aoi_extract.md  # 調べモードの from_aoi 抽出手順
     │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
-    └── skills/            # Claude スキル定義（SKILL.md のみ、処理実装は src/ 配下）
+    └── skills/            # Claude 専用 Skill と共有正本からの生成物
 ```
 
 ## 6. 実行モードについて

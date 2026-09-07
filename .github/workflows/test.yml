@@ -26,5 +26,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
+      # 共有開発 Skill の生成漏れも test:all の先頭で検出する
+      - name: Check agent config and run tests
         run: pnpm test:all

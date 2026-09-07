@@ -2,7 +2,6 @@
 name: dev_apply_pr_review
 description: 開発者向け。GitHub PRのレビューコメントを漏れなく収集し、リポジトリ方針に照らして妥当性を検証したうえで、採用する指摘を修正・コミット・pushする。「PRのレビューコメントに対応して」「指摘を見て直して」のように、既存PRへのレビュー対応を任されたときに使う。碧衣のモード実行では使用しない。
 ---
-<!-- このファイルは .agents/skills/ の共有正本から自動生成されます。直接編集せず pnpm agent-config:sync を実行してください。 -->
 
 # dev_apply_pr_review
 

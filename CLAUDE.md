@@ -18,4 +18,4 @@
 
 上記以外の場合:
 
-→ [.claude/coding_agent.md](.claude/coding_agent.md) を読み込んで従う
+→ [AGENTS.md](AGENTS.md) を読み込んで従う

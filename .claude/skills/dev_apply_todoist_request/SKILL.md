@@ -13,7 +13,7 @@ description: 開発者向け。碧衣がTodoistへ登録した要望タスクの
 
 - **対象**: 碧衣が登録した要望タスク（開発者が自分で登録した開発タスクでも、同じ運用であれば構わない）
 - **入力**: Todoist のタスク URL（複数可）
-- **判断基準の正本**: [coding_agent.md](../../coding_agent.md) の「注意事項」
+- **判断基準の正本**: [AGENTS.md](../../../AGENTS.md) と [review-policy.md](../../../docs/agent/review-policy.md)
 - **Git 操作の委譲先**: [dev_ship_change](../dev_ship_change/SKILL.md)（ブランチ作成・コミット・プッシュ・PR 作成）
 
 ## Todoist コメントの運用規約（正本）
@@ -31,7 +31,7 @@ Todoist のコメントは、宛先の異なる2種類が同じタスクに並�
 
 ## 前提
 
-- GitHub を操作する手段があること。`gh` が使えるならそれを使い、使えない環境（ブラウザのクラウドセッションなど）では GitHub MCP ツールで代替する（[dev_git_workflow.md](../../docs/dev_git_workflow.md) の「GitHub 操作の手段」）
+- GitHub を操作する手段があること。`gh` が使えるなら `gh` を使い、使えない環境（ブラウザのクラウドセッションなど）では GitHub MCP ツールで代替する（[git-workflow.md](../../../docs/agent/git-workflow.md) の「GitHub 操作」）
 - `TODOIST_API_TOKEN` が設定されていること。ローカルでは `.env`、ブラウザのクラウドセッションでは環境側の環境変数に置く
 - 作業ツリーに、今回の変更と無関係な未コミットの差分が無いこと
 
@@ -72,7 +72,7 @@ pnpm exec tsx src/todoist/get_comments.ts "{タスクURL}" --include-policy
 
 1. **対象の実在**: 方針が指すファイル・記述・実装が現行 HEAD に存在するか
 2. **未対応であること**: 既に別の形で解決されていないか
-3. **方針との整合**: [coding_agent.md](../../coding_agent.md) の「注意事項」で採らないと決めている変更に当たらないか
+3. **方針との整合**: [AGENTS.md](../../../AGENTS.md) と [review-policy.md](../../../docs/agent/review-policy.md) で採らないと決めている変更に当たらないか
 
 判定は次のとおりです。
 

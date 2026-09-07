@@ -1,12 +1,13 @@
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -19,12 +20,48 @@ function normalize(content) {
   return content.replace(/\r\n/g, "\n");
 }
 
+function assertSafePath(targetPath, label) {
+  const absolute = resolve(targetPath);
+  const relativePath = relative(projectRoot, absolute);
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${sep}`) ||
+    isAbsolute(relativePath)
+  ) {
+    throw new Error(`${label} がリポジトリ外を指しています: ${absolute}`);
+  }
+
+  let current = absolute;
+  while (true) {
+    try {
+      if (lstatSync(current).isSymbolicLink()) {
+        throw new Error(
+          `${label} にシンボリックリンクが含まれています: ${current}`,
+        );
+      }
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+
+    if (current === projectRoot) break;
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return absolute;
+}
+
 function listFiles(directory) {
+  assertSafePath(directory, "列挙対象パス");
   if (!existsSync(directory)) return [];
 
   return readdirSync(directory, { withFileTypes: true })
     .flatMap((entry) => {
       const fullPath = join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        throw new Error(`列挙対象にシンボリックリンクが含まれています: ${fullPath}`);
+      }
       return entry.isDirectory() ? listFiles(fullPath) : [fullPath];
     })
     .sort();
@@ -46,8 +83,14 @@ function renderGeneratedFile(sourcePath, content) {
 const differences = [];
 
 for (const skillName of skillNames) {
-  const sourceDirectory = resolve(projectRoot, ".agents", "skills", skillName);
-  const targetDirectory = resolve(projectRoot, ".claude", "skills", skillName);
+  const sourceDirectory = assertSafePath(
+    resolve(projectRoot, ".agents", "skills", skillName),
+    "共有 Skill の正本ディレクトリ",
+  );
+  const targetDirectory = assertSafePath(
+    resolve(projectRoot, ".claude", "skills", skillName),
+    "共有 Skill の生成先ディレクトリ",
+  );
   const sourceFiles = listFiles(sourceDirectory);
 
   if (sourceFiles.length === 0) {
@@ -59,8 +102,12 @@ for (const skillName of skillNames) {
   );
 
   for (const sourcePath of sourceFiles) {
+    assertSafePath(sourcePath, "共有 Skill の正本ファイル");
     const relativePath = relative(sourceDirectory, sourcePath);
-    const targetPath = join(targetDirectory, relativePath);
+    const targetPath = assertSafePath(
+      join(targetDirectory, relativePath),
+      "共有 Skill の生成先ファイル",
+    );
     const expected = renderGeneratedFile(
       sourcePath,
       readFileSync(sourcePath, "utf8"),
@@ -79,6 +126,7 @@ for (const skillName of skillNames) {
   }
 
   for (const targetPath of listFiles(targetDirectory)) {
+    assertSafePath(targetPath, "共有 Skill の生成先ファイル");
     const relativePath = relative(targetDirectory, targetPath);
     if (expectedRelativePaths.has(relativePath)) continue;
 

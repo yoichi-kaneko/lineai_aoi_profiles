@@ -6,7 +6,6 @@ reviews:
     - "!node_modules/**"
     - "!functions/dist/**"
     - "!tmp/**"
-    - "!pnpm-lock.yaml"
   path_instructions:
     - path: "**/*"
       instructions: |

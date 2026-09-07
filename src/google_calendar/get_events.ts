@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
-import { homedir } from "os";
 import path from "path";
 import { OAuth2Client } from "google-auth-library";
 import { google, calendar_v3 } from "googleapis";
+import {
+  loadGoogleOAuthCredentials,
+  loadGoogleOAuthTokens,
+} from "../util/google_oauth";
 
 // プロジェクトルートの .env を読み込む
 // src/google_calendar/ -> src/ -> project root
@@ -19,51 +21,6 @@ function getEnvOrExit(name: string): string {
     process.exit(1);
   }
   return value;
-}
-
-interface OAuthCredentials {
-  client_id: string;
-  client_secret: string;
-  redirect_uri: string;
-}
-
-function loadCredentials(): OAuthCredentials {
-  const credPath = getEnvOrExit("GOOGLE_OAUTH_CREDENTIALS");
-  const content = readFileSync(resolve(credPath), "utf-8");
-  const json = JSON.parse(content);
-
-  if (json.installed) {
-    return {
-      client_id: json.installed.client_id,
-      client_secret: json.installed.client_secret,
-      redirect_uri: json.installed.redirect_uris[0],
-    };
-  } else if (json.client_id && json.client_secret) {
-    return {
-      client_id: json.client_id,
-      client_secret: json.client_secret,
-      redirect_uri: (json.redirect_uris || ["http://localhost:3000/oauth2callback"])[0],
-    };
-  }
-  throw new Error("クレデンシャルファイルの形式が不正です (installed または client_id/client_secret が必要)");
-}
-
-function loadTokens(): Record<string, any> {
-  const tokenPath =
-    process.env.GOOGLE_SKILLS_TOKEN_PATH ||
-    path.join(
-      process.env.XDG_CONFIG_HOME || path.join(homedir(), ".config"),
-      "google-skills",
-      "tokens.json"
-    );
-  try {
-    const content = readFileSync(tokenPath, "utf-8");
-    return JSON.parse(content);
-  } catch (error) {
-    console.error(`トークンファイルを読み込めませんでした: ${tokenPath}`);
-    console.error("認証を完了してください: npx tsx src/google_calendar/auth.ts");
-    process.exit(1);
-  }
 }
 
 /**
@@ -156,8 +113,8 @@ async function main() {
   const timezone = getEnvOrExit("GOOGLE_CALENDAR_TIMEZONE");
   const accountMode = process.env.GOOGLE_ACCOUNT_MODE || "normal";
 
-  const credentials = loadCredentials();
-  const allTokens = loadTokens();
+  const credentials = loadGoogleOAuthCredentials();
+  const allTokens = loadGoogleOAuthTokens("npx tsx src/google_calendar/auth.ts");
   const tokens = allTokens[accountMode];
 
   if (!tokens || (!tokens.access_token && !tokens.refresh_token)) {

@@ -41,6 +41,31 @@ codex --version              # 動作確認
 
 日次実行を担う EC2 側でレビューを効かせる場合も、上記の手順4を同じように実行してください。`~/.codex/config.toml` は最小構成で構いません（モデルは `.env` の `CODEX_REVIEW_MODEL` が未設定のとき、この設定の既定値が使われます）。**認証が切れた場合もレビューがスキップされるだけで、日次処理は完走します**。
 
+### クラウドセッションへの資格情報の受け渡し
+
+ブラウザのクラウドセッション（Claude Code on the web）はコンテナが揮発的で、`.env` や資格情報の JSON ファイルを持ち込めません。渡せるのは環境側に登録した環境変数だけです。そのため、ファイルのパスを渡す従来の環境変数に加えて、**JSON の中身を直接渡す環境変数**を用意しています。中身が設定されていればそちらが優先され、無ければ従来どおりファイルを読みます（ローカルの動作は変わりません）。
+
+| 中身を渡す環境変数 | 従来のパス指定 | 内容 |
+|---|---|---|
+| `FIREBASE_CONFIG_JSON` | `FIREBASE_CONFIG_PATH` | Firebase サービスアカウント JSON |
+| `GOOGLE_OAUTH_CREDENTIALS_JSON` | `GOOGLE_OAUTH_CREDENTIALS` | Google OAuth クライアントのキーファイル（`gcp-oauth.keys.json`） |
+| `GOOGLE_OAUTH_TOKENS_JSON` | `GOOGLE_SKILLS_TOKEN_PATH` | `tokens.json`（アカウントモードごとのトークン束） |
+
+値は生の JSON でも、その base64 でも構いません。改行や引用符の扱いは入力欄によって異なるため、base64 を推奨します。
+
+```bash
+base64 -w0 gcp-oauth.keys.json                # Linux
+base64 -i gcp-oauth.keys.json | tr -d '\n'    # macOS
+```
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("gcp-oauth.keys.json"))   # Windows / PowerShell
+```
+
+Google OAuth を使う場合、キーファイルだけでは動きません。**`tokens.json` も必要**です。`src/google_calendar/auth.ts`（および `src/google_drive/auth.ts`）はブラウザでの同意と `localhost` へのリダイレクトを前提とするため、クラウドセッションでは実行できません。ローカルで認証を済ませ、できた `tokens.json` の中身を `GOOGLE_OAUTH_TOKENS_JSON` に渡してください。リフレッシュしたアクセストークンをファイルへ書き戻す処理は無いため、コンテナが毎回作り直されても `refresh_token` があれば動きます。逆に `refresh_token` が失効した場合はクラウド側で復旧できず、ローカルで再認証してから環境変数を貼り直す必要があります（OAuth 同意画面が「テスト」ステータスのままだと `refresh_token` は7日で失効します）。
+
+資格情報を環境変数に置くと、そのセッションで動くすべてのコマンドから読める状態になります。Firebase のサービスアカウントは必要最小限の権限に絞り、漏洩が疑われる場合は鍵の再発行（GCP コンソール）や OAuth の取り消し（Google アカウントのセキュリティ設定）を行ってください。
+
 ### スキル実行時の注意
 
 - 処理の実装は `src/` 配下にあり、依存パッケージ（`cheerio` など）はルートの `package.json` で一元管理しています。
@@ -112,7 +137,7 @@ lineai_aoi_profiles/
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
 │   ├── swarm/             # Swarm チェックイン取得
 │   ├── todoist/           # Todoist タスク操作
-│   ├── util/              # 汎用ユーティリティ
+│   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── test/                  # ルート src/ に対する vitest のテスト（詳細は test/README.md）
 ├── tmp/                   # 一時ファイル置き場（画像・音声など）

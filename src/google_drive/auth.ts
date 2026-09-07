@@ -6,16 +6,25 @@
  *
  * 使用方法:
  *   npx tsx src/google_drive/auth.ts
+ *
+ * ブラウザでの同意と localhost へのリダイレクトが必要なため、ブラウザのクラウド
+ * セッション（Claude Code on the web）では実行できません。クラウド側では、ここで
+ * 作った tokens.json の中身を環境変数 GOOGLE_OAUTH_TOKENS_JSON に渡して使います。
  */
 
 import dotenv from "dotenv";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { homedir } from "os";
 import path from "path";
 import http from "http";
 import { OAuth2Client } from "google-auth-library";
+import {
+  getGoogleSkillsTokenPath,
+  loadGoogleOAuthCredentials,
+  OAUTH_TOKENS_JSON_ENV,
+  parseLocalRedirectListener,
+} from "../util/google_oauth";
 
 // プロジェクトルートの .env を読み込む
 // src/google_drive/ -> src/ -> project root
@@ -27,53 +36,6 @@ const SCOPES = [
   "https://www.googleapis.com/auth/drive.readonly",
 ];
 
-const REDIRECT_PORT = 3000;
-const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/oauth2callback`;
-
-function getEnvOrExit(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    console.error(`環境変数 ${name} が設定されていません`);
-    process.exit(1);
-  }
-  return value;
-}
-
-interface OAuthCredentials {
-  client_id: string;
-  client_secret: string;
-}
-
-function loadCredentials(): OAuthCredentials {
-  const credPath = getEnvOrExit("GOOGLE_OAUTH_CREDENTIALS");
-  const content = readFileSync(resolve(credPath), "utf-8");
-  const json = JSON.parse(content);
-
-  if (json.installed) {
-    return {
-      client_id: json.installed.client_id,
-      client_secret: json.installed.client_secret,
-    };
-  } else if (json.client_id && json.client_secret) {
-    return {
-      client_id: json.client_id,
-      client_secret: json.client_secret,
-    };
-  }
-  throw new Error("クレデンシャルファイルの形式が不正です");
-}
-
-function getTokenPath(): string {
-  return (
-    process.env.GOOGLE_SKILLS_TOKEN_PATH ||
-    path.join(
-      process.env.XDG_CONFIG_HOME || path.join(homedir(), ".config"),
-      "google-skills",
-      "tokens.json"
-    )
-  );
-}
-
 function loadExistingTokens(tokenPath: string): Record<string, any> {
   try {
     return JSON.parse(readFileSync(tokenPath, "utf-8"));
@@ -84,12 +46,13 @@ function loadExistingTokens(tokenPath: string): Record<string, any> {
 
 async function main() {
   const accountMode = process.env.GOOGLE_ACCOUNT_MODE || "normal";
-  const credentials = loadCredentials();
+  const credentials = loadGoogleOAuthCredentials();
+  const redirect = parseLocalRedirectListener(credentials.redirect_uri);
 
   const oauth2Client = new OAuth2Client({
     clientId: credentials.client_id,
     clientSecret: credentials.client_secret,
-    redirectUri: REDIRECT_URI,
+    redirectUri: redirect.redirectUri,
   });
 
   const authUrl = oauth2Client.generateAuthUrl({
@@ -108,14 +71,14 @@ async function main() {
   console.log();
   console.log(authUrl);
   console.log();
-  console.log(`認証後、localhost:${REDIRECT_PORT} にリダイレクトされます...`);
+  console.log(`認証後、${redirect.redirectUri} にリダイレクトされます...`);
   console.log("─".repeat(60));
 
   // ローカルサーバーでコールバックを待機
   const code = await new Promise<string>((resolveCode, reject) => {
     const server = http.createServer((req, res) => {
-      const url = new URL(req.url || "/", `http://localhost:${REDIRECT_PORT}`);
-      if (url.pathname !== "/oauth2callback") {
+      const url = new URL(req.url || "/", `http://localhost:${redirect.port}`);
+      if (url.pathname !== redirect.pathname) {
         res.writeHead(404);
         res.end();
         return;
@@ -147,7 +110,7 @@ async function main() {
       resolveCode(authCode);
     });
 
-    server.listen(REDIRECT_PORT, () => {
+    server.listen(redirect.port, () => {
       // サーバー起動済み、ブラウザ操作を待機
     });
 
@@ -159,7 +122,7 @@ async function main() {
   const { tokens } = await oauth2Client.getToken(code);
 
   // 既存の tokens.json を読み込んで accountMode のエントリを更新
-  const tokenPath = getTokenPath();
+  const tokenPath = getGoogleSkillsTokenPath();
   const allTokens = loadExistingTokens(tokenPath);
   allTokens[accountMode] = tokens;
 
@@ -173,6 +136,15 @@ async function main() {
   console.log(`スコープ  : ${tokens.scope}`);
   console.log(`保存先    : ${tokenPath}`);
   console.log("─".repeat(60));
+
+  // 中身の環境変数が設定されていると実行時はそちらが使われ、保存したファイルは読まれない
+  if (process.env[OAUTH_TOKENS_JSON_ENV]) {
+    console.log();
+    console.log(`注意: 環境変数 ${OAUTH_TOKENS_JSON_ENV} が設定されています。`);
+    console.log("      実行時はそちらが優先されるため、いま保存したトークンを使うには");
+    console.log("      この環境変数も更新してください（README の「クラウドセッションへの");
+    console.log("      資格情報の受け渡し」を参照）。");
+  }
 }
 
 main().catch((error) => {

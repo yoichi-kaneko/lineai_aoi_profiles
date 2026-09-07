@@ -210,7 +210,7 @@ lineai_aoi_profiles/
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
-| 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
+| 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、登山日の Firestore 記録（ユーザーの言葉・写真、門灯／継灯／帰灯の申し送り）を補助材料に加えたうえで、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
 
@@ -233,6 +233,7 @@ lineai_aoi_profiles/
 | 送信仕様 | Push Message の `messages` に最大5件まで同梱可能。[`send_line_image`](.claude/skills/send_line_image/SKILL.md) / [`send_line_audio`](.claude/skills/send_line_audio/SKILL.md) はメディア→テキストの順で**1リクエスト**にまとめて送信。[`send_line_text`](.claude/skills/send_line_text/SKILL.md) はテキスト単独送信用 |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 | 送信失敗時 | Push 失敗（429・クオータ等）時は [LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い `put_firestore_doc` で `type: line_undelivered` に退避 |
+| 画像取得の期限 | [`download_line_image`](.claude/skills/download_line_image/SKILL.md) が扱えるのは LINE 側の保存期間内のコンテンツのみ。`notes` の `line_image` に残るのはメッセージIDであり、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
 
 ### Google Calendar API
 
@@ -309,7 +310,7 @@ lineai_aoi_profiles/
 | スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） / `review_song_feedback`（楽曲フィードバックの定期レビュー） |
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
-| 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録（`from_aoi` / `night_handover` / `up_mountain` 等）でレスポンスが読み込めない大きさになるため、使う `type` が決まっている処理では絞って取得する（調べモードは `line_text` / `line_image` / `from_aoi` に固定）。`date` 範囲との併用で複合インデックスが要らないよう、絞り込みは取得後にクライアント側で行う |
+| 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録（`from_aoi` / `night_handover` / `up_mountain` 等）でレスポンスが読み込めない大きさになるため、使う `type` が決まっている処理では絞って取得する（調べモードは `line_text` / `line_image` / `from_aoi`、綴葉モードは `line_text` / `line_image` / `up_mountain` / `stay_mountain` / `off_mountain` に固定）。`date` 範囲との併用で複合インデックスが要らないよう、絞り込みは取得後にクライアント側で行う |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |

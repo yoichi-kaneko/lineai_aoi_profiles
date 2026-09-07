@@ -83,6 +83,8 @@ Firestore の `notes` ドキュメントの `type` フィールドの取りう�
 
 綴葉モード（scribe）  ※手動起動のみ・小夜の前に実行
   ├─ get_todoist_completed_tasks / get_todoist_comments ──→ 当日の登山レポート（YAMAP）を特定・読解
+  ├─ get_firestore_docs ──→ 登山日の記録を補助材料として受け取る（--type で line_text / line_image / up_mountain / stay_mountain / off_mountain に絞る）
+  │    ・レポートに無い事実は投稿へ足さない。line_image は保存期間切れで取得できないことがある
   └─ put_firestore_doc ──→ Firestore（type: scribe_handover）
        ・SNS 代筆投稿の成否（必須。一時障害で投稿失敗しても引き継ぎは残る）
        ・碧衣→ユーザー視点のレポートの感想（小夜の「登山レポートへの想い」の素材）

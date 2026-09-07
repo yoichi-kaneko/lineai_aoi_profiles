@@ -7,8 +7,8 @@
 | 観点セット | 対象 | 呼び出し元 |
 |---|---|---|
 | `image_prompt` | 小夜・帰灯の画像生成プロンプト | [画像生成ガイドライン](../../assets/image_guideline.md) セクション3の共通手順3 |
-| `scribe_image_prompt` | 綴葉のレポート画像プロンプト | [綴葉モード](../../modes/scribe.md) ステップ4の手順3 |
-| `scribe_post` | 綴葉の SNS 投稿本文 | [綴葉モード](../../modes/scribe.md) ステップ5の手順4 |
+| `scribe_image_prompt` | 綴葉のレポート画像プロンプト | [綴葉モード](../../modes/scribe.md) ステップ5の手順3 |
+| `scribe_post` | 綴葉の SNS 投稿本文 | [綴葉モード](../../modes/scribe.md) ステップ6の手順4 |
 
 ---
 

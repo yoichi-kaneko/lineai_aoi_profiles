@@ -45,13 +45,13 @@
 | `outfit` | 採用した衣装 | `outfit_a` / `outfit_b` / `outfit_c` / `outfit_d` / `outfit_e` |
 | `scene_category` | 情景カテゴリ | `home`（自宅・自室） / `outing`（街・外出） / `hike`（山行・自然） / `other` |
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
-| `companions` | ルリ／蛍の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` の単一結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["ruri","hotaru"]` |
+| `companions` | ルリ／デジタル上の友人（蛍・漆）の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` 2本の結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["urushi"]` / `["ruri","hotaru"]` / `["ruri","urushi"]` |
 | `codex_review` | プロンプトの外部レビュー（[codexレビュー](codex_review.md)）の結果。値の対応は同ドキュメントのセクション6を正とする | `applied`（指摘を反映） / `not_applied`（指摘はあったが全て不採用） / `no_findings`（指摘なし） / `skipped`（レビューが行われなかった） |
 | `prompt_digest` | プロンプトの要約（全文は重いので要点1〜2文のみ） | 文字列 |
 
 ### 値の正規化について
 - `shot_size` / `camera_direction` は画像生成ガイドライン（[../../assets/image_guideline.md](../../assets/image_guideline.md) セクション8③）の語彙を `random_choice` で抽選します。ログには**上表の英語スネークケースの正規化値**で記録してください（例：「バストアップ（bust shot）」→ `bust_shot`、「斜め前（three-quarter view）」→ `three_quarter`）。柱C の偏り集計が値の表記揺れに影響されないようにするためです。
-- `companions` は各抽選の単一結果を統合し、`ruri` → `["ruri"]`、`hotaru` → `["hotaru"]`、`none` → `[]` と正規化します。両方が登場する場合の canonical order は `["ruri","hotaru"]` です。`none` という文字列は配列へ保存しないでください。
+- `companions` は2本の抽選（ルリ／友人）の結果を統合し、`ruri` → `["ruri"]`、`hotaru` → `["hotaru"]`、`urushi` → `["urushi"]`、`none` → `[]` と正規化します。canonical order は `ruri` → `hotaru` → `urushi` の順で、ルリと友人がともに登場する場合は `["ruri","hotaru"]` / `["ruri","urushi"]` となります。友人の抽選は蛍・漆・不在の三択を1回引く形のため、`["hotaru","urushi"]` は生じません。`none` という文字列は配列へ保存しないでください。
 - どの選択肢にも当てはめにくい場合のみ、最も近いものを選ぶか、`scene_category` は `other` を使ってください。
 
 ### 構図軸の再抽選が発生した場合
@@ -95,7 +95,7 @@
 | `cloudinary_url` | 報告送信に使った `send_line_image` の出力 `originalUrl` | 同左。家族グループ・ユーザーへ**同じ画像**を送るため、宛先ごとに分けず**ログは1件のみ**記録する |
 | `outfit` | 採用した衣装（`outfit_a`〜`outfit_e`） | 登山シーンが基本のため通常は `outfit_b` |
 | `scene_category` | 分析結果から判断（`home` / `outing` / `hike` / `other`） | 山行のため通常は `hike` |
-| `companions` | ルリ・蛍の抽選結果を正規化した配列 | ルリの抽選結果のみ（山行シーンでは蛍は抽選対象外）。`["ruri"]` または `[]` |
+| `companions` | ルリ・友人（蛍・漆）の抽選結果を正規化した配列 | ルリの抽選結果のみ（山行シーンでは友人は抽選対象外）。`["ruri"]` または `[]` |
 | `shot_size` / `camera_direction` | 抽選した構図軸の正規化値（値を変えた場合は前節「構図軸の再抽選が発生した場合」に従う） | 同左 |
 | `codex_review` | [画像生成ガイドライン](../../assets/image_guideline.md) セクション3の共通手順3（プロンプトのレビュー）の結果 | 同左 |
 | `time_of_day` / `prompt_digest` | 各モードの分析とプロンプトから判断 | 同左 |

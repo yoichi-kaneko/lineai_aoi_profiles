@@ -75,7 +75,7 @@ pnpm exec tsx src/firebase/get_docs.ts "{dateFrom}" "{dateTo}" --collection imag
 
 `image_logs` の各ドキュメントを、以下のフィールドごとに**値の出現回数を数えて分布表**を作ります。表記揺れはスキーマの正規化値（英語スネークケース）で揃っている前提です。
 
-集計対象フィールド: `shot_size` / `camera_direction` / `outfit` / `scene_category` / `time_of_day` / `companions`（companions は配列。`ruri` 単独・`hotaru` 単独・両方・なし の4区分で数える）。
+集計対象フィールド: `shot_size` / `camera_direction` / `outfit` / `scene_category` / `time_of_day` / `companions`（companions は配列。ルリのみ・蛍のみ・漆のみ・ルリ＋蛍・ルリ＋漆・なし の6区分で数える。`["hotaru","urushi"]` など設計上存在しない組み合わせは区分に入れず別途報告する）。
 
 各フィールドについて、値・件数・割合（件数 / N）を表で示します。そのうえで**偏りフラグ**を立てます（既定ルール。N が小さいときは弱いシグナルとして注記）:
 

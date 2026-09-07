@@ -43,6 +43,7 @@ pnpm agent-config:check          共有 Skill と生成物の差分検査
 - 通常の CLI は失敗時に `console.error` と終了コード 1 を使う。`src/codex/review.ts` は補助工程のため、引数不正以外をステータス付きの正常終了として扱う。
 - テスト対象の判断ロジックは副作用から分離して export し、CLI の `main()` は直接実行時だけ呼ぶ。テストは `test/` に置く。
 - Firestore CLI は `src/firebase/client.ts` の初期化、タイムアウト、終了、エラー処理を再利用し、個別に `initializeApp` を呼ばない。
+- JSON 形式の資格情報は `src/util/credentials.ts` の `loadJsonCredential()` で読み、パスを直接読み込まない。Google OAuth では `src/util/google_oauth.ts` の共通処理も使う。
 
 ## Explicit Non-Goals
 

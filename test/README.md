@@ -45,7 +45,9 @@ test/
 ├── twitter/
 │   └── post.test.ts           # tmp/ 内画像パス検証
 ├── util/
+│   ├── credentials.test.ts    # 資格情報の取得元の決定（中身の環境変数 / パス）・JSON と base64 の解釈
 │   ├── download_image.test.ts # 保存ファイル名決定
+│   ├── google_oauth.test.ts   # OAuth キーファイルの項目抽出・tokens.json のパス解決
 │   └── random_choice.test.ts  # 重み付き抽選
 └── yamap/
     ├── format.test.ts          # 共通整形・ラベル境界
@@ -89,13 +91,15 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/swarm/get_checkins.ts`
 - `src/util/random_choice.ts`
 - `src/util/download_image.ts`
+- `src/util/credentials.ts`
+- `src/util/google_oauth.ts`
 - `src/image/embed_qr.ts`
 - `src/codex/review.ts`
 
 ### 間接カバーまたは今回の対象外
 
 - 薄い CLI ラッパー（`src/line/send_*.ts` など）は下位モジュールのテストで間接カバーする。
-- OAuth 認証 (`src/google_calendar/auth.ts`, `src/google_drive/auth.ts`) は対話的かつ外部接続前提のため、自動テスト対象外とする。
+- OAuth 認証 (`src/google_calendar/auth.ts`, `src/google_drive/auth.ts`) は対話的かつ外部接続前提のため、自動テスト対象外とする。両者が使う資格情報・トークンの読み込みは `src/util/credentials.ts` / `src/util/google_oauth.ts` 側で直接テストしている。
 - 実 API への接続自体が本体の処理であるモジュールは、引数検証・パス検証・整形ロジックのみを自動テストし、疎通確認は手動で行う。
 - `src/codex/review.ts` の codex 起動そのもの（子プロセスの spawn・タイムアウト・終了コードの分岐）は、外部 CLI と外部 API に依存するため自動テスト対象外とする。純関数（引数解釈・環境変数の解決・引数の組み立て・環境変数の絞り込み）のみを直接テストし、`status` の5分岐（`ok` / `skipped` / `unavailable` / `timeout` / `error`）は手動で確認する。
 

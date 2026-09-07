@@ -52,6 +52,8 @@ GOOGLE_CALENDAR_ID="primary"
 GOOGLE_CALENDAR_TIMEZONE="Asia/Tokyo"
 ```
 
+ブラウザのクラウドセッションではファイルを置けないため、代わりに `GOOGLE_OAUTH_CREDENTIALS_JSON`（キーファイルの中身）と `GOOGLE_OAUTH_TOKENS_JSON`（`tokens.json` の中身）を設定します。いずれも設定されていればパス指定より優先されます（[README](../../../README.md#クラウドセッションへの資格情報の受け渡し)）。
+
 ### 初回認証
 
 初回または再認証が必要な場合は以下を実行してください。
@@ -64,6 +66,10 @@ pnpm exec tsx src/google_calendar/auth.ts
 表示された URL をブラウザで開いて Google アカウントを認証すると、
 `~/.config/google-skills/tokens.json` に Calendar + Drive 両スコープの
 トークンが保存されます。`GOOGLE_SKILLS_TOKEN_PATH` 環境変数でパスを変更できます。
+
+この認証はブラウザでの同意と `localhost` へのリダイレクトを必要とするため、
+クラウドセッションでは実行できません。ローカルで認証を済ませ、できた
+`tokens.json` の中身を `GOOGLE_OAUTH_TOKENS_JSON` に渡してください。
 
 ## Claudeへの指示
 

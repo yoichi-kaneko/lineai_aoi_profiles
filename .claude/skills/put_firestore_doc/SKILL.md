@@ -12,7 +12,7 @@ description: Firestoreにdocを追加する。日付(YYYY-MM-DD)と、本文を�
 ## 概要
 
 - **コレクション**: 既定は `notes`（`--collection <name>` で変更可能）
-- **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用
+- **認証**: 環境変数 `FIREBASE_CONFIG_PATH` で指定されたサービスアカウントJSONを使用（`FIREBASE_CONFIG_JSON` に中身を直接設定した場合はそちらを優先）
 - **引数**: 日付（YYYY-MM-DD）と、本文を保存した一時ファイルのパス
 
 ## ドキュメント構造
@@ -53,6 +53,8 @@ pnpm install
 ```
 FIREBASE_CONFIG_PATH="/path/to/serviceaccount.json"
 ```
+
+ブラウザのクラウドセッションではファイルを置けないため、代わりに環境変数 `FIREBASE_CONFIG_JSON` にサービスアカウント JSON の中身（またはその base64）を設定します。設定されていればパス指定より優先されます（[README](../../../README.md#クラウドセッションへの資格情報の受け渡し)）。
 
 ## Claudeへの指示
 

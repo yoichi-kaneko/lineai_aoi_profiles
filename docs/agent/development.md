@@ -72,6 +72,7 @@ lineai_aoi_profiles/
 - `src/codex/review.ts` は日次処理の補助工程であるため、`unavailable`、`timeout`、`error` もステータスとして返し、引数不正だけを終了コード 1 とする。
 - テストしたい判断ロジックは I/O から分離して export する。`main()` は直接実行時だけ呼び、import で外部処理を開始しない。
 - Firestore CLI は `src/firebase/client.ts` の `initFirestore()`、`withFirestoreTimeout()`、`finishFirestoreCli()`、`handleFirestoreCliError()` を使用する。`initializeApp` を個別に書かない。
+- JSON 形式の資格情報は `src/util/credentials.ts` の `loadJsonCredential()` で読み、`readFileSync` でパスを直接読み込まない。Google OAuth の資格情報とトークンには `src/util/google_oauth.ts` の共通処理も使う。
 
 ## パッケージ管理と検査
 
@@ -94,6 +95,7 @@ pnpm exec tsc --noEmit
 - `.env`、サービスアカウント、API キー、アクセストークンをコミットしない。
 - ログと例外へ秘密情報や LINE メッセージ本文などの PII を含めない。
 - Claude Code のクラウドセッションでは `.claude/hooks/session-start.sh` が `pnpm install --frozen-lockfile` を実行する。ローカルでは必要に応じて手動で依存関係を導入する。
+- クラウドセッションでは、`FIREBASE_CONFIG_JSON`、`GOOGLE_OAUTH_CREDENTIALS_JSON`、`GOOGLE_OAUTH_TOKENS_JSON` に JSON の中身または base64 を渡せる。これらは対応するパス指定より優先される。設定方法と安全上の注意は [README.md](../../README.md) の「クラウドセッションへの資格情報の受け渡し」を参照する。
 
 ## 一時ファイル
 

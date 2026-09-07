@@ -21,7 +21,7 @@ lineai_aoi_profiles/
 ├── assets/
 │   ├── image_guideline.md         # 画像生成ガイドライン本体（核／彩りの2層・衣装・プロンプト構成フレームワーク）
 │   ├── image_guideline_hike.md    # 山行シーンの構図ガイド（山行シーンのときだけオンデマンド参照）
-│   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（7パターン・オンデマンド参照）
+│   ├── image_guideline_samples.md # 画像生成プロンプトの詳細な記述例（8パターン・オンデマンド参照）
 │   ├── songs_guideline.md  # 楽曲生成ガイドライン（スタイル・歌詞構成）
 │   ├── scribe_image_guideline.md  # SNS投稿画像ガイドライン（綴葉モード用）
 │   └── images/             # キャラクター設定画像（base / outfit_a〜e / room / ruri / hotaru）
@@ -147,7 +147,7 @@ AIの応答・行動パターンを変更する場合は以下のファイルを
 | `modes/scribe.md` | 綴葉モード（YAMAPレポートのSNS代筆投稿）の実行手順・判断ロジック |
 | `assets/image_guideline.md` | 画像生成プロンプトの定義・衣装リスト・構成フレームワーク本体 |
 | `assets/image_guideline_hike.md` | 山行シーンの構図ルール（遠景の主役・碧衣とルリの向き・正面構図のポーズ・副素材）。山行シーンのときだけ参照する |
-| `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（7パターン）。本体から分離し、生成時にオンデマンド参照する |
+| `assets/image_guideline_samples.md` | 画像生成プロンプトの詳細な記述例（8パターン）。本体から分離し、生成時にオンデマンド参照する |
 | `assets/songs_guideline.md` | 楽曲生成のスタイル・歌詞構成ガイドライン |
 | `assets/scribe_image_guideline.md` | 綴葉モードのSNS投稿画像ガイドライン |
 | `.claude/docs/mountain_notice_guide.md` | 継灯・帰灯の判別基準と、両モードが共通で使う山行コンテキストの確定・時刻の採用優先順位 |

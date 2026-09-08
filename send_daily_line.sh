@@ -50,6 +50,21 @@ if [ "$MODE" = "talk" ]; then
     echo "[ERROR] talk モードには投稿日(YYYY-MM-DD)が必要です。MODE=${MODE}" >&2
     exit 1
   fi
+  # 書式だけでなく実在する暦日かを検証する（2026-02-30 などを拒否）
+  # EC2 は GNU date、-d が無い環境（macOS 等）は BSD date -j にフォールバックする
+  parsed_date=""
+  if parsed_date=$(date -d "$POSTED_DATE" +%F 2>/dev/null); then
+    :
+  elif parsed_date=$(TZ=UTC date -j -f "%Y-%m-%d" "$POSTED_DATE" +%F 2>/dev/null); then
+    :
+  else
+    echo "[ERROR] talk モードの投稿日が不正です（存在する日付を YYYY-MM-DD で指定）。MODE=${MODE}" >&2
+    exit 1
+  fi
+  if [ "$parsed_date" != "$POSTED_DATE" ]; then
+    echo "[ERROR] talk モードの投稿日が不正です（存在する日付を YYYY-MM-DD で指定）。MODE=${MODE}" >&2
+    exit 1
+  fi
   # 響の基準日は「実行日」ではなく「呼びかけが届いた日」
   TARGET_DATE="$POSTED_DATE"
 fi
@@ -179,7 +194,7 @@ if [ "$MODE" = "song" ]; then
   PHASE_A_OK=false
   for i in $(seq 1 $PHASE_A_RETRIES); do
     # フェーズA再試行ごとに tmp/ を掃除（待機・送信へ進む前のみ。フェーズ間では掃除しない）
-    bash refresh_tmp.sh >&2
+    bash refresh_tmp.sh >&2 || exit 1
 
     run_claude "$PHASE_A_TRIGGER" "xhigh" "$PHASE_A_TIMEOUT"
     PHASE_A_RC=$?
@@ -269,7 +284,7 @@ EXIT_CODE=0
 for i in $(seq 1 $MAX_RETRIES); do
   # 各試行の冒頭で tmp/ を掃除し、前プロセス・前試行の残骸を残さない
   # （碧衣が古い一時ファイルを検知・内容確認する無駄を防ぐ）
-  bash refresh_tmp.sh >&2
+  bash refresh_tmp.sh >&2 || exit 1
 
   run_claude "$TRIGGER_PROMPT" "$EFFORT" "$TIMEOUT_SEC"
   EXIT_CODE=$?

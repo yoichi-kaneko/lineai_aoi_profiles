@@ -12,6 +12,6 @@
 
 cd "$(dirname "$0")" || exit 1
 
-mkdir -p tmp
-find tmp/ -type f -not -name '.*' -delete
+mkdir -p tmp || exit 1
+find tmp/ -type f -not -name '.*' -delete || exit 1
 echo "tmp/ を掃除しました"

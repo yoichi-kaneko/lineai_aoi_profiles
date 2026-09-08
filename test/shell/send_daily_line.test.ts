@@ -38,6 +38,15 @@ function setupWorkDir(): string {
     "utf-8",
   );
   chmodSync(stub, 0o755);
+
+  // macOS 等で GNU timeout が無い環境でも runner を検証できるようにする
+  const timeoutStub = join(dir, "timeout");
+  writeFileSync(
+    timeoutStub,
+    ["#!/bin/bash", "shift", 'exec "$@"'].join("\n"),
+    "utf-8",
+  );
+  chmodSync(timeoutStub, 0o755);
   return dir;
 }
 
@@ -47,7 +56,12 @@ function runRunner(
 ): { status: number; stderr: string } {
   try {
     execFileSync("bash", [join(workDir, "send_daily_line.sh"), ...args], {
-      env: { ...process.env, CLAUDE_BIN: join(workDir, "claude-stub.sh"), ...env },
+      env: {
+        ...process.env,
+        PATH: `${workDir}${process.env.PATH ? `:${process.env.PATH}` : ""}`,
+        CLAUDE_BIN: join(workDir, "claude-stub.sh"),
+        ...env,
+      },
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -103,6 +117,7 @@ describe("send_daily_line.sh の talk モード", () => {
     [["doc;rm -rf /", POSTED_DATE], "対象ドキュメントID"],
     [[DOC_ID, "2026/08/20"], "投稿日"],
     [[DOC_ID, "2026-08-20; echo hi"], "投稿日"],
+    [[DOC_ID, "2026-02-30"], "投稿日"],
   ])("起動情報が不正なら claude を起動しない (%j)", (extraArgs, expectedMessage) => {
     const { status, stderr } = runRunner(["talk", ...(extraArgs as string[])]);
 
@@ -169,7 +184,7 @@ describe("作業領域（tmp/）の扱い", () => {
     const script = [
       `exec 8>"${join(workDir, "tmp", ".runner.lock")}"`,
       "flock -n 8 || exit 99",
-      `RUNNER_LOCK_WAIT_SEC=0 CLAUDE_BIN="${join(workDir, "claude-stub.sh")}" ` +
+      `PATH="${workDir}:$PATH" RUNNER_LOCK_WAIT_SEC=0 CLAUDE_BIN="${join(workDir, "claude-stub.sh")}" ` +
         `bash "${join(workDir, "send_daily_line.sh")}" talk abcDEF123 2026-08-20`,
       'echo "rc=$?"',
     ].join("\n");

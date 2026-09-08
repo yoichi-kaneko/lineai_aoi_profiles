@@ -3,7 +3,10 @@
  * スキル・モード文書での説明は本ファイルの JSDoc を正とする。
  */
 export const NOTE_TYPE = {
-  /** 碧衣（エージェント）から後続モードへの引き継ぎメモ。`put_firestore_doc` のデフォルト。 */
+  /**
+   * 碧衣（エージェント）から後続モードへの引き継ぎメモ。`put_firestore_doc` のデフォルト。
+   * 響（talk）モードの申し送りもこの type で、本文の先頭が `【響】` で始まる（同じ日に複数並びうる）。
+   */
   FROM_AOI: "from_aoi",
   /** 帰灯モードが下山直後に残す記録。noon / night が帰灯の実行有無を識別するために参照する。 */
   OFF_MOUNTAIN: "off_mountain",

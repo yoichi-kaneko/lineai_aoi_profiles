@@ -2,22 +2,31 @@ import { Timestamp } from "@google-cloud/firestore";
 import { validateSignature, webhook } from "@line/bot-sdk";
 import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
-import { jstDateFromYmd, startOfJstDay } from "./jstDate";
+import { jstDateFromYmd, jstYmd, startOfJstDay } from "./jstDate";
 import { parseImageFeedback } from "./parseImageFeedback";
 import { parseSongFeedback } from "./parseSongFeedback";
-import { findTriggerMode } from "./routing";
+import { findTriggerMode, requiresTargetDoc } from "./routing";
 
 export type FeedbackPayload = {
   kind: string;
   score: number | null;
   comment: string;
   target_date: string | null;
+  /** 画像フィードバックのみ。楽曲フィードバックでは付与しない（保存形式を変えないため）。 */
+  target_image_id?: string | null;
 };
 
 export interface FirestoreLike {
   collection(name: string): {
-    add(data: Record<string, unknown>): Promise<unknown>;
+    /** 実体は Firestore の `DocumentReference`（`id` を持つ）。テスト用の差し替えを許すため構造で受ける。 */
+    add(data: Record<string, unknown>): Promise<{ id?: unknown }>;
   };
+}
+
+/** `add()` の戻り値からドキュメントIDを取り出す。取り出せない場合は null。 */
+function extractDocId(added: { id?: unknown } | null | undefined): string | null {
+  const id = added?.id;
+  return typeof id === "string" && id.length > 0 ? id : null;
 }
 
 export interface HandlerDeps {
@@ -51,14 +60,18 @@ export async function addFeedbackDoc(
   const feedbackDate = feedback.target_date
     ? jstDateFromYmd(feedback.target_date)
     : postedDate;
+  const payload: Record<string, unknown> = {
+    kind: feedback.kind,
+    score: feedback.score,
+    comment: feedback.comment,
+    target_date: feedback.target_date,
+  };
+  if (feedback.target_image_id !== undefined) {
+    payload.target_image_id = feedback.target_image_id;
+  }
   await firestore.collection(collection).add({
     date: Timestamp.fromDate(feedbackDate),
-    description: JSON.stringify({
-      kind: feedback.kind,
-      score: feedback.score,
-      comment: feedback.comment,
-      target_date: feedback.target_date,
-    }),
+    description: JSON.stringify(payload),
     type,
     createdAt: Timestamp.fromDate(now),
   });
@@ -146,7 +159,7 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
           continue;
         }
 
-        await deps.firestore.collection("notes").add({
+        const added = await deps.firestore.collection("notes").add({
           date: Timestamp.fromDate(dateValue),
           description: textMessage.text,
           type: NOTE_TYPE.LINE_TEXT,
@@ -155,8 +168,22 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
 
         const triggerMode = findTriggerMode(textMessage.text);
         if (triggerMode) {
+          // 応答対象を渡す必要があるモードでは、保存できた文書のIDと投稿日を添えて起動する。
+          // IDが取れない場合は、別のメッセージを主題にさせないため起動しない。
+          let target: { docId: string; postedDate: string } | undefined;
+          if (requiresTargetDoc(triggerMode)) {
+            const docId = extractDocId(added);
+            if (!docId) {
+              console.error(
+                `Skipped EC2 trigger for mode ${triggerMode}: saved document id is unavailable`,
+              );
+              continue;
+            }
+            target = { docId, postedDate: jstYmd(new Date(event.timestamp)) };
+          }
+
           try {
-            await execEc2CommandFn(triggerMode);
+            await execEc2CommandFn(triggerMode, target);
           } catch (error) {
             console.error("execEc2Command failed:", error);
           }

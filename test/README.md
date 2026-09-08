@@ -1,6 +1,6 @@
 # テスト
 
-ルートの `src/` に対するテストを置く。`functions/` は独立したワークスペースパッケージのため、そちらのテストは `functions/test/` に置く。
+ルートの `src/` とリポジトリルートのシェルスクリプトに対するテストを置く。`functions/` は独立したワークスペースパッケージのため、そちらのテストは `functions/test/` に置く。
 
 ```bash
 pnpm test        # ルートのテストを実行する
@@ -35,6 +35,8 @@ test/
 │   └── generate_lyrics.test.ts # 歌詞正規化
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
+├── shell/
+│   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性）と作業領域 tmp/ の扱い
 ├── swarm/
 │   └── get_checkins.test.ts   # JST 範囲計算・整形
 ├── todoist/
@@ -59,6 +61,10 @@ test/
 Firestore / Todoist / Twitter / Cloudinary / Mureka / Swarm / OpenWeather / 画像合成のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
+
+シェルスクリプトのテストは、スクリプト一式を一時ディレクトリへ複製し、`CLAUDE_BIN` を起動引数を記録するスタブへ差し替えて実行する
+（`test/shell/send_daily_line.test.ts` 参照）。実際の claude 起動・LINE 送信・Firestore アクセスは行わず、リポジトリの `tmp/` にも触れない。
+`run_logs` を確認するモード（`morning` / `noon` / `night`）は `pnpm exec tsx` を呼ぶため、この方式では扱わない。
 
 CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 「直接起動されたときだけ走らせる」ガード（`src/firebase/get_docs.ts` の `isDirectRun` 参照）で囲み、
@@ -95,6 +101,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/util/google_oauth.ts`
 - `src/image/embed_qr.ts`
 - `src/codex/review.ts`
+- `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
 
 ### 間接カバーまたは今回の対象外
 

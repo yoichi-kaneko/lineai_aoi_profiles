@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { jstDateFromYmd, startOfJstDay } from "../../src/receiveLineMessage/jstDate";
+import { jstDateFromYmd, jstYmd, startOfJstDay } from "../../src/receiveLineMessage/jstDate";
 
 describe("jstDate helpers", () => {
   it("UTC 午後は JST 当日に丸める", () => {
@@ -16,5 +16,15 @@ describe("jstDate helpers", () => {
 
   it("YYYY-MM-DD を UTC midnight に変換する", () => {
     expect(jstDateFromYmd("2024-02-29").toISOString()).toBe("2024-02-29T00:00:00.000Z");
+  });
+
+  it.each([
+    ["2026-08-19T18:30:00Z", "2026-08-20"],
+    ["2026-08-20T00:30:00Z", "2026-08-20"],
+    ["2026-08-20T14:59:59Z", "2026-08-20"],
+    ["2026-08-20T15:00:00Z", "2026-08-21"],
+    ["2026-12-31T15:00:00Z", "2027-01-01"],
+  ])("%s の JST 暦日は %s", (iso, expected) => {
+    expect(jstYmd(new Date(iso))).toBe(expected);
   });
 });

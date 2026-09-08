@@ -10,3 +10,12 @@ export function jstDateFromYmd(ymd: string): Date {
   const [year, month, day] = ymd.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day));
 }
+
+/** JST の暦日を "YYYY-MM-DD" で返す。EC2 起動へ渡す投稿日の表現に用いる。 */
+export function jstYmd(base: Date): string {
+  const day = startOfJstDay(base);
+  const year = String(day.getUTCFullYear()).padStart(4, "0");
+  const month = String(day.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(day.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${date}`;
+}

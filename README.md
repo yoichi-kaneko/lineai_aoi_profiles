@@ -320,8 +320,8 @@ lineai_aoi_profiles/
 | `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
 | `song_feedback` コレクション | ユーザーが LINE 返信（`楽曲評価` / `音楽評価`）で寄せた楽曲フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: song_feedback`）。画像側と異なり傾向フィードバックは持たない（個別評価のみ）。形状・パース仕様は [song_feedback_schema.md](.claude/docs/song_feedback_schema.md) を正とする |
-| `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
-| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom）に使う |
+| `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる |
+| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` の決め方は `image_feedback_reviews` と同じ |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）
 
@@ -329,7 +329,7 @@ lineai_aoi_profiles/
 
 1. **柱A：`image_logs`** — 画像生成直後に構図・情景・衣装などを1件記録し、「似た構図が続いていないか」を主観でなく集計で測る客観的土台にする（[image_log_schema.md](.claude/docs/image_log_schema.md)）。
 2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。同じ日に複数枚を届けた日（響の個別生成と小夜の一枚など）は、碧衣が本文へ添えた識別子を使って `評価 #<画像ID> <1-5> <コメント>` と書くことで、その1枚を名指しできる。`#night` のような**モード名だけの略記**も使える（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
-3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。ユーザーが依頼で指定した可変要素（`user_specified`）は定期生成の偏りと分けて集計し、指定に従った結果を惰性の偏りと取り違えない。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
+3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。ユーザーが依頼で指定した可変要素（`user_specified`）は定期生成の偏りと分けて集計し、指定に従った結果を惰性の偏りと取り違えない。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。区切り（`period_to`）はレビュー実施日ではなく**評価が届いている連続区間の末尾**に置き、未評価の区間を次サイクルへ持ち越す。
 
 `image_id` は `{モード名}-{HHMM}` 形式で日付を含まないため単体では一意にならず、評価との突き合わせは **`(対象日, image_id)` の組**で行い、候補が0件・複数件のときは特定の1枚へ紐付けず「対象が曖昧な評価」として扱う。綴葉モードを実行した日（`scribe_handover` がある日）は、ログに残らないレポート画像が1枚届いているため、**宛先未指定の `評価` を曖昧扱い**にして小夜の一枚への誤帰属を防ぐ。
 
@@ -341,7 +341,7 @@ lineai_aoi_profiles/
 
 1. **柱A：`song_logs`** — 調べモードのフェーズA完了時に曲調・題材などを1件記録する（[song_log_schema.md](.claude/docs/song_log_schema.md)）。
 2. **柱B：`song_feedback`** — ユーザーが `楽曲評価 <1-5> <コメント>`（`音楽評価` も同義）で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。画像側と異なり傾向フィードバックは設けない（[song_feedback_schema.md](.claude/docs/song_feedback_schema.md)）。
-3. **柱C：`review_song_feedback` スキル** — 月次サイクルでユーザーが手動起動。個別評価の集約とパッケージ・題材の傾向集計を行い、`assets/songs_guideline.md` への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `song_feedback_reviews` に記録し、次サイクルの起点とする。
+3. **柱C：`review_song_feedback` スキル** — 月次サイクルでユーザーが手動起動。個別評価の集約とパッケージ・題材の傾向集計を行い、`assets/songs_guideline.md` への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `song_feedback_reviews` に記録し、次サイクルの起点とする。区切り（`period_to`）の決め方は画像側と同じで、レビュー実施日ではなく**評価が届いている連続区間の末尾**に置く。
 
 ### AWS Systems Manager
 

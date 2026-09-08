@@ -10,6 +10,7 @@ LINE AI アシスタント「碧衣（あおい）」のプロファイル、実
 - `.agents/skills/`: Claude Code と Codex が共有する開発 Skill の正本
 - `.claude/skills/`: Claude Code が利用する Skill。共有開発 Skillは自動生成、日次実行 Skill はここで直接管理
 - `src/`: 外部 API クライアントなどの TypeScript 実装
+- `send_daily_line.sh` / `refresh_tmp.sh`: 碧衣のモードを起動する runner と、作業領域 `tmp/` の掃除
 - `functions/`: LINE Webhook を受ける Firebase Cloud Functions
 - `docs/agent/`: 開発・Git 運用・レビューの詳細規則
 
@@ -32,7 +33,7 @@ pnpm agent-config:check          共有 Skill と生成物の差分検査
 - 変更前に `git status --short` と現在のブランチを確認する。無関係な既存差分は変更・破棄・コミットしない。
 - `main` に直接変更や push をせず、作業ブランチを使う。
 - `.env` は読み取りが必要な場合を除き触らず、絶対にコミットしない。秘密情報や PII をソース、ログ、エラーへ出さない。
-- `tmp/` は碧衣の実行専用の揮発領域であり、開発用ファイルや PR 本文を置かず、コミットしない。
+- `tmp/` は碧衣の実行専用の揮発領域であり、開発用ファイルや PR 本文を置かず、コミットしない。固定名の一時ファイルが実行間で衝突しないよう、`send_daily_line.sh` は `tmp/.runner.lock` の `flock` で実行を直列化する。ドット始まりのファイルは `refresh_tmp.sh` の掃除対象外とする。
 - 共有開発 Skill は `.agents/skills/` だけを編集し、変更後に `pnpm agent-config:sync` を実行する。対応する `.claude/skills/` は直接編集しない。
 - `.claude/docs/`、`.claude/skills/`、`.agents/skills/`、`docs/agent/`、`modes/`、`src/` の構成を変えたら、このファイルと `README.md` の構成説明も更新する。
 

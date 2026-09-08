@@ -18,14 +18,14 @@ export type FeedbackPayload = {
 
 export interface FirestoreLike {
   collection(name: string): {
-    add(data: Record<string, unknown>): Promise<{ id?: string } | unknown>;
+    /** 実体は Firestore の `DocumentReference`（`id` を持つ）。テスト用の差し替えを許すため構造で受ける。 */
+    add(data: Record<string, unknown>): Promise<{ id?: unknown }>;
   };
 }
 
 /** `add()` の戻り値からドキュメントIDを取り出す。取り出せない場合は null。 */
-function extractDocId(added: unknown): string | null {
-  if (typeof added !== "object" || added === null) return null;
-  const id = (added as { id?: unknown }).id;
+function extractDocId(added: { id?: unknown } | null | undefined): string | null {
+  const id = added?.id;
   return typeof id === "string" && id.length > 0 ? id : null;
 }
 

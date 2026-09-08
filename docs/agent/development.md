@@ -10,10 +10,12 @@ lineai_aoi_profiles/
 ├── CLAUDE.md                 # Claude Code のモード切り替え
 ├── README.md                 # プロジェクト概要と利用者向け説明
 ├── aoi.md                    # 碧衣のメインプロファイル
+├── send_daily_line.sh        # 碧衣のモードを起動する runner
+├── refresh_tmp.sh            # 作業領域 tmp/ の掃除
 ├── assets/                   # 画像・楽曲・綴葉のガイドと素材
-├── modes/                    # 暁・望・小夜・登山・調べ・綴葉のモード定義
+├── modes/                    # 暁・望・小夜・登山・調べ・綴葉・響のモード定義
 ├── src/                      # Skill の TypeScript 実装
-├── test/                     # ルート src に対するテスト
+├── test/                     # ルート src とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
 ├── scripts/
 │   └── sync-agent-config.mjs # 共有 Skill の同期・差分検査
@@ -101,6 +103,11 @@ pnpm exec tsc --noEmit
 
 `tmp/` は `send_daily_line.sh` が実行ごとに掃除する、碧衣の処理専用領域です。開発中の下書きや PR 本文にはリポジトリ外のスクラッチ領域を使います。
 
+下記の Skill が使う一時ファイル名は**固定**のため、実行が並走すると互いに上書きします。呼びかけの都度起動される響（`talk`）モードの追加により並走がありうるようになったため、`send_daily_line.sh` は `tmp/.runner.lock` に対する `flock` で実行を直列化します（詳細は [README.md](../../README.md) の「作業領域（tmp/）の直列化」）。
+
+- 一時ファイル名を新たに増やす場合も、実行ごとに分けるのではなく**固定名のまま**にし、直列化に委ねてください。ディレクトリを分けても `refresh_tmp.sh` の掃除からは守られません。
+- `refresh_tmp.sh` はドット始まりのファイル（`.empty` / `.runner.lock`）を掃除の対象外とします。制御用のファイルをここへ足す場合もドット始まりにしてください。
+
 複数行テキストを受け取る次の Skill は、シェル引数ではなく指定された `tmp/` 内のファイルを介して実行します。
 
 - `send_line_text`、`send_line_image`、`send_line_audio`
@@ -113,6 +120,6 @@ pnpm exec tsc --noEmit
 ## データ分離に関する実装方針
 
 - Todoist のコメントは、碧衣宛と `【対応方針】` / `[対応方針]` で始まる開発方針を分離する。通常取得では開発方針を除外し、`dev_apply_todoist_request` だけが読む。
-- 画像の `image_logs`、`image_feedback`、`image_feedback_reviews` は `notes` と別コレクションに置き、日次モードの通常コンテキストへ混ぜない。
+- 画像の `image_logs`、`image_feedback`、`image_feedback_reviews` は `notes` と別コレクションに置き、日次モードの通常コンテキストへ混ぜない。同じ日に複数枚を扱うため、評価の対象は `image_id` / `target_image_id` で個別に指定できる。
 - 楽曲の `song_logs`、`song_feedback`、`song_feedback_reviews` も専用コレクションに置く。
 - スキーマとモード固有の扱いは `.claude/docs/*_schema.md` を参照する。

@@ -131,7 +131,7 @@ lineai_aoi_profiles/
 ├── package.json           # pnpm パッケージ管理（ルート）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
-├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe）
+├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe / talk）
 ├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／楽曲）
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
@@ -150,7 +150,7 @@ lineai_aoi_profiles/
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
-├── test/                  # ルート src/ に対する vitest のテスト（詳細は test/README.md）
+├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
 │   └── sync-agent-config.mjs # 共有開発 Skill の同期・差分検査
 ├── docs/
@@ -163,7 +163,7 @@ lineai_aoi_profiles/
 │   └── src/
 │       ├── index.ts             # Cloud Functions エントリポイント
 │       ├── lib/                 # Cloud Functions 共通処理
-│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山トリガー
+│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山/呼びかけトリガー
 ├── .github/
 │   └── workflows/
 │       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
@@ -211,8 +211,9 @@ lineai_aoi_profiles/
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
 | 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、登山日の Firestore 記録（ユーザーの言葉・写真、門灯／継灯／帰灯の申し送り）を補助材料に加えたうえで、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
+| 響（ひびき） | LINE `碧衣...` → `talk` | ユーザーがLINEで「碧衣」と呼びかけた際に、その内容へ応答する対話モード。画像生成・家族への連絡・天気の確認・碧衣自身への質問・雑談を扱う。Webhook が保存した `line_text` のドキュメントIDと投稿日を受け取り、その1件だけを主題とする。同じ日に何度でも実行され、run_logs による当日実行済みのスキップや時間帯による自動判定の対象ではない。画像を生成した場合は `image_logs` に `mode: talk` で1件記録する |
 
-`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡は、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します。
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` / `talk` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`talk`（響）だけは応答対象を特定する必要があるため、`send_daily_line.sh talk <対象ドキュメントID> <投稿日(YYYY-MM-DD)>` の形式で追加の引数を取り、いずれかが欠けている・書式が不正な場合は碧衣を起動せずに終了します（別のメッセージを代用して応答しないため）。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡と、「碧衣」で始まる呼びかけは、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します（呼びかけの場合は、保存した `line_text` のドキュメントIDと投稿日も渡します）。
 
 `scribe`（綴葉）モードは `send_daily_line.sh` の対象外で、自動トリガーを持ちません。実行は `run_aoi_scribe` スキル（対話モードでの手動起動）経由のみです。
 
@@ -324,11 +325,11 @@ lineai_aoi_profiles/
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）
 
-碧衣の画像生成（小夜・帰灯）を継続的に改善するため、次の3本柱で「生成ログの蓄積 → フィードバック収集 → 定期レビュー」を回します。いずれも専用コレクションに隔離し、日々のモードのコンテキストへは流入させません（混入すると小夜モードがフィードバック文を「ユーザーの言葉」として誤取込する副作用が出るため）。
+碧衣の画像生成（小夜・帰灯・響）を継続的に改善するため、次の3本柱で「生成ログの蓄積 → フィードバック収集 → 定期レビュー」を回します。いずれも専用コレクションに隔離し、日々のモードのコンテキストへは流入させません（混入すると小夜モードがフィードバック文を「ユーザーの言葉」として誤取込する副作用が出るため）。
 
 1. **柱A：`image_logs`** — 画像生成直後に構図・情景・衣装などを1件記録し、「似た構図が続いていないか」を主観でなく集計で測る客観的土台にする（[image_log_schema.md](.claude/docs/image_log_schema.md)）。
-2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
-3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
+2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。同じ日に複数枚を届けた日（響の個別生成と小夜の一枚など）は、碧衣が本文へ添えた識別子を使って `評価 #<画像ID> <1-5> <コメント>` と書くことで、その1枚を名指しできる（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
+3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。ユーザーが依頼で指定した可変要素（`user_specified`）は定期生成の偏りと分けて集計し、指定に従った結果を惰性の偏りと取り違えない。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
 
 「安定した生成を維持したい」「ガイドラインに縛られず自由に生成したい」という相反する要望は、ガイドラインを**核（安定・変更は慎重）／彩り（意図的に多様化）**の2層に分けることで、別層の指摘として両立させます。
 
@@ -345,7 +346,7 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | AWS Systems Manager |
-| 役割 | Cloud Functions から EC2 上の処理を起動するため、SSM 経由でコマンドを送信する。`EC2_COMMAND_TEMPLATE` の `{MODE}` を `up_mountain` / `off_mountain` に置換して実行する |
+| 役割 | Cloud Functions から EC2 上の処理を起動するため、SSM 経由でコマンドを送信する。`EC2_COMMAND_TEMPLATE` の `{MODE}` を `up_mountain` / `stay_mountain` / `off_mountain` / `talk` に置換して実行する。`talk`（響）では `{TARGET_DOC_ID}` / `{POSTED_DATE}` も置換し、応答対象のメッセージを EC2 側へ渡す |
 | サービスURL | https://aws.amazon.com/systems-manager/ |
 | 実装 | `functions/src/lib/execEc2Command.ts` |
 | デプロイ関連 | `functions/deploy.sh` と `functions/README.md` に環境変数・Secrets・デプロイ手順を記載 |
@@ -417,13 +418,23 @@ lineai_aoi_profiles/
 
 レビューや一般的なベストプラクティスを理由に、そうした機構の追加を求めないでください。対策が必要な場合は運用（手動起動の抑制・スケジュールの見直し）で扱います。
 
+#### 作業領域（tmp/）の直列化
+
+響（`talk`）モードの追加により、呼びかけの都度の起動が定期モードや別の響と重なりうるようになりました。碧衣の各スキルは `tmp/line_message.txt` `tmp/firestore_doc.txt` などの**固定名の一時ファイル**を使い、`send_daily_line.sh` は各試行の冒頭で `refresh_tmp.sh` を呼んで `tmp/` を掃除するため、実行が並走すると互いのファイルを消去・上書きします。
+
+- `send_daily_line.sh` は `tmp/.runner.lock` に対する `flock` を取り、`tmp/` を使う処理全体を**直列化**します。ロックを取れない実行は既定で最大3600秒待ち（`RUNNER_LOCK_WAIT_SEC` で変更可）、待ちきれない場合は作業領域の衝突を避けるため中断します。
+- `flock` が使えない環境では警告を出して直列化なしで続行します（従来と同じ挙動）。
+- これは**作業領域の直列化であって、二重実行の防止ではありません**。待っている実行は順番が来れば実行されます。上記の設計方針（厳密な重複実行防止機構は導入しない）は変わらず、二重送信の抑止は `run_logs` のベストエフォートに委ねます。
+- `refresh_tmp.sh` はドット始まりのファイル（`.empty` / `.runner.lock`）を掃除の対象外とします。ロックファイルを消すと直列化が壊れるためです。
+- 調べ（`song`）モードのフェーズA→フェーズB間の一時ファイル受け渡しは、スクリプト全体が同じロックを保持したまま進むため従来どおり保たれます。
+
 ### 二重実行防止（run_logs チェック）
 
 現状の対策は次のベストエフォートのみです。
 
 - `send_daily_line.sh` は `morning` / `noon` / `night` の実行前に Firestore の `run_logs` コレクションを参照し、当日の同モードの実行ログが存在する場合は Claude の起動をスキップして終了します。これにより、定期実行の重複や再起動によるメッセージの二重送信を抑えます
 - 同スクリプトは Claude が正常終了（exit 0）したあとに `src/firebase/put_log.ts` で当日分の実行ログを書き込みます。この書き込みが無いと上記の実行前チェックが機能しないため、両者は対で扱ってください（記録に失敗しても警告のみで処理は成功扱いとします）
-- 綴葉（`scribe`）など手動起動モードは、この実行前チェックの対象外です。同一日付の再実行による二重投稿・二重送信の回避は運用者の判断に委ねます
+- 綴葉（`scribe`）など手動起動モードと、呼びかけの都度実行される響（`talk`）は、この実行前チェックの対象外です。響は同じ日に何度でも実行されることが仕様であり、同一日付の再実行によるスキップはしません。綴葉の二重投稿・二重送信の回避は運用者の判断に委ねます
 - `run_logs` への書き込みは処理完了後の記録であり、排他制御や原子的予約の代替ではありません
 
 `run_aoi_daily` / `run_aoi_scribe` スキルを対話モードから実行した場合も、モード処理完了後に `run_logs` へログを書き込みます（ただし実行前チェックはスキップします）。
@@ -438,10 +449,13 @@ APIやMCPサーバーの無応答によるハングアップを防ぐため、Cl
 
 | 項目 | 値 |
 |---|---|
-| タイムアウト（通常モード） | 1800秒（30分） |
+| タイムアウト（通常モード。響を含む） | 1800秒（30分） |
 | タイムアウト（調べモード フェーズA / フェーズB） | 1800秒 / 900秒 |
 | 最大リトライ回数 | 2回（初回含む） |
 | リトライ間隔 | 30秒 |
+| 作業領域ロックの待ち時間 | 3600秒（`RUNNER_LOCK_WAIT_SEC` で変更可） |
+
+effort レベルは、ファイル生成を伴うモード（小夜・帰灯・調べ）と、依頼によって画像生成まで含みうる響で `xhigh`、それ以外は `medium` です。
 
 #### 層2: Bash ツール（`.claude/settings.json`）
 

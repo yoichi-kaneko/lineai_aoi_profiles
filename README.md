@@ -316,7 +316,7 @@ lineai_aoi_profiles/
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は headless では `send_daily_line.sh` が `src/firebase/put_log.ts` を、対話モードでは `run_aoi_daily` スキルが同スクリプトを呼んで書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
-| `image_logs` コレクション | 小夜・帰灯・響モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
+| `image_logs` コレクション | 小夜・帰灯・響モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。**綴葉モードの SNS レポート画像は対象外**（構図を抽選せずテンプレートに固定するため記録すべき抽選軸が無く、改善の宛先も `assets/image_guideline.md` ではない）。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
 | `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
 | `song_feedback` コレクション | ユーザーが LINE 返信（`楽曲評価` / `音楽評価`）で寄せた楽曲フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: song_feedback`）。画像側と異なり傾向フィードバックは持たない（個別評価のみ）。形状・パース仕様は [song_feedback_schema.md](.claude/docs/song_feedback_schema.md) を正とする |
@@ -328,8 +328,10 @@ lineai_aoi_profiles/
 碧衣の画像生成（小夜・帰灯・響）を継続的に改善するため、次の3本柱で「生成ログの蓄積 → フィードバック収集 → 定期レビュー」を回します。いずれも専用コレクションに隔離し、日々のモードのコンテキストへは流入させません（混入すると小夜モードがフィードバック文を「ユーザーの言葉」として誤取込する副作用が出るため）。
 
 1. **柱A：`image_logs`** — 画像生成直後に構図・情景・衣装などを1件記録し、「似た構図が続いていないか」を主観でなく集計で測る客観的土台にする（[image_log_schema.md](.claude/docs/image_log_schema.md)）。
-2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。同じ日に複数枚を届けた日（響の個別生成と小夜の一枚など）は、碧衣が本文へ添えた識別子を使って `評価 #<画像ID> <1-5> <コメント>` と書くことで、その1枚を名指しできる（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
+2. **柱B：`image_feedback`** — ユーザーが画像の届いたチャットへ `評価 <1-5> <コメント>` / `傾向 <コメント>` で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。同じ日に複数枚を届けた日（響の個別生成と小夜の一枚など）は、碧衣が本文へ添えた識別子を使って `評価 #<画像ID> <1-5> <コメント>` と書くことで、その1枚を名指しできる。`#night` のような**モード名だけの略記**も使える（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。
 3. **柱C：`review_image_feedback` スキル** — 1〜3週間サイクルでユーザーが手動起動。個別評価の集約と構図ログの偏り集計を行い、`assets/image_guideline.md`（核＝不変層／彩り＝可変層の2層構成）への修正案を human-in-the-loop で提示・反映する。ユーザーが依頼で指定した可変要素（`user_specified`）は定期生成の偏りと分けて集計し、指定に従った結果を惰性の偏りと取り違えない。レビューの区切りは `image_feedback_reviews` に記録し、次サイクルの起点とする。
+
+`image_id` は `{モード名}-{HHMM}` 形式で日付を含まないため単体では一意にならず、評価との突き合わせは **`(対象日, image_id)` の組**で行い、候補が0件・複数件のときは特定の1枚へ紐付けず「対象が曖昧な評価」として扱う。綴葉モードを実行した日（`scribe_handover` がある日）は、ログに残らないレポート画像が1枚届いているため、**宛先未指定の `評価` を曖昧扱い**にして小夜の一枚への誤帰属を防ぐ。
 
 「安定した生成を維持したい」「ガイドラインに縛られず自由に生成したい」という相反する要望は、ガイドラインを**核（安定・変更は慎重）／彩り（意図的に多様化）**の2層に分けることで、別層の指摘として両立させます。
 

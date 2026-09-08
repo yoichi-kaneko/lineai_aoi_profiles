@@ -320,8 +320,8 @@ lineai_aoi_profiles/
 | `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
 | `song_feedback` コレクション | ユーザーが LINE 返信（`楽曲評価` / `音楽評価`）で寄せた楽曲フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: song_feedback`）。画像側と異なり傾向フィードバックは持たない（個別評価のみ）。形状・パース仕様は [song_feedback_schema.md](.claude/docs/song_feedback_schema.md) を正とする |
-| `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる |
-| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` の決め方は `image_feedback_reviews` と同じ |
+| `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる。**マーカーを記録するのは取得期間に `image_logs` があり、かつ `period_to` が前回から進んだ場合だけ**（ログ0件や締め切り据え置きでは記録しない） |
+| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` の決め方は `image_feedback_reviews` と同じ。**マーカーを記録するのは取得期間に `song_logs` があり、かつ `period_to` が前回から進んだ場合だけ** |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）
 

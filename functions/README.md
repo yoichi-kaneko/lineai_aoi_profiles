@@ -108,6 +108,33 @@ cd functions
 
 スクリプトは `src/<function_name>/` 配下の `.env.yaml`（環境変数）と `.secrets`（Secret Manager 参照）を自動検出して `gcloud functions deploy` コマンドに渡します。
 
+### `package-lock.json` の管理
+
+Cloud Build は `npm ci` で依存をインストールするため、`functions/package-lock.json` をコミットしておく必要があります。リポジトリ全体は pnpm ワークスペースですが、このロックは Cloud Functions のビルド専用で、`pnpm-lock.yaml` とは独立しています（ローカルのテスト実行には使われません）。
+
+`functions/package.json` の依存を変更したら、ロックも再生成してください。このとき **`functions/` の中で直接 `npm install` を実行してはいけません**。pnpm が作った `functions/node_modules`（`.pnpm` へのシンボリックリンク）を npm が取り込み、依存が `"link": true` として記録された壊れたロックになります。そのロックでデプロイすると、Cloud Build 上に参照先が存在しないため `npm ci` がほとんど何もインストールせず、`tsc: not found` でビルドが失敗します。
+
+node_modules の無い一時ディレクトリで生成してください。
+
+```bash
+cd functions
+TMP=$(mktemp -d)
+cp package.json "$TMP/"
+(cd "$TMP" && npm install --package-lock-only)
+cp "$TMP/package-lock.json" ./package-lock.json
+rm -rf "$TMP"
+```
+
+`deploy.sh` はデプロイ前に次の3点を検証し、いずれかに該当すればデプロイせずに中断します。
+
+- `package-lock.json` が存在すること
+- `.pnpm` へのシンボリックリンク（`"link": true`）を取り込んでいないこと
+- ロックのルートエントリが `package.json` の `dependencies` / `devDependencies` と一致し、各直接依存がレジストリ URL として記録されていること
+
+検証を省略したい場合は `SKIP_LOCK_CHECK=1 ./deploy.sh <function_name>` で実行します。
+
+なお、ビルドイメージの npm は 10 系のため、ロックが無いと buildpack が実行する `npm install --package-lock-only` が `vitest` の peer 依存解決でクラッシュします（`Cannot read properties of null (reading 'edgesOut')`）。ロックをコミットしておくことは、この回避も兼ねています。
+
 ### 環境変数（`.env.yaml`）
 
 | 変数名 | 用途 |

@@ -8,9 +8,13 @@
  * 書式（いずれも前方一致。トークンの区切りは半角・全角空白いずれも可）:
  *   個別評価 : `評価 <1-5> <コメント>`           例: `評価 4 構図は好き。背景が少し寂しい`
  *   日付指定 : `評価 <YYYY-MM-DD> <1-5> <コメント>` 例: `評価 2026-06-12 5 ルリが可愛い`
+ *   画像指定 : `評価 #<画像ID> <1-5> <コメント>`   例: `評価 #night-2210 5 ルリが可愛い`
  *   傾向FB   : `傾向 <コメント>`                   例: `傾向 最近バストアップ正面が続いている`
  *
- * パースは寛容に行う：先頭の日付・スコアが解釈できなくても、その分はコメントとして残す
+ * 画像IDは同日に複数の画像を届けた日（響モードの個別生成など）に、どの一枚への評価かを
+ * 特定するための指定。日付と併記でき（`評価 2026-06-12 #talk-2135 4 ...`）、省略もできる。
+ *
+ * パースは寛容に行う：先頭の日付・画像ID・スコアが解釈できなくても、その分はコメントとして残す
  * （スコア欄が空でも、コメントだけのフィードバックとして保存できるようにするため）。
  */
 
@@ -26,6 +30,8 @@ export interface ParsedImageFeedback {
   comment: string;
   /** 評価対象画像の日付（YYYY-MM-DD）。明示されなければ null（呼び出し側が投稿日で補完する）。 */
   target_date: string | null;
+  /** 評価対象画像の識別子（`image_logs` の `image_id`）。明示されなければ null。 */
+  target_image_id: string | null;
 }
 
 const RATING_PREFIX = "評価";
@@ -35,15 +41,17 @@ export function parseImageFeedback(text: string): ParsedImageFeedback | null {
   const trimmed = text.trim();
 
   if (trimmed.startsWith(RATING_PREFIX)) {
-    const { score, comment, target_date } = parseRatingBody(
+    const { score, comment, target_date, target_id } = parseRatingBody(
       trimmed.slice(RATING_PREFIX.length),
+      { allowTargetId: true },
     );
-    return { kind: "rating", score, comment, target_date };
+    return { kind: "rating", score, comment, target_date, target_image_id: target_id };
   }
 
+  // 傾向FBは一定期間の傾向が対象のため、画像単位の指定は受け付けない。
   if (trimmed.startsWith(TREND_PREFIX)) {
     const comment = trimmed.slice(TREND_PREFIX.length).trim();
-    return { kind: "trend", score: null, comment, target_date: null };
+    return { kind: "trend", score: null, comment, target_date: null, target_image_id: null };
   }
 
   return null;

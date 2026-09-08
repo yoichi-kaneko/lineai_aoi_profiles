@@ -5,14 +5,15 @@ import {
   type HandlerRequest,
 } from "../../src/receiveLineMessage/handler";
 
-function createFirestoreMock() {
+function createFirestoreMock(options: { docId?: string | null } = {}) {
+  const docId = options.docId === undefined ? "doc-1" : options.docId;
   const adds: Array<{ collection: string; data: Record<string, unknown> }> = [];
   const firestore: FirestoreLike = {
     collection(name: string) {
       return {
         async add(data: Record<string, unknown>) {
           adds.push({ collection: name, data });
-          return {};
+          return docId === null ? {} : { id: docId };
         },
       };
     },
@@ -36,7 +37,11 @@ function createResponseMock() {
   };
 }
 
-function createTextRequest(text: string, userId = "user-1"): HandlerRequest {
+function createTextRequest(
+  text: string,
+  userId = "user-1",
+  timestamp = new Date("2026-08-20T01:23:00Z").getTime(),
+): HandlerRequest {
   return {
     headers: { "x-line-signature": "sig" },
     rawBody: Buffer.from("body"),
@@ -45,7 +50,7 @@ function createTextRequest(text: string, userId = "user-1"): HandlerRequest {
       events: [
         {
           type: "message",
-          timestamp: new Date("2026-08-20T01:23:00Z").getTime(),
+          timestamp,
           source: { type: "user", userId },
           message: { type: "text", id: "m1", text, quoteToken: "qt1" },
           replyToken: "reply",
@@ -141,6 +146,7 @@ describe("createReceiveLineMessageHandler", () => {
         score: 5,
         comment: "ルリが可愛い",
         target_date: "2026-06-12",
+        target_image_id: null,
       }),
     );
     expect(execMock).not.toHaveBeenCalled();
@@ -192,7 +198,211 @@ describe("createReceiveLineMessageHandler", () => {
     expect(adds[0].collection).toBe("notes");
     expect(adds[0].data.description).toBe("下山しました");
     expect(adds[0].data.type).toBe("line_text");
-    expect(execMock).toHaveBeenCalledWith("off_mountain");
+    expect(execMock).toHaveBeenCalledWith("off_mountain", undefined);
+  });
+
+  it("画像フィードバックの画像ID指定を専用コレクションへ保存する", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("評価 #talk-2135 4 ルリが可愛い"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].collection).toBe("image_feedback");
+    expect(adds[0].data.description).toBe(
+      JSON.stringify({
+        kind: "rating",
+        score: 4,
+        comment: "ルリが可愛い",
+        target_date: null,
+        target_image_id: "talk-2135",
+      }),
+    );
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("楽曲フィードバックには target_image_id を付与しない", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: vi.fn(),
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("楽曲評価 #talk-2135 4 サビが好き"), response);
+
+    expect(adds[0].collection).toBe("song_feedback");
+    expect(adds[0].data.description).toBe(
+      JSON.stringify({
+        kind: "rating",
+        score: null,
+        comment: "#talk-2135 4 サビが好き",
+        target_date: null,
+      }),
+    );
+  });
+
+  it("碧衣で始まるテキストは保存した文書IDと投稿日を添えて talk を起動する", async () => {
+    const { firestore, adds } = createFirestoreMock({ docId: "abcDEF123" });
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("碧衣、明日の高尾山の天気を教えて"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].collection).toBe("notes");
+    expect(adds[0].data.type).toBe("line_text");
+    expect(execMock).toHaveBeenCalledWith("talk", {
+      docId: "abcDEF123",
+      postedDate: "2026-08-20",
+    });
+  });
+
+  it("JST 日付境界をまたぐ投稿でも投稿日は JST の暦日になる", async () => {
+    const { firestore } = createFirestoreMock({ docId: "abcDEF123" });
+    const { response } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T16:00:00Z"),
+    });
+
+    // UTC 2026-08-20 16:30 は JST 2026-08-21 01:30
+    await handler(
+      createTextRequest(
+        "碧衣、おやすみ前に一言",
+        "user-1",
+        new Date("2026-08-20T16:30:00Z").getTime(),
+      ),
+      response,
+    );
+
+    expect(execMock).toHaveBeenCalledWith("talk", {
+      docId: "abcDEF123",
+      postedDate: "2026-08-21",
+    });
+  });
+
+  it("保存文書のIDが得られない場合は talk を起動しない", async () => {
+    const { firestore, adds } = createFirestoreMock({ docId: null });
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("碧衣、今日の予定を教えて"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].collection).toBe("notes");
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("保存に失敗した場合は talk を起動しない", async () => {
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const firestore: FirestoreLike = {
+      collection() {
+        return {
+          async add() {
+            throw new Error("firestore unavailable");
+          },
+        };
+      },
+    };
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await expect(
+      handler(createTextRequest("碧衣、今日の予定を教えて"), response),
+    ).rejects.toThrow("firestore unavailable");
+
+    expect(sent).toEqual([]);
+    expect(execMock).not.toHaveBeenCalled();
+  });
+
+  it("起動に失敗しても 200 を返し、本文をログへ出さない", async () => {
+    const { firestore } = createFirestoreMock({ docId: "abcDEF123" });
+    const { response, sent } = createResponseMock();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const execMock = vi.fn().mockRejectedValue(new Error("ssm failed"));
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+      now: () => new Date("2026-08-20T12:34:56Z"),
+    });
+
+    await handler(createTextRequest("碧衣、秘密の相談があります"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    const logged = errorSpy.mock.calls.flat().map(String).join(" ");
+    expect(logged).not.toContain("秘密の相談");
+  });
+
+  it("家族グループからの呼びかけでは talk を起動しない", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const execMock = vi.fn();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: execMock,
+    });
+
+    await handler(
+      {
+        headers: { "x-line-signature": "sig" },
+        rawBody: Buffer.from("body"),
+        body: {
+          destination: "dest",
+          events: [
+            {
+              type: "message",
+              timestamp: Date.now(),
+              source: { type: "group", groupId: "g1" },
+              message: { type: "text", id: "m1", text: "碧衣、天気を教えて", quoteToken: "qt1" },
+              replyToken: "reply",
+              mode: "active",
+              webhookEventId: "w1",
+              deliveryContext: { isRedelivery: false },
+            },
+          ],
+        },
+      },
+      response,
+    );
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(0);
+    expect(execMock).not.toHaveBeenCalled();
   });
 
   it("group/room メッセージは無視して 200 を返す", async () => {

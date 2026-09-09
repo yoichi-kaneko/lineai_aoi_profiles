@@ -176,7 +176,7 @@ lineai_aoi_profiles/
 ├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口
 └── .claude/
     ├── hooks/             # Claude Code のフック
-    │   └── session-start.sh      # クラウドセッション開始時に pnpm install を実行
+    │   └── session-start.sh      # クラウドセッション開始時に Node.js を CI と揃え pnpm install を実行
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報

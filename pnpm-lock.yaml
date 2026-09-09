@@ -49,7 +49,7 @@ importers:
         version: 0.35.4(@types/node@22.19.17)
       twitter-api-v2:
         specifier: ^1.29.0
-        version: 1.29.0
+        version: 1.29.1
       type-fest:
         specifier: ^4.12.0
         version: 4.41.0
@@ -2272,8 +2272,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  twitter-api-v2@1.29.0:
-    resolution: {integrity: sha512-v473q5bwme4N+DWSg6qY+JCvfg1nSJRWwui3HUALafxfqCvVkKiYmS/5x/pVeJwTmyeBxexMbzHwnzrH4h6oYQ==}
+  twitter-api-v2@1.29.1:
+    resolution: {integrity: sha512-l5U8aP6woe+gv0RViz/YA0YEG/NRtqkO1iXWqxNfrn3MSc2V85u6w44oNDBWhy8zVV9r36SJv/uXNmnfni8Uxw==}
 
   type-fest@0.6.0:
     resolution: {integrity: sha512-q+MB8nYR1KDLrgr4G5yemftpMC7/QLqVndBmEEdqzmNj5dcFOO4Oo8qlwZE3ULT3+Zim1F8Kq4cBnikNhlCMlg==}
@@ -5099,7 +5099,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  twitter-api-v2@1.29.0: {}
+  twitter-api-v2@1.29.1: {}
 
   type-fest@0.6.0: {}
 

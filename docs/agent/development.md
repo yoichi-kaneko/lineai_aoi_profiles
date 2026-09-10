@@ -97,8 +97,9 @@ pnpm exec tsc --noEmit
 - 必要な値と説明は `.env.example` を正本とする。
 - `.env`、サービスアカウント、API キー、アクセストークンをコミットしない。
 - ログと例外へ秘密情報や LINE メッセージ本文などの PII を含めない。
-- Node.js のバージョンはリポジトリ直下の `.nvmrc` を正本とする。CI（`.github/workflows/test.yml`）は `actions/setup-node` の `node-version-file` で、Claude Code のクラウドセッションは `.claude/hooks/session-start.sh` が、いずれもこのファイルを読む。バージョンを変えるときは `.nvmrc` だけを書き換える。
-- Claude Code のクラウドセッションでは `.claude/hooks/session-start.sh` が、`.nvmrc` の Node.js を nvm で用意したうえで `pnpm install --frozen-lockfile` を実行する。クラウドコンテナに同梱される Node.js は 20 / 21 / 22 だけのため、それ以外を指定した場合はここで導入される。ローカルでは何もしないため、必要に応じて手動で依存関係を導入する。
+- Node.js のバージョンはリポジトリ直下の `.nvmrc` を正本とする。CI（`.github/workflows/test.yml`）は `actions/setup-node` の `node-version-file` で、Claude Code のクラウドセッションは `.claude/hooks/session-start.sh` が、Codex cloud のセットアップは `.codex/setup.sh` が、いずれもこのファイルを読む。バージョンを変えるときは `.nvmrc` だけを書き換える。
+- Claude Code のクラウドセッションでは `.claude/hooks/session-start.sh` が、Codex cloud では `.codex/setup.sh` が、`.nvmrc` の Node.js を nvm で用意したうえで `pnpm install --frozen-lockfile` を実行する。どちらもセットアップスクリプト内の `PATH` 変更が後続処理へ残らないため、各環境で `PATH` の先頭にあるディレクトリへ Node.js コマンドの symlink を配置する。ローカルでは自動実行されないため、必要に応じて手動で Node.js と依存関係を導入する。
+- Codex cloud の対象リポジトリの環境設定で、セットアップスクリプトに `bash .codex/setup.sh` を登録する。キャッシュ再開時にも `.nvmrc` と依存関係を反映する場合は、メンテナンススクリプトにも同じコマンドを登録する。詳細は [OpenAI のクラウド環境ドキュメント](https://learn.chatgpt.com/docs/environments/cloud-environment) を参照する。
 - クラウドセッションでは、`FIREBASE_CONFIG_JSON`、`GOOGLE_OAUTH_CREDENTIALS_JSON`、`GOOGLE_OAUTH_TOKENS_JSON` に JSON の中身または base64 を渡せる。これらは対応するパス指定より優先される。設定方法と安全上の注意は [README.md](../../README.md) の「クラウドセッションへの資格情報の受け渡し」を参照する。
 
 ## 一時ファイル

@@ -129,7 +129,7 @@ lineai_aoi_profiles/
 ├── README.md              # 本ファイル
 ├── aoi.md                 # 碧衣のプロファイル定義
 ├── package.json           # pnpm パッケージ管理（ルート）
-├── .nvmrc                 # Node.js のバージョン正本（CI と session-start.sh が参照）
+├── .nvmrc                 # Node.js のバージョン正本（CI とクラウド環境のセットアップが参照）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe / talk）
@@ -173,6 +173,8 @@ lineai_aoi_profiles/
 │   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
 │       ├── dev_ship_change/
 │       └── dev_apply_pr_review/
+├── .codex/
+│   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/
 │   └── BUGBOT.md          # Bugbot 固有の薄い入口
 ├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口

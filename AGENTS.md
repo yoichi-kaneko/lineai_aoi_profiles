@@ -22,10 +22,11 @@ LINE AI アシスタント「碧衣（あおい）」のプロファイル、実
 pnpm install --frozen-lockfile   依存関係をロックファイルどおりに導入
 pnpm test                        ルートのテスト
 pnpm test:functions              Cloud Functions のテスト
-pnpm test:all                    Agent 設定の同期検査を含む全テスト
+pnpm test:all                    Agent 設定と functions ロックの検査を含む全テスト
 pnpm exec tsc --noEmit           ルート TypeScript の静的検査
 pnpm agent-config:sync           共有 Skill を Claude Code 向けに同期
 pnpm agent-config:check          共有 Skill と生成物の差分検査
+pnpm check:functions-lock        functions/package-lock.json と package.json の一致検査
 ```
 
 ## Working Rules

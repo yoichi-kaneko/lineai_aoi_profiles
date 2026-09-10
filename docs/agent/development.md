@@ -18,7 +18,8 @@ lineai_aoi_profiles/
 ├── test/                     # ルート src とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
 ├── scripts/
-│   └── sync-agent-config.mjs # 共有 Skill の同期・差分検査
+│   ├── sync-agent-config.mjs    # 共有 Skill の同期・差分検査
+│   └── check-functions-lock.mjs # functions/package-lock.json の健全性検査
 ├── docs/
 │   └── agent/
 │       ├── development.md    # 本文書
@@ -89,7 +90,7 @@ pnpm test:all
 pnpm exec tsc --noEmit
 ```
 
-`pnpm test:all` は共有 Skill の同期検査、ルートのテスト、`functions` のテストを実行します。テストは外部 API に接続しない純関数を中心とし、取得失敗の実例を修正するときは再現用フィクスチャを先に追加します。詳細は [test/README.md](../../test/README.md) を参照してください。
+`pnpm test:all` は共有 Skill の同期検査、`functions/package-lock.json` の健全性検査、ルートのテスト、`functions` のテストを実行します。テストは外部 API に接続しない純関数を中心とし、取得失敗の実例を修正するときは再現用フィクスチャを先に追加します。詳細は [test/README.md](../../test/README.md) を参照してください。
 
 ## 環境変数と秘密情報
 

@@ -19,7 +19,12 @@ set -u
 # .nvmrc を唯一のバージョン指定として、未導入ならダウンロードする。
 nvm install
 nvm use
-nvm alias default "$(tr -d '[:space:]' < .nvmrc)" >/dev/null
+NODE_VERSION="$(tr -d '[:space:]' < .nvmrc)"
+nvm alias default "$NODE_VERSION" >/dev/null
+
+# 前回の setup で作ったリンクが壊れていても、以降は nvm が選んだ実体を優先する。
+NODE_BIN_DIR="$(dirname "$(nvm which "$NODE_VERSION")")"
+export PATH="$NODE_BIN_DIR:$PATH"
 
 corepack enable
 
@@ -35,7 +40,6 @@ if [ ! -w "$CODEX_PATH_DIR" ]; then
   exit 1
 fi
 
-NODE_BIN_DIR="$(dirname "$(nvm which current)")"
 for command_name in node npm npx corepack pnpm pnpx; do
   if [ -x "$NODE_BIN_DIR/$command_name" ]; then
     ln -sfn "$NODE_BIN_DIR/$command_name" "$CODEX_PATH_DIR/$command_name"

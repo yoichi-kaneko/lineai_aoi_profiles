@@ -1,7 +1,17 @@
 /** Codex のセットアップが、セットアッププロセス固有の PATH に依存しないことを検証する。 */
 
 import { execFileSync } from "child_process";
-import { chmodSync, copyFileSync, lstatSync, mkdirSync, mkdtempSync, readlinkSync, rmSync, writeFileSync } from "fs";
+import {
+  chmodSync,
+  copyFileSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readlinkSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
 import { fileURLToPath } from "url";
@@ -64,6 +74,31 @@ describe(".codex/setup.sh", () => {
       const link = join(codexPath, command);
       expect(lstatSync(link).isSymbolicLink()).toBe(true);
       expect(readlinkSync(link)).toBe(join(nodeBinDir, command));
+    }
+  });
+
+  it("前回作成した循環 symlink が残っていても実体へのリンクに修復する", () => {
+    const codexPath = join(workDir, "codex-path");
+    mkdirSync(codexPath);
+    const nodeBinDir = join(workDir, "nvm", "versions", "node", "v24.0.0", "bin");
+
+    for (const command of ["node", "npm", "npx", "corepack", "pnpm", "pnpx"]) {
+      const link = join(codexPath, command);
+      symlinkSync(link, link);
+    }
+
+    execFileSync("bash", [join(workDir, ".codex", "setup.sh")], {
+      env: {
+        ...process.env,
+        CODEX_PATH_DIR: codexPath,
+        NVM_DIR: join(workDir, "nvm"),
+        PATH: `${codexPath}:${nodeBinDir}:/usr/bin:/bin`,
+      },
+      stdio: "pipe",
+    });
+
+    for (const command of ["node", "npm", "npx", "corepack", "pnpm", "pnpx"]) {
+      expect(readlinkSync(join(codexPath, command))).toBe(join(nodeBinDir, command));
     }
   });
 });

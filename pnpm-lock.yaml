@@ -12,8 +12,8 @@ importers:
         specifier: 9.8.0
         version: 9.8.0(type-fest@4.41.0)
       '@google/genai':
-        specifier: 1.52.0
-        version: 1.52.0
+        specifier: 2.22.0
+        version: 2.22.0
       '@googlemaps/google-maps-services-js':
         specifier: ^3.4.2
         version: 3.4.2
@@ -459,8 +459,8 @@ packages:
     resolution: {integrity: sha512-n2FjE7NAOYyshogdc7KQOl/VZb4sneqPjWouSyia9CMDdMhRX5+RIbqalNmC7LOLzuLAN89VlF2HvG8na9G+zQ==}
     engines: {node: '>=14'}
 
-  '@google/genai@1.52.0':
-    resolution: {integrity: sha512-gwSvbpiN/17O9TbsqSsE/OzZcpv5Fo4RQjdngGgogtuB9RsyJ8ZHhX5KjHj1bp5N9snN2eK8LDGXSaWW2hof8Q==}
+  '@google/genai@2.22.0':
+    resolution: {integrity: sha512-NE90Nl0AP75YZ2tGxXjQQs6Gkunma7a1JmPCx5g5CxvjHXshmuI2aNoPJ1xLrRixjkNxog898oylM+MyNudUQw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.25.2
@@ -3195,7 +3195,7 @@ snapshots:
       - supports-color
     optional: true
 
-  '@google/genai@1.52.0':
+  '@google/genai@2.22.0':
     dependencies:
       google-auth-library: 10.9.1
       p-retry: 4.6.2

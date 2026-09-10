@@ -41,6 +41,16 @@ codex --version              # 動作確認
 
 日次実行を担う EC2 側でレビューを効かせる場合も、上記の手順4を同じように実行してください。`~/.codex/config.toml` は最小構成で構いません（モデルは `.env` の `CODEX_REVIEW_MODEL` が未設定のとき、この設定の既定値が使われます）。**認証が切れた場合もレビューがスキップされるだけで、日次処理は完走します**。
 
+### Codex cloud のコンテナセットアップ
+
+Codex cloud では `.codex/setup.sh` が `.nvmrc` に従って Node.js を用意し、pnpm の依存関係をインストールします。外部パッケージレジストリへの接続に環境の HTTP(S) プロキシが必要な場合は、Node.js にプロキシ環境変数を使用させるため、次のように実行してください。
+
+```bash
+NODE_USE_ENV_PROXY=1 bash .codex/setup.sh
+```
+
+`NODE_USE_ENV_PROXY=1` を指定しない場合、そのような環境では Node.js がプロキシを経由せず、Corepack による pnpm の取得または `pnpm install` がネットワークエラーで失敗することがあります。`nvm install` は Node.js 起動前に curl 等で実行されるため `NODE_USE_ENV_PROXY` の対象外です。`nvm install` 自体がプロキシを必要とする場合は、シェル側の `HTTP_PROXY` / `HTTPS_PROXY` など、nvm のダウンロードクライアント向けの設定を別途用意してください。
+
 ### クラウドセッションへの資格情報の受け渡し
 
 ブラウザのクラウドセッション（Claude Code on the web）はコンテナが揮発的で、`.env` や資格情報の JSON ファイルを持ち込めません。渡せるのは環境側に登録した環境変数だけです。そのため、ファイルのパスを渡す従来の環境変数に加えて、**JSON の中身を直接渡す環境変数**を用意しています。中身が設定されていればそちらが優先され、無ければ従来どおりファイルを読みます（ローカルの動作は変わりません）。
@@ -80,7 +90,7 @@ Google OAuth を使う場合、キーファイルだけでは動きません。*
 ```bash
 pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
-pnpm test:all    # Agent 設定の同期検査、ルート、functions の全テスト
+pnpm test:all    # Agent 設定の同期検査、functions ロックの検査、ルート、functions の全テスト
 ```
 
 GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test:all` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
@@ -129,6 +139,7 @@ lineai_aoi_profiles/
 ├── README.md              # 本ファイル
 ├── aoi.md                 # 碧衣のプロファイル定義
 ├── package.json           # pnpm パッケージ管理（ルート）
+├── .nvmrc                 # Node.js のバージョン正本（CI とクラウド環境のセットアップが参照）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe / talk）
@@ -152,7 +163,8 @@ lineai_aoi_profiles/
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
-│   └── sync-agent-config.mjs # 共有開発 Skill の同期・差分検査
+│   ├── sync-agent-config.mjs     # 共有開発 Skill の同期・差分検査
+│   └── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
 ├── docs/
 │   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
 │       ├── development.md
@@ -166,17 +178,19 @@ lineai_aoi_profiles/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山/呼びかけトリガー
 ├── .github/
 │   └── workflows/
-│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
+│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions（Node.js は .nvmrc に従う）
 ├── .agents/
 │   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
 │       ├── dev_ship_change/
 │       └── dev_apply_pr_review/
+├── .codex/
+│   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/
 │   └── BUGBOT.md          # Bugbot 固有の薄い入口
 ├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口
 └── .claude/
     ├── hooks/             # Claude Code のフック
-    │   └── session-start.sh      # クラウドセッション開始時に pnpm install を実行
+    │   └── session-start.sh      # クラウドセッション開始時に .nvmrc の Node.js を用意し pnpm install を実行
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報

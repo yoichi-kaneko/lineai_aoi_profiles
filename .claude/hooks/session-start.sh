@@ -16,17 +16,18 @@ cd "$PROJECT_DIR"
 # CI（.github/workflows/test.yml）と揃える Node.js のメジャーバージョン。
 NODE_MAJOR=24
 
-# クラウドコンテナに同梱される Node.js は 20 / 21 / 22 だけで、既定は 22。
-# CI と同じメジャーで検査できるよう、nvm で目的のバージョンを導入して既定に据える。
-ensure_node_major() {
-  local major="$1"
+current_node_major() {
+  node -v 2>/dev/null | sed -E 's/^v([0-9]+)\..*/\1/'
+}
 
-  if [ "$(node -v 2>/dev/null | sed -E 's/^v([0-9]+)\..*/\1/')" = "$major" ]; then
-    return 0
-  fi
+# クラウドコンテナに同梱される Node.js は 20 / 21 / 22 だけで、既定は 22。
+# nvm で目的のメジャーを導入し、その bin ディレクトリを標準出力へ返す。
+install_node_major() {
+  local major="$1"
 
   export NVM_DIR="${NVM_DIR:-/opt/nvm}"
   if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+    echo "error: nvm が見つかりません（${NVM_DIR}）。" >&2
     return 1
   fi
   set +u
@@ -39,34 +40,57 @@ ensure_node_major() {
   fi
   nvm alias default "$major" >/dev/null 2>&1 || return 1
 
-  local bin_dir
-  bin_dir="$(dirname "$(nvm which "$major" 2>/dev/null)")" || return 1
-  [ -x "$bin_dir/node" ] || return 1
+  local node_path
+  node_path="$(nvm which "$major" 2>/dev/null)" || return 1
+  [ -x "$node_path" ] || return 1
+  dirname "$node_path"
+}
 
-  # Claude Code の Bash ツールはセッション開始時点の PATH を引き継ぐため、
-  # このスクリプト内の PATH 変更やシェルの初期化ファイルでは以降のコマンドへ届かない。
-  # PATH の先頭にある ~/.local/bin へ symlink を張り、既定の node を差し替える。
+# Claude Code の Bash ツールはセッション開始時点の PATH を引き継ぐため、このスクリプト内の
+# PATH 変更やシェルの初期化ファイルでは以降のコマンドへ届かない。PATH の先頭にある
+# ~/.local/bin へ symlink を張ることで、セッション全体の既定の node を差し替える。
+link_node_as_default() {
+  local bin_dir="$1"
   local link_dir="$HOME/.local/bin"
+
   case ":$PATH:" in
-    *":$link_dir:"*)
-      mkdir -p "$link_dir"
-      local cmd
-      for cmd in node npm npx corepack; do
-        if [ -x "$bin_dir/$cmd" ]; then
-          ln -sfn "$bin_dir/$cmd" "$link_dir/$cmd"
-        fi
-      done
+    *":$link_dir:"*) ;;
+    *)
+      echo "error: ${link_dir} が PATH に含まれないため、既定の node を差し替えられません。" >&2
+      return 1
       ;;
   esac
 
-  export PATH="$bin_dir:$PATH"
+  mkdir -p "$link_dir" || return 1
+  local cmd
+  for cmd in node npm npx corepack; do
+    if [ -x "$bin_dir/$cmd" ]; then
+      ln -sfn "$bin_dir/$cmd" "$link_dir/$cmd" || return 1
+    fi
+  done
 }
 
-if ensure_node_major "$NODE_MAJOR"; then
-  echo "Node.js $(node -v) を使用します。"
-else
-  echo "warning: Node.js ${NODE_MAJOR} を用意できませんでした。$(node -v) のまま続行します。" >&2
+node_ready=0
+node_bin=""
+if [ "$(current_node_major)" = "$NODE_MAJOR" ]; then
+  node_ready=1
+elif node_bin="$(install_node_major "$NODE_MAJOR")"; then
+  # このスクリプト内の pnpm install も導入した Node.js で実行する。
+  export PATH="$node_bin:$PATH"
+  if link_node_as_default "$node_bin"; then
+    node_ready=1
+  fi
 fi
 
+# 依存関係の導入は Node.js のメジャーに依らず同じ内容になるため、バージョンを揃えられ
+# なかった場合でも実行する。ここを飛ばすと node_modules が無いまま、どのスキルも
+# `pnpm test:all` も動かないセッションになり、かえって不完全な状態になる。
 # ルートで実行すれば functions ワークスペースの依存もあわせて入る。
 pnpm install --frozen-lockfile
+
+if [ "$node_ready" -ne 1 ]; then
+  echo "error: Node.js ${NODE_MAJOR} をセッションの既定にできませんでした。依存関係は $(node -v) で導入済みですが、CI と同じバージョンでの検査はできません。" >&2
+  exit 1
+fi
+
+echo "Node.js $(node -v) を使用します。"

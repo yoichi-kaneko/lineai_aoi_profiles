@@ -49,7 +49,7 @@ Codex cloud では `.codex/setup.sh` が `.nvmrc` に従って Node.js を用意
 NODE_USE_ENV_PROXY=1 bash .codex/setup.sh
 ```
 
-`NODE_USE_ENV_PROXY=1` を指定しない場合、そのような環境では Node.js がプロキシを経由せず、`nvm install`、Corepack による pnpm の取得、または `pnpm install` がネットワークエラーで失敗することがあります。
+`NODE_USE_ENV_PROXY=1` を指定しない場合、そのような環境では Node.js がプロキシを経由せず、Corepack による pnpm の取得または `pnpm install` がネットワークエラーで失敗することがあります。`nvm install` は Node.js 起動前に curl 等で実行されるため `NODE_USE_ENV_PROXY` の対象外です。`nvm install` 自体がプロキシを必要とする場合は、シェル側の `HTTP_PROXY` / `HTTPS_PROXY` など、nvm のダウンロードクライアント向けの設定を別途用意してください。
 
 ### クラウドセッションへの資格情報の受け渡し
 

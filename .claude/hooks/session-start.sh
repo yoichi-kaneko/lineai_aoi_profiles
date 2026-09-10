@@ -13,17 +13,28 @@ fi
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"}"
 cd "$PROJECT_DIR"
 
-# CI（.github/workflows/test.yml）と揃える Node.js のメジャーバージョン。
-NODE_MAJOR=24
+# Node.js のバージョンは .nvmrc を正本とし、CI（.github/workflows/test.yml）の
+# actions/setup-node も node-version-file で同じファイルを読む。
+NODE_VERSION_FILE="$PROJECT_DIR/.nvmrc"
 
-current_node_major() {
-  node -v 2>/dev/null | sed -E 's/^v([0-9]+)\..*/\1/'
+# .nvmrc の内容（例: 24）を返す。空白と改行は取り除く。
+read_node_version_spec() {
+  local spec
+  [ -f "$NODE_VERSION_FILE" ] || return 1
+  spec="$(tr -d '[:space:]' < "$NODE_VERSION_FILE")" || return 1
+  [ -n "$spec" ] || return 1
+  printf '%s\n' "$spec"
+}
+
+# "v24.21.0" や "24" からメジャーバージョン（"24"）を取り出す。
+version_major() {
+  printf '%s\n' "${1#v}" | cut -d. -f1
 }
 
 # クラウドコンテナに同梱される Node.js は 20 / 21 / 22 だけで、既定は 22。
-# nvm で目的のメジャーを導入し、その bin ディレクトリを標準出力へ返す。
-install_node_major() {
-  local major="$1"
+# nvm で目的のバージョンを導入し、その bin ディレクトリを標準出力へ返す。
+install_node_version() {
+  local spec="$1"
 
   export NVM_DIR="${NVM_DIR:-/opt/nvm}"
   if [ ! -s "$NVM_DIR/nvm.sh" ]; then
@@ -35,13 +46,13 @@ install_node_major() {
   . "$NVM_DIR/nvm.sh" --no-use
   set -u
 
-  if ! nvm which "$major" >/dev/null 2>&1; then
-    nvm install "$major" >&2 || return 1
+  if ! nvm which "$spec" >/dev/null 2>&1; then
+    nvm install "$spec" >&2 || return 1
   fi
-  nvm alias default "$major" >/dev/null 2>&1 || return 1
+  nvm alias default "$spec" >/dev/null 2>&1 || return 1
 
   local node_path
-  node_path="$(nvm which "$major" 2>/dev/null)" || return 1
+  node_path="$(nvm which "$spec" 2>/dev/null)" || return 1
   [ -x "$node_path" ] || return 1
   dirname "$node_path"
 }
@@ -72,9 +83,12 @@ link_node_as_default() {
 
 node_ready=0
 node_bin=""
-if [ "$(current_node_major)" = "$NODE_MAJOR" ]; then
+node_spec=""
+if ! node_spec="$(read_node_version_spec)"; then
+  echo "error: ${NODE_VERSION_FILE} を読めないため、Node.js のバージョンを決められません。" >&2
+elif [ "$(version_major "$(node -v 2>/dev/null)")" = "$(version_major "$node_spec")" ]; then
   node_ready=1
-elif node_bin="$(install_node_major "$NODE_MAJOR")"; then
+elif node_bin="$(install_node_version "$node_spec")"; then
   # このスクリプト内の pnpm install も導入した Node.js で実行する。
   export PATH="$node_bin:$PATH"
   if link_node_as_default "$node_bin"; then
@@ -89,7 +103,7 @@ fi
 pnpm install --frozen-lockfile
 
 if [ "$node_ready" -ne 1 ]; then
-  echo "error: Node.js ${NODE_MAJOR} をセッションの既定にできませんでした。依存関係は $(node -v) で導入済みですが、CI と同じバージョンでの検査はできません。" >&2
+  echo "error: .nvmrc の Node.js をセッションの既定にできませんでした。依存関係は $(node -v) で導入済みですが、CI と同じバージョンでの検査はできません。" >&2
   exit 1
 fi
 

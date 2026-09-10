@@ -129,6 +129,7 @@ lineai_aoi_profiles/
 ├── README.md              # 本ファイル
 ├── aoi.md                 # 碧衣のプロファイル定義
 ├── package.json           # pnpm パッケージ管理（ルート）
+├── .nvmrc                 # Node.js のバージョン正本（CI と session-start.sh が参照）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe / talk）
@@ -166,7 +167,7 @@ lineai_aoi_profiles/
 │       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山/呼びかけトリガー
 ├── .github/
 │   └── workflows/
-│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions
+│       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions（Node.js は .nvmrc に従う）
 ├── .agents/
 │   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
 │       ├── dev_ship_change/
@@ -176,7 +177,7 @@ lineai_aoi_profiles/
 ├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口
 └── .claude/
     ├── hooks/             # Claude Code のフック
-    │   └── session-start.sh      # クラウドセッション開始時に Node.js を CI と揃え pnpm install を実行
+    │   └── session-start.sh      # クラウドセッション開始時に .nvmrc の Node.js を用意し pnpm install を実行
     ├── rules/             # 常時適用ルール（aoi.md から @import で参照される）
     │   ├── aoi_character.md    # エージェントの指針・伴侶の妖精ルリ
     │   ├── aoi_user_profile.md # ユーザーに関する基本情報

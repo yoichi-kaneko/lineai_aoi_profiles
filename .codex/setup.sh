@@ -26,13 +26,14 @@ corepack enable
 # setup.sh の PATH 変更は後続の Codex シェルへ引き継がれないため、Codex が PATH の
 # 先頭に用意するディレクトリへ実体の symlink を置く。
 CODEX_PATH_DIR="${CODEX_PATH_DIR:-/opt/codex/codex-path}"
-case ":$PATH:" in
-  *":$CODEX_PATH_DIR:"*) ;;
-  *)
-    echo "error: ${CODEX_PATH_DIR} が PATH に含まれていません。" >&2
-    exit 1
-    ;;
-esac
+if [ ! -d "$CODEX_PATH_DIR" ]; then
+  echo "error: Codex のコマンド配置先が見つかりません（${CODEX_PATH_DIR}）。" >&2
+  exit 1
+fi
+if [ ! -w "$CODEX_PATH_DIR" ]; then
+  echo "error: Codex のコマンド配置先へ書き込めません（${CODEX_PATH_DIR}）。" >&2
+  exit 1
+fi
 
 NODE_BIN_DIR="$(dirname "$(nvm which current)")"
 for command_name in node npm npx corepack pnpm pnpx; do

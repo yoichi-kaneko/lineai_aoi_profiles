@@ -80,7 +80,7 @@ Google OAuth を使う場合、キーファイルだけでは動きません。*
 ```bash
 pnpm test        # 全テストを実行する
 pnpm test:watch  # ウォッチ実行
-pnpm test:all    # Agent 設定の同期検査、ルート、functions の全テスト
+pnpm test:all    # Agent 設定の同期検査、functions ロックの検査、ルート、functions の全テスト
 ```
 
 GitHub へプッシュすると、`.github/workflows/test.yml` が同じ `pnpm test:all` を実行します（`workflow_dispatch` で手動実行も可能）。テストはいずれも外部 API へ接続しないため、CI 側にシークレット（`.env`）の設定は不要です。対象範囲とフィクスチャの追加手順は [test/README.md](test/README.md) を参照してください。
@@ -153,7 +153,8 @@ lineai_aoi_profiles/
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
-│   └── sync-agent-config.mjs # 共有開発 Skill の同期・差分検査
+│   ├── sync-agent-config.mjs     # 共有開発 Skill の同期・差分検査
+│   └── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
 ├── docs/
 │   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
 │       ├── development.md

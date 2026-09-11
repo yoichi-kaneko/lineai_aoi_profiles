@@ -55,7 +55,7 @@ if [ -f "${SECRETS_FILE}" ]; then
 fi
 
 gcloud functions deploy "${FUNCTION_NAME}" \
-  --runtime nodejs22 \
+  --runtime nodejs24 \
   --trigger-http \
   --allow-unauthenticated \
   --region asia-northeast1 \

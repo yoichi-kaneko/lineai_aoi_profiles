@@ -40,7 +40,7 @@ importers:
         version: 180.0.0
       openai:
         specifier: 7.15.0
-        version: 7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.24.8)(zod@4.3.6)
+        version: 7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.29.1)(zod@4.3.6)
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -77,8 +77,8 @@ importers:
   functions:
     dependencies:
       '@aws-sdk/client-ssm':
-        specifier: 3.1130.0
-        version: 3.1130.0
+        specifier: 3.1131.0
+        version: 3.1131.0
       '@google-cloud/firestore':
         specifier: 9.1.0
         version: 9.1.0
@@ -104,8 +104,8 @@ importers:
 
 packages:
 
-  '@aws-sdk/client-ssm@3.1130.0':
-    resolution: {integrity: sha512-M4/L4KbjnIieMKI9KyzkEjwkNsKJRcg42N02gV17yFjXkJBO/JweonjnLUUOJb1w2f6UfdaYcfXc+X5dwOEz4A==}
+  '@aws-sdk/client-ssm@3.1131.0':
+    resolution: {integrity: sha512-WT5keqh6qdK+g6aQ4R15xmPcy/u1LiIZseiFJAyiRB37V16akc56zYx+ZjcMXKFJRG1o9srXHuJNe+ZTYGhrmA==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/core@3.978.0':
@@ -2582,7 +2582,7 @@ packages:
 
 snapshots:
 
-  '@aws-sdk/client-ssm@3.1130.0':
+  '@aws-sdk/client-ssm@3.1131.0':
     dependencies:
       '@aws-sdk/core': 3.978.0
       '@aws-sdk/credential-provider-node': 3.972.83
@@ -4499,11 +4499,11 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.24.8)(zod@4.3.6):
+  openai@7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.29.1)(zod@4.3.6):
     optionalDependencies:
       '@aws-sdk/credential-provider-node': 3.972.83
       '@smithy/signature-v4': 5.7.3
-      undici: 7.24.8
+      undici: 7.29.1
       zod: 4.3.6
 
   p-limit@2.3.0:

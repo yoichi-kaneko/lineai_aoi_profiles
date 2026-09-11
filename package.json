@@ -14,7 +14,7 @@
     "test:all": "pnpm agent-config:check && pnpm check:functions-lock && pnpm test && pnpm test:functions"
     },
     "dependencies": {
-        "@doist/todoist-sdk": "9.8.0",
+        "@doist/todoist-sdk": "15.2.0",
         "@google/genai": "2.22.0",
         "@googlemaps/google-maps-services-js": "^3.4.2",
         "@line/bot-sdk": "11.2.0",

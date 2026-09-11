@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@doist/todoist-sdk':
-        specifier: 9.8.0
-        version: 9.8.0(type-fest@4.41.0)
+        specifier: 15.2.0
+        version: 15.2.0(type-fest@4.41.0)
       '@google/genai':
         specifier: 2.22.0
         version: 2.22.0
@@ -176,9 +176,12 @@ packages:
     resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
     engines: {node: '>=6.9.0'}
 
-  '@doist/todoist-sdk@9.8.0':
-    resolution: {integrity: sha512-qCXWlV3BTZfF9xhgs4slHttf9kna4F0HN16+S4osbc8WxNNcZlzbre8PzewWuVyd4RskcGyMsEogZLZC8U/0Gg==}
-    engines: {node: '>=20.18.1'}
+  '@doist/sdk-kmp@0.2.3':
+    resolution: {integrity: sha512-6V1vuu80nEhIOKDQ117kPICZJpTgYbsdIL1AiGQbAPVFkNJYLZAWG5JXqmNrVBzAwq7LF+f/47C/NZX4pzNjdw==}
+
+  '@doist/todoist-sdk@15.2.0':
+    resolution: {integrity: sha512-DqEiAE9K+xukh8gl0nYrS+fg1Pub7fSF1B2MNY7pjsYS4dLitTwFcEo4eLWLX3Jv0yz9s22JAhYsfyjL59835g==}
+    engines: {node: '>=24', npm: '>=11'}
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
 
@@ -2343,6 +2346,10 @@ packages:
     resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.29.1:
+    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
     engines: {node: '>=18'}
@@ -2360,8 +2367,8 @@ packages:
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
   uuid@8.3.2:
@@ -2724,15 +2731,17 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.28.5': {}
 
-  '@doist/todoist-sdk@9.8.0(type-fest@4.41.0)':
+  '@doist/sdk-kmp@0.2.3': {}
+
+  '@doist/todoist-sdk@15.2.0(type-fest@4.41.0)':
     dependencies:
+      '@doist/sdk-kmp': 0.2.3
       camelcase: 6.3.0
       emoji-regex: 10.6.0
-      form-data: 4.0.5
       ts-custom-error: 3.3.1
       type-fest: 4.41.0
-      undici: 7.24.8
-      uuid: 11.1.0
+      undici: 7.29.1
+      uuid: 11.1.1
       zod: 4.3.6
 
   '@emnapi/core@1.11.1':
@@ -5006,6 +5015,8 @@ snapshots:
 
   undici@7.24.8: {}
 
+  undici@7.29.1: {}
+
   unicorn-magic@0.1.0: {}
 
   unpipe@1.0.0: {}
@@ -5022,7 +5033,7 @@ snapshots:
       is-typed-array: 1.1.15
       which-typed-array: 1.1.20
 
-  uuid@11.1.0: {}
+  uuid@11.1.1: {}
 
   uuid@8.3.2: {}
 

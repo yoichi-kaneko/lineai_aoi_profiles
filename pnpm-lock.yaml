@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@doist/todoist-sdk':
         specifier: 15.2.0
-        version: 15.2.0(type-fest@4.41.0)
+        version: 15.2.0(type-fest@5.9.0)
       '@google/genai':
         specifier: 2.22.0
         version: 2.22.0
@@ -40,7 +40,7 @@ importers:
         version: 180.0.0
       openai:
         specifier: 7.15.0
-        version: 7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.24.8)(zod@4.3.6)
+        version: 7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.29.1)(zod@4.3.6)
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -51,8 +51,8 @@ importers:
         specifier: 1.29.1
         version: 1.29.1
       type-fest:
-        specifier: 4.41.0
-        version: 4.41.0
+        specifier: 5.9.0
+        version: 5.9.0
     devDependencies:
       '@types/node':
         specifier: 22.20.2
@@ -2281,6 +2281,10 @@ packages:
   stubs@3.0.0:
     resolution: {integrity: sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==}
 
+  tagged-tag@1.0.0:
+    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
+    engines: {node: '>=20'}
+
   teeny-request@10.1.4:
     resolution: {integrity: sha512-R1Cg4Vu0UULeDfHL/kjABLaTW++9yD/B6n2g48y5dJ04hsEaxcfmAqbNDzNsbqAYJyIpZafjklLG9YxRu9uzOg==}
     engines: {node: '>=18'}
@@ -2330,6 +2334,10 @@ packages:
   type-fest@4.41.0:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
     engines: {node: '>=16'}
+
+  type-fest@5.9.0:
+    resolution: {integrity: sha512-yANm3Jr3GiJ1qgJlxGAVxTOIcEOk1rhQHamlXtnrCK7EHP4HeM9OGxtMg/W7HFdrVzw/ZWJKGVIJusVH85sLtw==}
+    engines: {node: '>=20'}
 
   type-is@2.1.0:
     resolution: {integrity: sha512-faYHw0anBbc/kWF3zFTEnxSFOAGUX9GFbOBthvDdLsIlEoWOFOtS0zgCiQYwIskL9iGXZL3kAXD8OoZ4GmMATA==}
@@ -2737,13 +2745,13 @@ snapshots:
 
   '@doist/sdk-kmp@0.2.3': {}
 
-  '@doist/todoist-sdk@15.2.0(type-fest@4.41.0)':
+  '@doist/todoist-sdk@15.2.0(type-fest@5.9.0)':
     dependencies:
       '@doist/sdk-kmp': 0.2.3
       camelcase: 6.3.0
       emoji-regex: 10.6.0
       ts-custom-error: 3.3.1
-      type-fest: 4.41.0
+      type-fest: 5.9.0
       undici: 7.29.1
       uuid: 11.1.1
       zod: 4.3.6
@@ -4499,11 +4507,11 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.24.8)(zod@4.3.6):
+  openai@7.15.0(@aws-sdk/credential-provider-node@3.972.83)(@smithy/signature-v4@5.7.3)(undici@7.29.1)(zod@4.3.6):
     optionalDependencies:
       '@aws-sdk/credential-provider-node': 3.972.83
       '@smithy/signature-v4': 5.7.3
-      undici: 7.24.8
+      undici: 7.29.1
       zod: 4.3.6
 
   p-limit@2.3.0:
@@ -4926,6 +4934,8 @@ snapshots:
 
   stubs@3.0.0: {}
 
+  tagged-tag@1.0.0: {}
+
   teeny-request@10.1.4:
     dependencies:
       http-proxy-agent: 7.0.2
@@ -4983,6 +4993,10 @@ snapshots:
   twitter-api-v2@1.29.1: {}
 
   type-fest@4.41.0: {}
+
+  type-fest@5.9.0:
+    dependencies:
+      tagged-tag: 1.0.0
 
   type-is@2.1.0:
     dependencies:

@@ -22,7 +22,7 @@
         "cloudinary": "2.11.0",
         "dotenv": "^16.4.7",
         "firebase-admin": "13.10.0",
-        "google-auth-library": "10.9.1",
+        "google-auth-library": "11.0.2",
         "googleapis": "^171.4.0",
         "openai": "6.49.0",
         "qrcode": "^1.5.4",

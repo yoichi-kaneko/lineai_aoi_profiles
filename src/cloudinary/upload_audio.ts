@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 // src/cloudinary/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 function requireEnv(name: string): string {
   const value = process.env[name];

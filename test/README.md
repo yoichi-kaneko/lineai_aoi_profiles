@@ -20,6 +20,8 @@ test/
 │   └── upload_image.test.ts   # プレビュー縮小計算
 ├── codex/
 │   └── review.test.ts         # レビューの引数解釈・環境変数の解決・codex 引数の組み立て・子プロセスへ渡す環境変数の絞り込み
+├── env/
+│   └── dotenv_quiet.test.ts   # src/ 全体の dotenv.config が quiet: true を渡しているか
 ├── fixtures/
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
@@ -102,6 +104,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/image/embed_qr.ts`
 - `src/codex/review.ts`
 - `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
+- `src/**/*.ts` の `dotenv.config()` 呼び出し（`test/env/dotenv_quiet.test.ts`）
 
 ### 間接カバーまたは今回の対象外
 

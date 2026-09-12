@@ -15,7 +15,7 @@ import { spawn, spawnSync } from "child_process";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
-dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+dotenv.config({ path: resolve(PROJECT_ROOT, ".env"), quiet: true });
 
 /**
  * 碧衣が生成した成果物（画像生成プロンプト・SNS投稿本文）を Codex CLI へ渡し、

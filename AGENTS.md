@@ -41,7 +41,7 @@ pnpm check:functions-lock        functions/package-lock.json と package.json �
 ## TypeScript Conventions
 
 - CLI はプロジェクトルートから `pnpm exec tsx src/{module}/{entry}.ts [args]` で実行できるようにする。
-- 環境変数は `dotenv` でリポジトリルートの `.env` から読み込む。
+- 環境変数は `dotenv` でリポジトリルートの `.env` から読み込み、`dotenv.config()` には必ず `quiet: true` を渡す。dotenv 17 以降は既定で実行時ログを標準出力へ出すため、CLI の出力を読む Skill や `send_daily_line.sh` の判定が壊れる（`test/env/dotenv_quiet.test.ts` で検査する）。
 - 通常の CLI は失敗時に `console.error` と終了コード 1 を使う。`src/codex/review.ts` は補助工程のため、引数不正以外をステータス付きの正常終了として扱う。
 - テスト対象の判断ロジックは副作用から分離して export し、CLI の `main()` は直接実行時だけ呼ぶ。テストは `test/` に置く。
 - Firestore CLI は `src/firebase/client.ts` の初期化、タイムアウト、終了、エラー処理を再利用し、個別に `initializeApp` を呼ばない。

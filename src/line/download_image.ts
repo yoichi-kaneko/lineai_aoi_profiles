@@ -8,7 +8,7 @@ import { messagingApi } from "@line/bot-sdk";
 
 // src/line/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 const CONTENT_TYPE_TO_EXT: Record<string, string> = {
   "image/jpeg": ".jpg",

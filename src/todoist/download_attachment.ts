@@ -7,7 +7,7 @@ import path from "path";
 // プロジェクトルートの .env を読み込む
 // src/todoist/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 import { TodoistApi } from "@doist/todoist-sdk";
 

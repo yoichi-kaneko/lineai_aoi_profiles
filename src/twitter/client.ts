@@ -6,7 +6,7 @@ import { TwitterApi } from "twitter-api-v2";
 
 // src/twitter/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 export function requireEnv(name: string): string {
   const value = process.env[name];

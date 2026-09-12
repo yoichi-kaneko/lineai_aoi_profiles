@@ -15,7 +15,7 @@ import type { Uploadable } from "openai/uploads";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
-dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+dotenv.config({ path: resolve(PROJECT_ROOT, ".env"), quiet: true });
 
 /** 解決済みパスの実体が許可ディレクトリ内に収まることを確認して返す（シンボリックリンク経由の脱出を拒否） */
 export function assertRealPathInsideDir(

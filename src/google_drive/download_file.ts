@@ -13,7 +13,7 @@ import {
 // プロジェクトルートの .env を読み込む
 // src/google_drive/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 async function main() {
   const fileId = process.argv[2];

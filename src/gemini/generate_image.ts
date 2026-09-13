@@ -9,7 +9,7 @@ import { GoogleGenAI } from "@google/genai";
 // src/gemini/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
-dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+dotenv.config({ path: resolve(PROJECT_ROOT, ".env"), quiet: true });
 
 const ASPECT_RATIO = "1:1";
 const RESOLUTION = "1K";

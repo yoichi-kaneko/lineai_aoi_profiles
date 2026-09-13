@@ -12,7 +12,7 @@ import {
 // プロジェクトルートの .env を読み込む
 // src/google_calendar/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 function getEnvOrExit(name: string): string {
   const value = process.env[name];

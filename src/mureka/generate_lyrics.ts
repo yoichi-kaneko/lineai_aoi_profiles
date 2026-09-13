@@ -7,7 +7,7 @@ import { readTextFile } from "./client";
 // src/mureka/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../../");
-dotenv.config({ path: resolve(PROJECT_ROOT, ".env") });
+dotenv.config({ path: resolve(PROJECT_ROOT, ".env"), quiet: true });
 
 /** Mureka API が返す歌詞・タイトル中のリテラルエスケープや記号混入を正規化する */
 export function normalizeMurekaLyrics(text: string): string {

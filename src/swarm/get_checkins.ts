@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 // プロジェクトルートの .env を読み込む
 // src/swarm/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 const API_BASE = "https://api.foursquare.com/v2";
 const API_VERSION = "20231010";

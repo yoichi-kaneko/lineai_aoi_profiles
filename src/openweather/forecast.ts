@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 // プロジェクトルートの .env を読み込む
 // src/openweather/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 const WEATHER_API_BASE = "https://api.openweathermap.org/data/3.0/onecall";
 

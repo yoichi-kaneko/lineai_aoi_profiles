@@ -8,7 +8,7 @@ import { TodoistApi } from "@doist/todoist-sdk";
 // src/todoist/ -> src/ -> project root
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 export const projectRoot = resolve(dirname, "../../");
-dotenv.config({ path: resolve(projectRoot, ".env") });
+dotenv.config({ path: resolve(projectRoot, ".env"), quiet: true });
 
 const SUPPORTED_FLAGS = new Set(["description-file"]);
 

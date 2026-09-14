@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 // プロジェクトルートの .env を読み込む
 // src/firebase/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 import { initializeApp, cert, type ServiceAccount } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";

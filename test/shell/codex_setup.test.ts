@@ -18,6 +18,7 @@ import { fileURLToPath } from "url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const REPO_ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "../..");
+const describeShell = process.platform === "win32" ? describe.skip : describe;
 
 let workDir: string;
 
@@ -54,7 +55,7 @@ afterEach(() => {
   rmSync(workDir, { recursive: true, force: true });
 });
 
-describe(".codex/setup.sh", () => {
+describeShell(".codex/setup.sh", () => {
   it("コマンド配置先が現在の PATH に無くても symlink を作成する", () => {
     const codexPath = join(workDir, "codex-path");
     mkdirSync(codexPath);

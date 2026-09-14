@@ -4,16 +4,17 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "lock:regenerate": "node ../scripts/regenerate-functions-lock.mjs",
     "start": "functions-framework --target=receiveLineMessage",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-ssm": "^3.0.0",
-    "@google-cloud/firestore": "^7.0.0",
-    "@google-cloud/functions-framework": "^3.0.0",
-    "@line/bot-sdk": "^10.6.0",
-    "google-auth-library": "^9.0.0"
+    "@aws-sdk/client-ssm": "3.1130.0",
+    "@google-cloud/firestore": "9.1.0",
+    "@google-cloud/functions-framework": "5.0.5",
+    "@line/bot-sdk": "11.2.0",
+    "google-auth-library": "11.0.2"
   },
   "devDependencies": {
     "@types/node": "22.20.2",

@@ -19,7 +19,8 @@ lineai_aoi_profiles/
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
 ├── scripts/
 │   ├── sync-agent-config.mjs    # 共有 Skill の同期・差分検査
-│   └── check-functions-lock.mjs # functions/package-lock.json の健全性検査
+│   ├── check-functions-lock.mjs # functions/package-lock.json の健全性検査
+│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
 ├── docs/
 │   └── agent/
 │       ├── development.md    # 本文書

@@ -164,7 +164,8 @@ lineai_aoi_profiles/
 ├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
 │   ├── sync-agent-config.mjs     # 共有開発 Skill の同期・差分検査
-│   └── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
+│   ├── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
+│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
 ├── docs/
 │   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
 │       ├── development.md

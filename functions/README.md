@@ -112,18 +112,13 @@ cd functions
 
 Cloud Build は `npm ci` で依存をインストールするため、`functions/package-lock.json` をコミットしておく必要があります。リポジトリ全体は pnpm ワークスペースですが、このロックは Cloud Functions のビルド専用で、`pnpm-lock.yaml` とは独立しています（ローカルのテスト実行には使われません）。
 
-`functions/package.json` の依存を変更したら、ロックも再生成してください。このとき **`functions/` の中で直接 `npm install` を実行してはいけません**。pnpm が作った `functions/node_modules`（`.pnpm` へのシンボリックリンク）を npm が取り込み、依存が `"link": true` として記録された壊れたロックになります。そのロックでデプロイすると、Cloud Build 上に参照先が存在しないため `npm ci` がほとんど何もインストールせず、`tsc: not found` でビルドが失敗します。
+`functions/package.json` の依存を変更したら、プロジェクトルートで次のコマンドを実行してロックも再生成してください。`functions/` の中で直接 `npm install` は実行しないでください。
 
-node_modules の無い一時ディレクトリで生成してください。既存のロックも一緒に持ち込むと、今回変えた依存だけが更新され、無関係な推移的依存の差分が出ません。
-
-```bash
-cd functions
-TMP=$(mktemp -d)
-cp package.json package-lock.json "$TMP/"
-(cd "$TMP" && npm install --package-lock-only)
-cp "$TMP/package-lock.json" ./package-lock.json
-rm -rf "$TMP"
+```shell
+npm --prefix functions run lock:regenerate
 ```
+
+このコマンドは、node_modules の無い一時ディレクトリへ `package.json` と既存のロックをコピーしてから `npm install --package-lock-only` を実行し、成功したロックだけを `functions/package-lock.json` へ反映します。これにより、pnpm が作った `functions/node_modules`（`.pnpm` へのシンボリックリンク）を npm が取り込んだ壊れたロックの生成を防ぎ、今回変えた依存以外の差分も抑えます。
 
 検証は [`scripts/check-functions-lock.mjs`](../scripts/check-functions-lock.mjs) が担い、次の3点を確認します。
 

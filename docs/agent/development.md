@@ -19,7 +19,8 @@ lineai_aoi_profiles/
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
 ├── scripts/
 │   ├── sync-agent-config.mjs    # 共有 Skill の同期・差分検査
-│   └── check-functions-lock.mjs # functions/package-lock.json の健全性検査
+│   ├── check-functions-lock.mjs # functions/package-lock.json の健全性検査
+│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
 ├── docs/
 │   └── agent/
 │       ├── development.md    # 本文書
@@ -28,7 +29,8 @@ lineai_aoi_profiles/
 ├── .agents/
 │   └── skills/               # 共有開発 Skill の正本
 │       ├── dev_ship_change/
-│       └── dev_apply_pr_review/
+│       ├── dev_apply_pr_review/
+│       └── dev_apply_todoist_request/
 ├── .claude/
 │   ├── hooks/                # Claude Code 専用フック
 │   ├── rules/                # 碧衣の常時ルール

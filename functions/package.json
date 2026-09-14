@@ -4,6 +4,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "lock:regenerate": "node ../scripts/regenerate-functions-lock.mjs",
     "start": "functions-framework --target=receiveLineMessage",
     "test": "vitest run",
     "test:watch": "vitest"

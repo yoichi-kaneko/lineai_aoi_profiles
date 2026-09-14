@@ -164,7 +164,8 @@ lineai_aoi_profiles/
 ├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
 │   ├── sync-agent-config.mjs     # 共有開発 Skill の同期・差分検査
-│   └── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
+│   ├── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
+│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
 ├── docs/
 │   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
 │       ├── development.md
@@ -182,7 +183,8 @@ lineai_aoi_profiles/
 ├── .agents/
 │   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
 │       ├── dev_ship_change/
-│       └── dev_apply_pr_review/
+│       ├── dev_apply_pr_review/
+│       └── dev_apply_todoist_request/
 ├── .codex/
 │   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/

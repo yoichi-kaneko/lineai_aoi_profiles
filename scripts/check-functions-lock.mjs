@@ -14,17 +14,9 @@ const lockPath = new URL("../functions/package-lock.json", import.meta.url);
 
 const lockRecipe = `
 package-lock.json を再生成してください。
-functions/ の中で直接 npm install を実行すると、pnpm が作った functions/node_modules を
-npm が取り込んでしまい、依存が .pnpm へのシンボリックリンクとして記録された
-壊れたロックになります。必ず node_modules の無い一時ディレクトリで生成してください。
-既存のロックも一緒に持ち込むと、今回変えた依存だけが更新されます。
+プロジェクトルートで次のコマンドを実行します。
 
-  cd functions
-  TMP=$(mktemp -d)
-  cp package.json package-lock.json "$TMP/"
-  (cd "$TMP" && npm install --package-lock-only)
-  cp "$TMP/package-lock.json" ./package-lock.json
-  rm -rf "$TMP"
+  npm --prefix functions run lock:regenerate
 `;
 
 function fail(errors) {

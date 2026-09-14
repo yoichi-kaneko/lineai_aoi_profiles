@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const REPO_ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "../..");
+const describeShell = process.platform === "win32" ? describe.skip : describe;
 
 let workDir: string;
 
@@ -88,7 +89,7 @@ afterEach(() => {
   rmSync(workDir, { recursive: true, force: true });
 });
 
-describe("send_daily_line.sh の talk モード", () => {
+describeShell("send_daily_line.sh の talk モード", () => {
   const DOC_ID = "abcDEF123";
   const POSTED_DATE = "2026-08-20";
 
@@ -127,7 +128,7 @@ describe("send_daily_line.sh の talk モード", () => {
   });
 });
 
-describe("send_daily_line.sh の従来モード", () => {
+describeShell("send_daily_line.sh の従来モード", () => {
   it.each([
     ["off_mountain", "daily message (帰灯): "],
     ["up_mountain", "daily message (門灯): "],
@@ -149,7 +150,7 @@ describe("send_daily_line.sh の従来モード", () => {
   });
 });
 
-describe("作業領域（tmp/）の扱い", () => {
+describeShell("作業領域（tmp/）の扱い", () => {
   it("実行の冒頭で tmp/ の通常ファイルを掃除する", () => {
     writeFileSync(join(workDir, "tmp", "line_message.txt"), "前回の残骸", "utf-8");
 

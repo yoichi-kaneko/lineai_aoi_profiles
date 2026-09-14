@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 // プロジェクトルートの .env を読み込む
 // src/google_map/ -> src/ -> project root
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-dotenv.config({ path: resolve(__dirname, "../../.env") });
+dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
 function getApiKey(): string {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;

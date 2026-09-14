@@ -20,6 +20,8 @@ test/
 │   └── upload_image.test.ts   # プレビュー縮小計算
 ├── codex/
 │   └── review.test.ts         # レビューの引数解釈・環境変数の解決・codex 引数の組み立て・子プロセスへ渡す環境変数の絞り込み
+├── env/
+│   └── dotenv_quiet.test.ts   # src/ 全体の dotenv.config が quiet: true を渡しているか
 ├── fixtures/
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
@@ -64,6 +66,7 @@ Firestore / Todoist / Twitter / Cloudinary / Mureka / Swarm / OpenWeather / 画�
 
 シェルスクリプトのテストは、スクリプト一式を一時ディレクトリへ複製し、`CLAUDE_BIN` を起動引数を記録するスタブへ差し替えて実行する
 （`test/shell/send_daily_line.test.ts` 参照）。実際の claude 起動・LINE 送信・Firestore アクセスは行わず、リポジトリの `tmp/` にも触れない。
+`test/shell/` は Bash と Unix の symlink / `flock` の挙動を前提とし、Windows では運用上も対象スクリプトを実行しないため、テストをスキップする。Linux CI では従来どおり実行する。
 `run_logs` を確認するモード（`morning` / `noon` / `night`）は `pnpm exec tsx` を呼ぶため、この方式では扱わない。
 
 CLI スクリプトをテスト対象にする場合は、`main()` の実行を
@@ -102,6 +105,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/image/embed_qr.ts`
 - `src/codex/review.ts`
 - `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
+- `src/**/*.ts` の `dotenv.config()` 呼び出し（`test/env/dotenv_quiet.test.ts`）
 
 ### 間接カバーまたは今回の対象外
 

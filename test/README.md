@@ -66,6 +66,7 @@ Firestore / Todoist / Twitter / Cloudinary / Mureka / Swarm / OpenWeather / 画�
 
 シェルスクリプトのテストは、スクリプト一式を一時ディレクトリへ複製し、`CLAUDE_BIN` を起動引数を記録するスタブへ差し替えて実行する
 （`test/shell/send_daily_line.test.ts` 参照）。実際の claude 起動・LINE 送信・Firestore アクセスは行わず、リポジトリの `tmp/` にも触れない。
+`test/shell/` は Bash と Unix の symlink / `flock` の挙動を前提とし、Windows では運用上も対象スクリプトを実行しないため、テストをスキップする。Linux CI では従来どおり実行する。
 `run_logs` を確認するモード（`morning` / `noon` / `night`）は `pnpm exec tsx` を呼ぶため、この方式では扱わない。
 
 CLI スクリプトをテスト対象にする場合は、`main()` の実行を

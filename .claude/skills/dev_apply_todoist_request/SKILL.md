@@ -27,8 +27,8 @@ Todoist のコメントは、宛先の異なる2種類が同じタスクに並�
 | 完了報告など | 碧衣 | 目印を付けない | 対応した旨・労い・碧衣に伝えたいこと |
 
 - **1つのコメントに両方を混ぜない。** 対応方針と碧衣宛のメッセージは別コメントに分けて投稿してください
-- [get_todoist_comments](../get_todoist_comments/SKILL.md) は**既定で対応方針コメントを除外**します。碧衣の各モードは目印付きのコメントを読みません（除外件数のみ `excludedPolicyComments` として見えます）
-- 目印を付け忘れた対応方針は碧衣に読まれますが、[技術・運用連絡の語り方](../../rules/aoi_messaging.md)でぼかされるため実害は限定的です。ただし**このスキルからは方針として認識できない**ため、手順2で「方針が無い」と判定されます
+- [get_todoist_comments](../../../.claude/skills/get_todoist_comments/SKILL.md) は**既定で対応方針コメントを除外**します。碧衣の各モードは目印付きのコメントを読みません（除外件数のみ `excludedPolicyComments` として見えます）
+- 目印を付け忘れた対応方針は碧衣に読まれますが、[技術・運用連絡の語り方](../../../.claude/rules/aoi_messaging.md)でぼかされるため実害は限定的です。ただし**このスキルからは方針として認識できない**ため、手順2で「方針が無い」と判定されます
 
 ## 前提
 
@@ -63,7 +63,7 @@ pnpm exec tsx src/todoist/get_comments.ts "{タスクURL}" --include-policy
 - **`--include-policy` を必ず付けます。** 付けないと対応方針コメントが除外され、方針が読めません
 - 取得したタスクの `checked` が `true`（既に完了済み）の場合は、対応済みのタスクを掴んでいる可能性があります。実装に入る前にユーザーへ確認してください
 - 対応方針コメントが複数ある場合は、**後から投稿されたものを優先**します（`postedAt` で判断）。前の方針を打ち消しているのか、追記なのかが読み取れない場合はユーザーに確認してください
-- コメントの `fileAttachment` に画像などが添えられている場合は、必要に応じて [download_todoist_attachment](../download_todoist_attachment/SKILL.md) で取得します
+- コメントの `fileAttachment` に画像などが添えられている場合は、必要に応じて [download_todoist_attachment](../../../.claude/skills/download_todoist_attachment/SKILL.md) で取得します
 
 ### 3. 現行コードとの突き合わせを行う
 

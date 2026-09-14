@@ -183,7 +183,8 @@ lineai_aoi_profiles/
 ├── .agents/
 │   └── skills/            # Claude Code / Codex 共有の開発 Skill 正本
 │       ├── dev_ship_change/
-│       └── dev_apply_pr_review/
+│       ├── dev_apply_pr_review/
+│       └── dev_apply_todoist_request/
 ├── .codex/
 │   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/

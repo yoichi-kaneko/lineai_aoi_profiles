@@ -189,6 +189,8 @@ lineai_aoi_profiles/
 │   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/
 │   └── BUGBOT.md          # Bugbot 固有の薄い入口
+├── .vscode/
+│   └── settings.json      # エディタ共有設定（package.json の依存からの自動インポートを止め、tsserver のクラッシュを避ける）
 ├── .coderabbit.yaml       # CodeRabbit 固有の薄い入口
 └── .claude/
     ├── hooks/             # Claude Code のフック

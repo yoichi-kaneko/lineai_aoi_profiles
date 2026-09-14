@@ -2,7 +2,6 @@
 name: dev_apply_todoist_request
 description: 開発者向け。碧衣がTodoistへ登録した要望タスクのURLを受け取り、タスク本文（要望）とコメント（対応方針）を読み取って、現行コードと噛み合うかを検証したうえで修正・PR作成まで行う。「{スキル名} https://app.todoist.com/app/task/...」のようにタスクURLだけを渡されたときに使う。碧衣のモード実行（暁・望・小夜など）では使用しない。
 ---
-<!-- このファイルは .agents/skills/ の共有正本から自動生成されます。直接編集せず pnpm agent-config:sync を実行してください。 -->
 
 # dev_apply_todoist_request
 

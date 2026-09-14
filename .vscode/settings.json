@@ -1,0 +1,8 @@
+{
+  // package.json の依存から自動インポート候補の型を読み込むと、googleapis など巨大な依存の
+  // 型定義で tsserver がヒープを使い切り、tsconfig.json の include 外にある scripts/*.mjs を
+  // 開いたときにクラッシュと再起動を繰り返す。node_modules からの自動インポート補完を諦め、
+  // 依存の走査自体を止める。
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "javascript.preferences.includePackageJsonAutoImports": "off"
+}

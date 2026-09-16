@@ -2,5 +2,9 @@ packages:
   - 'functions'
 allowBuilds:
   '@firebase/util': true
+  '@google/genai': true
   esbuild: true
   protobufjs: true
+minimumReleaseAgeExclude:
+  - '@aws-sdk/client-ssm@3.1133.0'
+  - '@types/node@24.13.5'

@@ -8,3 +8,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@aws-sdk/client-ssm@3.1133.0'
   - '@types/node@24.13.5'
+  - google-auth-library@11.1.0

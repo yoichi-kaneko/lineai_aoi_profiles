@@ -57,5 +57,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true
   }
 }

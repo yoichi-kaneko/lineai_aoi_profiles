@@ -40,12 +40,5 @@
     "optionalDependencies": {
         "@esbuild/linux-x64": "0.28.2"
     },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@firebase/util",
-            "esbuild",
-            "protobufjs"
-        ]
-    },
     "packageManager": "pnpm@12.4.2"
 }

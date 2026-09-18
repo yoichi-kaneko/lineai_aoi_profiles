@@ -163,7 +163,7 @@
 - `date` は投稿日、`mode` は `talk` です。
 - `cloudinary_url` にはステップ5の `send_line_image` アップロード出力の `originalUrl` を入れます。
 - `image_id` にはステップ5で本文へ添えた識別子を入れます。
-- **ユーザーが指定した可変要素は `user_specified` に記録してください**。指定に従った結果を、定期生成の偏りとして数えないためです（[review_image_feedback](../.claude/skills/review_image_feedback/SKILL.md) が集計で区別します）。
+- **ユーザーが指定した主題・素材と可変要素は `user_specified` に記録してください**。特定の写真・物・場所・出来事そのものが指定された場合は `subject` を入れ、素材から舞台・時間帯などが必然的に決まる場合は対応する既存軸も入れます。指定に従った結果を、定期生成の偏りとして数えないためです（[review_image_feedback](../.claude/skills/review_image_feedback/SKILL.md) が集計で区別します）。
 
 > **小夜モードの画像は抑止しません**: 本モードで画像を生成したことを理由に、同じ日の小夜モードの一枚を省略しないでください。響の画像は依頼に応じた個別生成であり、小夜の一枚はその日の情景を描いた定常生成で、狙いが異なります。
 

@@ -235,8 +235,8 @@ importers:
   functions:
     dependencies:
       '@aws-sdk/client-ssm':
-        specifier: 3.1133.0
-        version: 3.1133.0
+        specifier: 3.1135.0
+        version: 3.1135.0
       '@google-cloud/firestore':
         specifier: 9.1.0
         version: 9.1.0
@@ -262,8 +262,8 @@ importers:
 
 packages:
 
-  '@aws-sdk/client-ssm@3.1133.0':
-    resolution: {integrity: sha512-cOZ490XPXZNIT9UeoB9SipnBNS3XXIaGa/LOp6qMWSCykw+KbEbyK8mRBE4kZpOJgGNqXtVZmxBztqbCjXMVNw==}
+  '@aws-sdk/client-ssm@3.1135.0':
+    resolution: {integrity: sha512-QkXpGAFKnVJkJH8xWYqNqK78K6YGG4LDkZig51K6zfNQfF+W7kC2PDdoNN5GnSt0RtIjvEylxs+66PLPFJkuCA==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/core@3.978.0':
@@ -2654,8 +2654,8 @@ packages:
   which-module@2.0.1:
     resolution: {integrity: sha512-iBdZ57RDvnOR9AGBhML2vFZf7h8vmBjhoaZqODJBFWHVtKkDmKuHai3cx5PgVMrX5YDNp27AofYbAwctSS+vhQ==}
 
-  which-typed-array@1.1.22:
-    resolution: {integrity: sha512-fvO4ExWMFsqyhG3AiPAObMuY1lxaqgYcxbc49CNdWDDECOJNgQyvsOWVwbZc+qf3rzRtxojBK+CMEv0Ld5CYpw==}
+  which-typed-array@1.1.23:
+    resolution: {integrity: sha512-JMh8aK+1B/0bk/YNupICmH5MgCq6yNLKYQUfsZtSDLLCCmxUkHjUY+oOlIa90lO7lHN1woAfpenLdlKpXy9o+A==}
     engines: {node: '>= 0.4'}
 
   which@2.0.2:
@@ -2734,7 +2734,7 @@ packages:
 
 snapshots:
 
-  '@aws-sdk/client-ssm@3.1133.0':
+  '@aws-sdk/client-ssm@3.1135.0':
     dependencies:
       '@aws-sdk/core': 3.978.0
       '@aws-sdk/credential-provider-node': 3.972.83
@@ -4415,7 +4415,7 @@ snapshots:
 
   is-typed-array@1.1.15:
     dependencies:
-      which-typed-array: 1.1.22
+      which-typed-array: 1.1.23
 
   is-unsafe@2.0.2:
     optional: true
@@ -5166,7 +5166,7 @@ snapshots:
       is-arguments: 1.2.0
       is-generator-function: 1.1.2
       is-typed-array: 1.1.15
-      which-typed-array: 1.1.22
+      which-typed-array: 1.1.23
 
   uuid@11.1.1: {}
 
@@ -5244,7 +5244,7 @@ snapshots:
 
   which-module@2.0.1: {}
 
-  which-typed-array@1.1.22:
+  which-typed-array@1.1.23:
     dependencies:
       available-typed-arrays: 1.0.7
       call-bind: 1.0.9

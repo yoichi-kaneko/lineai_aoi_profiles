@@ -48,8 +48,11 @@ LINE_DESTINATION_GROUP_ID="your_group_id"   # group / both を使う場合に必
 - **画像ファイルパス**（必須）: 送信する画像の相対パス（例: `tmp/image.png`）
 - **テキスト本文**（必須）: 画像の直後に届けるメッセージ
 - **送信先**（任意）: `user`（デフォルト）/ `group` / `both`
+- **アップロード済みのURL**（任意）: 同じ画像をこの実行の中ですでにアップロードしている場合の `originalUrl` / `previewUrl`
 
 ### 手順
+
+**アップロードは画像1枚につき1回だけ行います。** 同じ画像を、宛先ごとに本文を変えて複数回送る場合（帰灯モードの家族グループ宛とユーザー宛など）は、最初の送信でだけ手順1・2を行ってください。2回目以降の送信では手順1・2を行わず、最初のアップロードで得た `originalUrl` / `previewUrl` を使って手順3から実行します。
 
 1. **アップロード**: 以下のコマンドを実行して画像をCloudinaryにアップロードしてください。
 
@@ -57,6 +60,9 @@ LINE_DESTINATION_GROUP_ID="your_group_id"   # group / both を使う場合に必
 cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/cloudinary/upload_image.ts "{画像ファイルパス}"
 ```
+
+- 出力は `originalUrl` と `previewUrl` を含む**1行のJSON**です。`tail` / `head` / `grep` などで出力を絞らず、上記のコマンドをそのまま実行してください。
+- このコマンドは**実行するたびに Cloudinary へ新しい画像として登録されます**。成功したアップロードを再実行しないでください（出力を読み直すための再実行も含みます）。
 
 2. 出力JSONから `originalUrl` と `previewUrl` を取得してください。
 

@@ -74,17 +74,14 @@ async function main() {
     secure: true,
   });
 
+  // 1行で出力する。tail / head で出力を絞られても URL が欠けないようにするため
   console.log(
-    JSON.stringify(
-      {
-        originalUrl,
-        previewUrl,
-        originalSize: { width: originalWidth, height: originalHeight },
-        previewSize,
-      },
-      null,
-      2
-    )
+    JSON.stringify({
+      originalUrl,
+      previewUrl,
+      originalSize: { width: originalWidth, height: originalHeight },
+      previewSize,
+    })
   );
 }
 

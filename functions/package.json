@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "3.1135.0",
-    "@google-cloud/firestore": "9.1.0",
+    "@google-cloud/firestore": "9.2.0",
     "@google-cloud/functions-framework": "5.0.5",
     "@line/bot-sdk": "11.2.0",
     "google-auth-library": "11.1.0"

@@ -58,6 +58,9 @@ cd {プロジェクトルートの絶対パス}
 pnpm exec tsx src/cloudinary/upload_image.ts "{画像ファイルパス}"
 ```
 
+- 出力は `originalUrl` と `previewUrl` を含む**1行のJSON**です。`tail` / `head` / `grep` などで出力を絞らず、上記のコマンドをそのまま実行してください。
+- このコマンドは**実行するたびに Cloudinary へ新しい画像として登録されます**。成功したアップロードを再実行しないでください（出力を読み直すための再実行も含みます）。
+
 2. 出力JSONから `originalUrl` と `previewUrl` を取得してください。
 
 3. **テキスト本文の保存**: 添えるテキスト本文を、そのまま `tmp/line_message.txt` に保存してください（Write ツールで書き込み。改行はそのまま改行として書き、`\n` への置換はしない）。

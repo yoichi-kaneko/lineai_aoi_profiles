@@ -12,8 +12,8 @@ lineai_aoi_profiles/
 ├── aoi.md                    # 碧衣のメインプロファイル
 ├── send_daily_line.sh        # 碧衣のモードを起動する runner
 ├── refresh_tmp.sh            # 作業領域 tmp/ の掃除
-├── assets/                   # 画像・楽曲・綴葉のガイドと素材
-├── modes/                    # 暁・望・小夜・登山・調べ・綴葉・響のモード定義
+├── assets/                   # 画像・綴葉のガイドと素材
+├── modes/                    # 暁・望・小夜・登山・綴葉・響のモード定義
 ├── src/                      # Skill の TypeScript 実装
 ├── test/                     # ルート src とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
@@ -52,9 +52,8 @@ lineai_aoi_profiles/
 | キャラクター、利用者、メッセージ作法、制約 | `.claude/rules/*.md` |
 | 暁・望・小夜 | `modes/morning.md`、`modes/noon.md`、`modes/night.md` |
 | 入山・山小屋到着・下山 | `modes/up_mountain.md`、`modes/stay_mountain.md`、`modes/off_mountain.md` |
-| 楽曲・SNS 代筆 | `modes/song.md`、`modes/scribe.md` |
+| SNS 代筆 | `modes/scribe.md` |
 | 画像生成 | `assets/image_guideline*.md` |
-| 楽曲生成 | `assets/songs_guideline*.md`、`assets/songs_lyrics_samples.md` |
 | 綴葉の画像 | `assets/scribe_image_guideline.md` |
 | モード横断の実行手順 | `.claude/docs/*.md` |
 
@@ -117,7 +116,6 @@ pnpm exec tsc --noEmit
 複数行テキストを受け取る次の Skill は、シェル引数ではなく指定された `tmp/` 内のファイルを介して実行します。
 
 - `send_line_text`、`send_line_image`、`send_line_audio`
-- `generate_mureka_lyrics`、`generate_mureka_song`
 - `put_firestore_doc`、`put_todoist_task`
 - `generate_gpt_image`
 
@@ -127,5 +125,4 @@ pnpm exec tsc --noEmit
 
 - Todoist のコメントは、碧衣宛と `【対応方針】` / `[対応方針]` で始まる開発方針を分離する。通常取得では開発方針を除外し、`dev_apply_todoist_request` だけが読む。
 - 画像の `image_logs`、`image_feedback`、`image_feedback_reviews` は `notes` と別コレクションに置き、日次モードの通常コンテキストへ混ぜない。同じ日に複数枚を扱うため、評価の対象は `image_id` / `target_image_id` で個別に指定できる。
-- 楽曲の `song_logs`、`song_feedback`、`song_feedback_reviews` も専用コレクションに置く。
 - スキーマとモード固有の扱いは `.claude/docs/*_schema.md` を参照する。

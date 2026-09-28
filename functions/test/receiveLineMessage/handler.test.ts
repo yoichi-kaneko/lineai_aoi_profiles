@@ -152,33 +152,6 @@ describe("createReceiveLineMessageHandler", () => {
     expect(execMock).not.toHaveBeenCalled();
   });
 
-  it("楽曲フィードバックは notes に入れず専用コレクションへ保存する", async () => {
-    const { firestore, adds } = createFirestoreMock();
-    const { response, sent } = createResponseMock();
-    const execMock = vi.fn();
-    const handler = createReceiveLineMessageHandler({
-      firestore,
-      validateSignatureFn: () => true,
-      execEc2CommandFn: execMock,
-      now: () => new Date("2026-08-20T12:34:56Z"),
-    });
-
-    await handler(createTextRequest("楽曲評価 2026-06-12 4 サビが好き"), response);
-
-    expect(sent).toEqual([{ code: 200, body: "OK" }]);
-    expect(adds).toHaveLength(1);
-    expect(adds[0].collection).toBe("song_feedback");
-    expect(adds[0].data.type).toBe("song_feedback");
-    expect(adds[0].data.description).toBe(
-      JSON.stringify({
-        kind: "rating",
-        score: 4,
-        comment: "サビが好き",
-        target_date: "2026-06-12",
-      }),
-    );
-    expect(execMock).not.toHaveBeenCalled();
-  });
 
   it("通常テキストは notes に保存し、トリガー語なら EC2 を呼ぶ", async () => {
     const { firestore, adds } = createFirestoreMock();
@@ -229,28 +202,6 @@ describe("createReceiveLineMessageHandler", () => {
     expect(execMock).not.toHaveBeenCalled();
   });
 
-  it("楽曲フィードバックには target_image_id を付与しない", async () => {
-    const { firestore, adds } = createFirestoreMock();
-    const { response } = createResponseMock();
-    const handler = createReceiveLineMessageHandler({
-      firestore,
-      validateSignatureFn: () => true,
-      execEc2CommandFn: vi.fn(),
-      now: () => new Date("2026-08-20T12:34:56Z"),
-    });
-
-    await handler(createTextRequest("楽曲評価 #talk-2135 4 サビが好き"), response);
-
-    expect(adds[0].collection).toBe("song_feedback");
-    expect(adds[0].data.description).toBe(
-      JSON.stringify({
-        kind: "rating",
-        score: null,
-        comment: "#talk-2135 4 サビが好き",
-        target_date: null,
-      }),
-    );
-  });
 
   it("碧衣で始まるテキストは保存した文書IDと投稿日を添えて talk を起動する", async () => {
     const { firestore, adds } = createFirestoreMock({ docId: "abcDEF123" });

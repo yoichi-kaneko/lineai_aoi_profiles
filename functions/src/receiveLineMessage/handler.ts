@@ -4,7 +4,6 @@ import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
 import { jstDateFromYmd, jstYmd, startOfJstDay } from "./jstDate";
 import { parseImageFeedback } from "./parseImageFeedback";
-import { parseSongFeedback } from "./parseSongFeedback";
 import { findTriggerMode, requiresTargetDoc } from "./routing";
 
 export type FeedbackPayload = {
@@ -12,7 +11,7 @@ export type FeedbackPayload = {
   score: number | null;
   comment: string;
   target_date: string | null;
-  /** 画像フィードバックのみ。楽曲フィードバックでは付与しない（保存形式を変えないため）。 */
+  /** 画像フィードバックの対象画像。 */
   target_image_id?: string | null;
 };
 
@@ -47,7 +46,6 @@ export interface HandlerResponse {
 }
 
 export const IMAGE_FEEDBACK_TYPE = "image_feedback";
-export const SONG_FEEDBACK_TYPE = "song_feedback";
 
 export async function addFeedbackDoc(
   firestore: FirestoreLike,
@@ -140,19 +138,6 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
             "image_feedback",
             IMAGE_FEEDBACK_TYPE,
             imageFeedback,
-            dateValue,
-            now(),
-          );
-          continue;
-        }
-
-        const songFeedback = parseSongFeedback(textMessage.text);
-        if (songFeedback) {
-          await addFeedbackDoc(
-            deps.firestore,
-            "song_feedback",
-            SONG_FEEDBACK_TYPE,
-            songFeedback,
             dateValue,
             now(),
           );

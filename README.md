@@ -121,12 +121,12 @@ pnpm agent-config:check  # 正本と生成物の不一致を検出
 |---|---|
 | アクティビティ | YAMAP の活動記録に限らず、Swarm のチェックイン、Google カレンダーの予定、Todoist のタスクなど「人間の活動全般」を対象に含めることを表す |
 | 駆動（Driven） | 受け身のチャットボットではなく、一日の時間軸やイベントの発生（登山開始・下山など）をトリガーに自律的に動作することを表す |
-| フレームワーク | データ収集 → 解析 → 出力（テキスト・画像・音楽）という一連のプロセスを、単一機能ではなく統合された「仕組み」として備えていることを表す |
+| フレームワーク | データ収集 → 解析 → 出力（テキスト・画像）という一連のプロセスを、単一機能ではなく統合された「仕組み」として備えていることを表す |
 
 ### 特徴
 
 - 複数のサードパーティサービス（Google Calendar / Todoist / Swarm / YAMAP / OpenWeatherMap など）を横断的に集約する
-- 集約した情報を、人格（ペルソナ）を持ったエージェントが解釈し、メッセージ・画像・楽曲として還元する
+- 集約した情報を、人格（ペルソナ）を持ったエージェントが解釈し、メッセージ・画像として還元する
 - Firestore を用いてモード間で情報を引き継ぎ、前日の夜から翌朝への日跨ぎ引き継ぎ（`night_handover`）を含め、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
 - 上記のプロセス全体を、自律的なプロンプトフローとして実行する
 
@@ -142,8 +142,8 @@ lineai_aoi_profiles/
 ├── .nvmrc                 # Node.js のバージョン正本（CI とクラウド環境のセットアップが参照）
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
-├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / song / scribe / talk）
-├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／楽曲）
+├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / scribe / talk）
+├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像）
 ├── src/                   # 各スキルの処理実装
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
 │   ├── codex/             # Codex CLI による生成物レビュー（画像プロンプト・SNS本文）
@@ -154,7 +154,6 @@ lineai_aoi_profiles/
 │   ├── google_map/        # Google Maps API（ジオコーディング）
 │   ├── image/             # 画像へのQRコード埋め込み（ローカル画像処理）
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
-│   ├── mureka/            # Mureka 楽曲・歌詞生成
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
 │   ├── swarm/             # Swarm チェックイン取得
@@ -204,13 +203,10 @@ lineai_aoi_profiles/
     │   ├── codex_review.md           # codex レビューの依頼文の組み立てと指摘の反映の作法
     │   ├── image_log_schema.md       # image_logs（画像生成ログ）のスキーマ・モード別の値
     │   ├── image_feedback_schema.md  # image_feedback（画像フィードバック）のスキーマ・パース仕様
-    │   ├── song_log_schema.md        # song_logs（楽曲生成ログ）のスキーマ
-    │   ├── song_feedback_schema.md   # song_feedback（楽曲フィードバック）のスキーマ・パース仕様
     │   ├── line_send_fallback.md     # LINE 送信失敗時の Firestore 退避
     │   ├── long_sleep_execution.md   # 長時間 sleep の実行方法
     │   ├── mountain_notice_guide.md  # 山行連絡モード（継灯・帰灯）の共通手順
     │   ├── night_image_theme.md      # 小夜モードの画像テーマ抽選
-    │   ├── song_from_aoi_extract.md  # 調べモードの from_aoi 抽出手順
     │   └── yamap_activity_guide.md   # YAMAP 活動記録レポートの重点チェックガイド
     └── skills/            # Claude 専用 Skill と共有正本からの生成物
 ```
@@ -227,11 +223,10 @@ lineai_aoi_profiles/
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
-| 調べ（しらべ） | `daily message (調べ): YYYY-MM-DD` | 1週間の出来事・場所・天気から歌詞と楽曲を生成し、LINEへ届ける。フェーズA完了時に生成内容を `song_logs` に記録し、次回以降の重複回避に使う |
 | 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、登山日の Firestore 記録（ユーザーの言葉・写真、門灯／継灯／帰灯の申し送り）を補助材料に加えたうえで、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
 | 響（ひびき） | LINE `碧衣...` → `talk` | ユーザーがLINEで「碧衣」と呼びかけた際に、その内容へ応答する対話モード。画像生成・家族への連絡・天気の確認・碧衣自身への質問・雑談を扱う。Webhook が保存した `line_text` のドキュメントIDと投稿日を受け取り、その1件だけを主題とする。同じ日に何度でも実行され、run_logs による当日実行済みのスキップや時間帯による自動判定の対象ではない。画像を生成した場合は `image_logs` に `mode: talk` で1件記録する |
 
-`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `song` / `talk` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`talk`（響）だけは応答対象を特定する必要があるため、`send_daily_line.sh talk <対象ドキュメントID> <投稿日(YYYY-MM-DD)>` の形式で追加の引数を取り、いずれかが欠けている・書式が不正な場合は碧衣を起動せずに終了します（別のメッセージを代用して応答しないため）。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡と、「碧衣」で始まる呼びかけは、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します（呼びかけの場合は、保存した `line_text` のドキュメントIDと投稿日も渡します）。
+`send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `talk` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`talk`（響）だけは応答対象を特定する必要があるため、`send_daily_line.sh talk <対象ドキュメントID> <投稿日(YYYY-MM-DD)>` の形式で追加の引数を取り、いずれかが欠けている・書式が不正な場合は碧衣を起動せずに終了します（別のメッセージを代用して応答しないため）。`morning` / `noon` / `night` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡と、「碧衣」で始まる呼びかけは、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します（呼びかけの場合は、保存した `line_text` のドキュメントIDと投稿日も渡します）。
 
 `scribe`（綴葉）モードは `send_daily_line.sh` の対象外で、自動トリガーを持ちません。実行は `run_aoi_scribe` スキル（対話モードでの手動起動）経由のみです。
 
@@ -326,20 +321,17 @@ lineai_aoi_profiles/
 | サービス名 | Firebase / Firestore |
 | 役割 | ユーザーから碧衣へのメモ・LINEメッセージ、モード間の引き継ぎ記録を保存・取得するデータストアとして機能する。Cloud Functions 経由での書き込みと、スキルを通じた読み書きを行う |
 | サービスURL | https://firebase.google.com/docs/firestore?hl=ja |
-| スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） / `review_song_feedback`（楽曲フィードバックの定期レビュー） |
-| `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` / `song_logs` 等）の `type` はコレクション内識別用の別系統 |
-| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクション（`image_logs` / `song_logs` 等）も読み書きできる（デフォルトは `notes` で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
-| 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録（`from_aoi` / `night_handover` / `up_mountain` 等）でレスポンスが読み込めない大きさになるため、使う `type` が決まっている処理では絞って取得する（調べモードは `line_text` / `line_image` / `from_aoi`、綴葉モードは `line_text` / `line_image` / `up_mountain` / `stay_mountain` / `off_mountain` に固定）。`date` 範囲との併用で複合インデックスが要らないよう、絞り込みは取得後にクライアント側で行う |
+| スキル | `get_firestore_docs` / `put_firestore_doc` / `review_image_feedback`（画像フィードバックの定期レビュー） |
+| `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` 等）の `type` はコレクション内識別用の別系統 |
+| 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクションも読み書きできる（デフォルトは `notes`で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
+| 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録でレスポンスが大きくなるため、使う `type` が決まっている処理では絞って取得する。 |
 | Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
-| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ、`楽曲評価` / `音楽評価` で始まる返信は楽曲フィードバックとして `song_feedback` コレクションへ振り分け、いずれも `line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md) / [song_feedback_schema.md](.claude/docs/song_feedback_schema.md)） |
+| LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。 |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は headless では `send_daily_line.sh` が `src/firebase/put_log.ts` を、対話モードでは `run_aoi_daily` スキルが同スクリプトを呼んで書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯・響モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず `review_image_feedback`（柱C）でのみ参照する。**綴葉モードの SNS レポート画像は対象外**（構図を抽選せずテンプレートに固定するため記録すべき抽選軸が無く、改善の宛先も `assets/image_guideline.md` ではない）。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
-| `song_logs` コレクション | 調べモードのフェーズA完了時に1曲=1ドキュメント記録する専用コレクション（`type: song_log`）。タイトル・スタイルパッケージ・ジャンル・タグ・テーマ要約・歌詞全文・Mureka task_id を保存し、次回以降の調べモードで直近2〜3件を参照して曲調や主要モチーフの重複を避けるほか、`review_song_feedback` の傾向集計の土台になる。形状は [song_log_schema.md](.claude/docs/song_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
-| `song_feedback` コレクション | ユーザーが LINE 返信（`楽曲評価` / `音楽評価`）で寄せた楽曲フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: song_feedback`）。画像側と異なり傾向フィードバックは持たない（個別評価のみ）。形状・パース仕様は [song_feedback_schema.md](.claude/docs/song_feedback_schema.md) を正とする |
 | `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる。**マーカーを記録するのは取得期間に `image_logs` があり、かつ `period_to` が前回から進んだ場合だけ**（ログ0件や締め切り据え置きでは記録しない） |
-| `song_feedback_reviews` コレクション | `review_song_feedback` が月次サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` の決め方は `image_feedback_reviews` と同じ。**マーカーを記録するのは取得期間に `song_logs` があり、かつ `period_to` が前回から進んだ場合だけ** |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）
 
@@ -353,13 +345,6 @@ lineai_aoi_profiles/
 
 「安定した生成を維持したい」「ガイドラインに縛られず自由に生成したい」という相反する要望は、ガイドラインを**核（安定・変更は慎重）／彩り（意図的に多様化）**の2層に分けることで、別層の指摘として両立させます。
 
-#### 楽曲フィードバック・サイクル（song_logs / song_feedback）
-
-碧衣の楽曲生成（調べ）についても、画像側と同じ3本柱の仕組みを回します（issue #71）。
-
-1. **柱A：`song_logs`** — 調べモードのフェーズA完了時に曲調・題材などを1件記録する（[song_log_schema.md](.claude/docs/song_log_schema.md)）。
-2. **柱B：`song_feedback`** — ユーザーが `楽曲評価 <1-5> <コメント>`（`音楽評価` も同義）で返信すると、`receiveLineMessage` Webhook が振り分けて保存する。画像側と異なり傾向フィードバックは設けない（[song_feedback_schema.md](.claude/docs/song_feedback_schema.md)）。
-3. **柱C：`review_song_feedback` スキル** — 月次サイクルでユーザーが手動起動。個別評価の集約とパッケージ・題材の傾向集計を行い、`assets/songs_guideline.md` への修正案を human-in-the-loop で提示・反映する。レビューの区切りは `song_feedback_reviews` に記録し、次サイクルの起点とする。区切り（`period_to`）の決め方は画像側と同じで、レビュー実施日ではなく**評価が届いている連続区間の末尾**に置く。
 
 ### AWS Systems Manager
 
@@ -413,14 +398,10 @@ lineai_aoi_profiles/
 | サービスURL | https://cloudinary.com/ |
 | 利用スキル | `send_line_image` / `send_line_audio`（アップロード後、LINEへメディア+テキストを同梱送信） |
 
-### Mureka API
+`send_line_audio` と `src/cloudinary/upload_audio.ts` は将来の音声モードで再利用できるよう汎用の音声送信経路として保持します。現在のモードからは呼び出しません。`assets/archives/audio_samples/` も過去の生成サンプルの記録として保持します。
 
-| 項目 | 内容 |
-|------|------|
-| サービス名 | Mureka API |
-| 役割 | 碧衣がユーザーへ送る楽曲・歌詞の生成を担う |
-| サービスURL | https://www.mureka.ai/ |
-| スキル | `generate_mureka_lyrics` / `generate_mureka_song` / `download_mureka_song` |
+Firestore に保存済みの `song_logs` / `song_feedback` / `song_feedback_reviews` はこのリポジトリ変更では削除しませんが、現在のプロファイルや Skill から読み出す経路はありません。
+
 
 ### Fetch MCP Server
 
@@ -446,7 +427,6 @@ lineai_aoi_profiles/
 - `flock` が使えない環境では警告を出して直列化なしで続行します（従来と同じ挙動）。
 - これは**作業領域の直列化であって、二重実行の防止ではありません**。待っている実行は順番が来れば実行されます。上記の設計方針（厳密な重複実行防止機構は導入しない）は変わらず、二重送信の抑止は `run_logs` のベストエフォートに委ねます。
 - `refresh_tmp.sh` はドット始まりのファイル（`.empty` / `.runner.lock`）を掃除の対象外とします。ロックファイルを消すと直列化が壊れるためです。
-- 調べ（`song`）モードのフェーズA→フェーズB間の一時ファイル受け渡しは、スクリプト全体が同じロックを保持したまま進むため従来どおり保たれます。
 
 ### 二重実行防止（run_logs チェック）
 
@@ -470,16 +450,15 @@ APIやMCPサーバーの無応答によるハングアップを防ぐため、Cl
 | 項目 | 値 |
 |---|---|
 | タイムアウト（通常モード。響を含む） | 1800秒（30分） |
-| タイムアウト（調べモード フェーズA / フェーズB） | 1800秒 / 900秒 |
 | 最大リトライ回数 | 2回（初回含む） |
 | リトライ間隔 | 30秒 |
 | 作業領域ロックの待ち時間 | 3600秒（`RUNNER_LOCK_WAIT_SEC` で変更可） |
 
-effort レベルは、ファイル生成を伴うモード（小夜・帰灯・調べ）と、依頼によって画像生成まで含みうる響で `xhigh`、それ以外は `medium` です。
+effort レベルは、ファイル生成を伴うモード（小夜・帰灯）と、依頼によって画像生成まで含みうる響で `xhigh`、それ以外は `medium` です。
 
 #### 層2: Bash ツール（`.claude/settings.json`）
 
-Claude 内部の各コマンド実行の上限です。既定の120秒では画像生成や楽曲生成が収まらずバックグラウンドへ回されるため、`env` で引き上げています。
+Claude 内部の各コマンド実行の上限です。既定の120秒では画像生成が収まらずバックグラウンドへ回されるため、`env` で引き上げています。
 
 | 環境変数 | 値 | 意味 |
 |---|---|---|

@@ -11,9 +11,9 @@ import {
 
 describe("parseArgs", () => {
   it("位置引数とオプションを分けて返す", () => {
-    expect(parseArgs(["2026-08-09", "2026-08-16", "--collection", "song_logs"])).toEqual({
+    expect(parseArgs(["2026-08-09", "2026-08-16", "--collection", "image_logs"])).toEqual({
       positionals: ["2026-08-09", "2026-08-16"],
-      flags: { collection: ["song_logs"] },
+      flags: { collection: ["image_logs"] },
     });
   });
 
@@ -191,7 +191,7 @@ describe("filterDocsByType", () => {
 describe("formatDocsOutput", () => {
   const options = { collection: "notes", dateFrom: "2026-08-16", dateTo: "2026-08-23" };
 
-  /** modes/song.md の from_aoi 抽出と同じ切り出し方で、JSON 部分だけを取り出す。 */
+  /** CLI 出力から JSON 部分だけを取り出す。 */
   const parseDocs = (output: string) => JSON.parse(output.slice(0, output.lastIndexOf("]") + 1));
 
   it("0件でも JSON 配列を先に出す（読み手が JSON.parse できる形にする）", () => {

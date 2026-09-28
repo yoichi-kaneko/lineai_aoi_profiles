@@ -28,7 +28,7 @@ description: 対話モードのClaude上でaoi.mdの碧衣デイリーモード�
 
 上記いずれにも該当しない時間帯では、モード処理を実行せず中断してください。
 
-`off_mountain` / `up_mountain` / `song` はこのスキルの対象外です。呼び出さないでください。
+`off_mountain` / `up_mountain` はこのスキルの対象外です。呼び出さないでください。
 
 ## Claudeへの指示
 

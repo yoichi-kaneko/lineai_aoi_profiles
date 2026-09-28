@@ -102,8 +102,6 @@ elif [ "$MODE" = "stay_mountain" ]; then
   TRIGGER_PROMPT="daily message (継灯): ${TARGET_DATE}"
 elif [ "$MODE" = "off_mountain" ]; then
   TRIGGER_PROMPT="daily message (帰灯): ${TARGET_DATE}"
-elif [ "$MODE" = "song" ]; then
-  TRIGGER_PROMPT="daily message (調べ): ${TARGET_DATE}"
 elif [ "$MODE" = "talk" ]; then
   TRIGGER_PROMPT="daily message (響): ${TARGET_DATE} target_doc_id=${TARGET_DOC_ID}"
 else
@@ -111,9 +109,9 @@ else
 fi
 
 # 3-2. モードに応じて effort レベルを決定
-# 画像・楽曲などファイル生成を伴うモード（小夜・帰灯・調べ）は xhigh、それ以外は medium に抑える
+# 画像生成を伴うモード（小夜・帰灯）は xhigh、それ以外は medium に抑える
 # 響（talk）は依頼によって画像生成まで含みうるため xhigh とする
-if [ "$MODE" = "night" ] || [ "$MODE" = "off_mountain" ] || [ "$MODE" = "song" ] || [ "$MODE" = "talk" ]; then
+if [ "$MODE" = "night" ] || [ "$MODE" = "off_mountain" ] || [ "$MODE" = "talk" ]; then
   EFFORT="xhigh"
 else
   EFFORT="medium"
@@ -164,119 +162,8 @@ if is_run_log_mode "$MODE"; then
   fi
 fi
 
-# 5-song. 調べ（song）モードは2フェーズ + シェル待機で実行する
-# ------------------------------------------------------------------
-# headless（claude -p）では「バックグラウンドに sleep を投げてターンを終える／
-# ウェイクアップを待つ」パターンが silent failure（exit 0 で何も送られない）に
-# つながるため、楽曲生成完了の待機をエージェントの外（純粋な bash sleep）へ出す。
-#
-#   フェーズA（claude -p / 調べ）   : 情報収集〜作曲開始。task_id・送信本文・song_logs を書き出す
-#   シェル待機                       : sleep 300 × 最大3回で楽曲をダウンロード
-#   フェーズB（claude -p / 調べ送信）: ダウンロード済み楽曲 + 本文を LINE 送信し成功マーカーを残す
-#   検証                             : 成功マーカーが無ければ非ゼロ終了（silent failure を検知）
-# ------------------------------------------------------------------
-if [ "$MODE" = "song" ]; then
-  PHASE_A_TRIGGER="daily message (調べ): ${TARGET_DATE}"
-  PHASE_B_TRIGGER="daily message (調べ送信): ${TARGET_DATE}"
-  PHASE_A_TIMEOUT=1800
-  PHASE_B_TIMEOUT=900
-  PHASE_A_RETRIES=2
-  DOWNLOAD_ATTEMPTS=3
-  DOWNLOAD_INTERVAL=300
-
-  TASK_ID_FILE="tmp/song_task_id.txt"
-  MESSAGE_FILE="tmp/song_message.txt"
-  AUDIO_PATH_FILE="tmp/song_audio_path.txt"
-  LOG_MARKER="tmp/song_log.ok"
-  SENT_MARKER="tmp/song_sent.ok"
-
-  # ---- フェーズA: 情報収集〜作曲開始（task_id・送信本文・song_logs の生成） ----
-  PHASE_A_OK=false
-  for i in $(seq 1 $PHASE_A_RETRIES); do
-    # フェーズA再試行ごとに tmp/ を掃除（待機・送信へ進む前のみ。フェーズ間では掃除しない）
-    bash refresh_tmp.sh >&2 || exit 1
-
-    run_claude "$PHASE_A_TRIGGER" "xhigh" "$PHASE_A_TIMEOUT"
-    PHASE_A_RC=$?
-
-    if [ $PHASE_A_RC -ne 0 ]; then
-      echo "[WARN] song Phase A attempt $i failed (exit: $PHASE_A_RC). Retrying..." >&2
-      [ $i -lt $PHASE_A_RETRIES ] && sleep 30
-      continue
-    fi
-
-    if [ -s "$TASK_ID_FILE" ] && [ -s "$MESSAGE_FILE" ] && [ -f "$LOG_MARKER" ]; then
-      PHASE_A_OK=true
-      break
-    fi
-
-    echo "[WARN] song Phase A attempt $i missing Phase B prerequisites (${TASK_ID_FILE}, ${MESSAGE_FILE}, and/or ${LOG_MARKER}). Retrying..." >&2
-    [ $i -lt $PHASE_A_RETRIES ] && sleep 30
-  done
-
-  if [ "$PHASE_A_OK" != "true" ]; then
-    echo "[ERROR] song Phase A failed (missing task_id, message, or song_logs marker after ${PHASE_A_RETRIES} attempts). MODE=${MODE}, DATE=${TARGET_DATE}" >&2
-    exit 1
-  fi
-
-  TASK_ID=$(tr -d ' \t\r\n' < "$TASK_ID_FILE")
-  echo "[INFO] song Phase A done. task_id=${TASK_ID}" >&2
-
-  # ---- 待機とダウンロード（純粋な bash sleep。headless でも確実に待てる） ----
-  # ここから先は refresh_tmp を呼ばない（task_id / 本文 / 楽曲パスを保持するため）
-  SONG_AUDIO_PATH=""
-  for i in $(seq 1 $DOWNLOAD_ATTEMPTS); do
-    echo "[INFO] song download attempt ${i}/${DOWNLOAD_ATTEMPTS}: sleeping ${DOWNLOAD_INTERVAL}s..." >&2
-    sleep "$DOWNLOAD_INTERVAL"
-
-    DL_OUT=$(pnpm exec tsx src/mureka/download_audio.ts "$TASK_ID" 2>&1)
-    echo "$DL_OUT" >&2
-
-    # download_audio.ts は成功時に {"savedPath": "/abs/path/...mp3"} を返す
-    SONG_AUDIO_PATH=$(printf '%s\n' "$DL_OUT" | sed -n 's/.*"savedPath"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
-    if [ -n "$SONG_AUDIO_PATH" ] && [ -f "$SONG_AUDIO_PATH" ]; then
-      echo "[INFO] song downloaded: ${SONG_AUDIO_PATH}" >&2
-      break
-    fi
-    SONG_AUDIO_PATH=""
-  done
-
-  if [ -z "$SONG_AUDIO_PATH" ]; then
-    echo "[ERROR] song download failed after ${DOWNLOAD_ATTEMPTS} attempts. task_id=${TASK_ID}, DATE=${TARGET_DATE}" >&2
-    # 楽曲ダウンロード失敗を Firestore へ記録（手動確認用）
-    {
-      echo "調べモードの楽曲ダウンロードが${DOWNLOAD_ATTEMPTS}回失敗しました。"
-      echo "task_id: ${TASK_ID}"
-      echo "対象日: ${TARGET_DATE}"
-      echo "再試行または手動確認が必要です。"
-    } > tmp/firestore_doc.txt
-    pnpm exec tsx src/firebase/put_doc.ts "$TARGET_DATE" "song_download_failed" \
-      --collection operation_logs --description-file tmp/firestore_doc.txt >&2 \
-      || echo "[WARN] Firestore への楽曲ダウンロード失敗記録に失敗しました。" >&2
-    exit 1
-  fi
-
-  # フェーズBへ楽曲パスを受け渡す
-  printf '%s' "$SONG_AUDIO_PATH" > "$AUDIO_PATH_FILE"
-
-  # ---- フェーズB: LINE送信（音声+テキスト） ----
-  # 二重送信を避けるため自動リトライはしない。送信成否は成功マーカーで検証する。
-  rm -f "$SENT_MARKER"
-  run_claude "$PHASE_B_TRIGGER" "medium" "$PHASE_B_TIMEOUT"
-  PHASE_B_RC=$?
-
-  if [ -f "$SENT_MARKER" ]; then
-    echo "[INFO] song sent successfully. MODE=${MODE}, DATE=${TARGET_DATE}" >&2
-    exit 0
-  fi
-
-  # マーカーが無い = 送信できていない（exit 0 でも silent failure として検知）
-  echo "[ERROR] song Phase B did not produce send marker (${SENT_MARKER}). exit=${PHASE_B_RC}, MODE=${MODE}, DATE=${TARGET_DATE}" >&2
-  exit 1
-fi
 
 # 5. claude を実行（タイムアウト: 1800秒 / リトライ: 最大2回）
-# ※ 調べ（song）モードは上の専用ブロックで処理済みのため、ここには到達しない
 MAX_RETRIES=2
 TIMEOUT_SEC=1800
 EXIT_CODE=0

@@ -180,7 +180,7 @@ export function filterDocsByType<T>(docs: readonly T[], types?: string[]): T[] {
  * 標準出力へ流す本文を組み立てる。
  *
  * 0件でも JSON 配列（`[]`）を先に出すのは、`--type` で絞った結果をファイルへ落として
- * JSON として読み直す使い方があるため（`modes/song.md` の `from_aoi` 抽出）。
+ * JSON として読み直す使い方があるため。
  * メッセージだけでは、解析側が空文字を `JSON.parse` して落ちる。
  */
 export function formatDocsOutput(

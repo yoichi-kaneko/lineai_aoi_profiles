@@ -33,8 +33,6 @@ test/
 │   └── get_events.test.ts     # 終日予定の最終日計算・日付検証・RFC3339 変換
 ├── image/
 │   └── embed_qr.test.ts       # QRコード埋め込みの引数解釈・アンカー座標・パス検証
-├── mureka/
-│   └── generate_lyrics.test.ts # 歌詞正規化
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/
@@ -60,7 +58,7 @@ test/
 ```
 
 現在の対象は、YAMAP の埋め込み JSON を使うパース・整形、Google Calendar の日付変換、
-Firestore / Todoist / Twitter / Cloudinary / Mureka / Swarm / OpenWeather / 画像合成のうち
+Firestore / Todoist / Twitter / Cloudinary / Swarm / OpenWeather / 画像合成のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
 
@@ -95,7 +93,6 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/todoist/get_task.ts`
 - `src/twitter/post.ts`
 - `src/cloudinary/upload_image.ts`
-- `src/mureka/generate_lyrics.ts`
 - `src/openweather/forecast.ts`
 - `src/swarm/get_checkins.ts`
 - `src/util/random_choice.ts`

@@ -14,6 +14,16 @@ MODE=${1:-"morning"}
 TARGET_DOC_ID=${2:-""}
 POSTED_DATE=${3:-""}
 
+# 未対応・廃止済みの MODE は暁へフォールバックさせず、Claude 起動前に拒否する。
+# （例: 旧 cron が song を残していても、意図しない朝メッセージを送らない）
+case "$MODE" in
+  morning | noon | night | up_mountain | stay_mountain | off_mountain | talk) ;;
+  *)
+    echo "[ERROR] 未対応の MODE です: ${MODE}" >&2
+    exit 1
+    ;;
+esac
+
 # claude バイナリのパス（検証時にスタブへ差し替えられるよう環境変数で上書き可）
 CLAUDE_BIN="${CLAUDE_BIN:-/home/ec2-user/.local/bin/claude}"
 

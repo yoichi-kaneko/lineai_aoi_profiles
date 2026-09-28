@@ -148,6 +148,17 @@ describeShell("send_daily_line.sh の従来モード", () => {
     expect(status).toBe(0);
     expect(claudeCalls().some((line) => line.includes("target_doc_id"))).toBe(false);
   });
+
+  it.each(["song", "scribe", "unknown"])(
+    "未対応の MODE (%s) は暁へ落とさずエラー終了する",
+    (mode) => {
+      const { status, stderr } = runRunner([mode]);
+
+      expect(status).not.toBe(0);
+      expect(stderr).toContain("未対応の MODE");
+      expect(claudeCalls()).toHaveLength(0);
+    },
+  );
 });
 
 describeShell("作業領域（tmp/）の扱い", () => {

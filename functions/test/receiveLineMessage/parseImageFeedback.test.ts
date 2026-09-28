@@ -40,7 +40,6 @@ describe("parseImageFeedback", () => {
   });
 
   it("対象外の文は null を返す", () => {
-    expect(parseImageFeedback("楽曲評価 5 最高")).toBeNull();
     expect(parseImageFeedback("評価者です")).not.toBeNull();
   });
 });

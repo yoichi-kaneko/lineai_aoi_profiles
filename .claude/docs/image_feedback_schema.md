@@ -2,14 +2,13 @@
 
 ユーザーが LINE 返信で寄せた画像生成へのフィードバックを、Firestore の **専用コレクション `image_feedback`** に1件ずつ蓄積します。`receiveLineMessage` Webhook が入方向テキストを振り分け、`評価` / `傾向` で始まるものをこのコレクションへ保存します。蓄積されたフィードバックは、1〜3週間サイクルのレビュー（`review_image_feedback`、柱C）でのみ読まれます。
 
-> **なぜ専用コレクションか**: `notes` は `get_firestore_docs` が日付範囲だけで `type` 無差別に全件返すため、暁・望・小夜・帰灯・調べ・響の各モードが毎日読み込みます。フィードバックを `notes`（`line_text`）に入れると、その夜の小夜モードがフィードバック文を「ユーザーの言葉」として画像・本文へ誤取込する副作用が出ます。読み手はレビュースキル1つだけなので、`image_feedback` に隔離します（柱A の [image_logs](image_log_schema.md) と同じ思想）。
+> **なぜ専用コレクションか**: `notes` は `get_firestore_docs` が日付範囲だけで `type` 無差別に全件返すため、暁・望・小夜・帰灯・響の各モードが毎日読み込みます。フィードバックを `notes`（`line_text`）に入れると、その夜の小夜モードがフィードバック文を「ユーザーの言葉」として画像・本文へ誤取込する副作用が出ます。読み手はレビュースキル1つだけなので、`image_feedback` に隔離します（柱A の [image_logs](image_log_schema.md) と同じ思想）。
 
 ## 振り分けと EC2 トリガーの関係
 
 `receiveLineMessage`（`functions/src/receiveLineMessage/index.ts`）の振り分けロジック:
 
 - テキストが `評価` / `傾向` で始まる → `image_feedback` に保存し、**`line_text` には保存しない／EC2 トリガー（`execEc2Command`）も発火させない**。
-- テキストが `楽曲評価` / `音楽評価` で始まる → 楽曲フィードバックとして `song_feedback` に保存（同様に隔離。[song_feedback_schema.md](song_feedback_schema.md) を参照）。
 - 既存トリガー語（`下山` / `登山開始` / `山小屋` / `碧衣`）とは前方一致が衝突しないため安全。
 - それ以外のテキストは通常どおり `line_text` として `notes` に保存し、必要に応じて EC2 トリガーを発火。
 
@@ -44,7 +43,6 @@
 | `target_date`     | 評価対象画像の日付 `YYYY-MM-DD`（明示時のみ）。省略時・`trend` は `null`（`date` 側は投稿日） |
 | `target_image_id` | 評価対象画像の識別子（[image_logs](image_log_schema.md) の `image_id`）。明示時のみ、省略時・`trend` は `null`。モード名だけの略記（`night` など）もそのまま入り、解決はレビュー側で行う |
 
-> **楽曲フィードバックとの違い**: `target_image_id` は画像フィードバック（`image_feedback`）にだけ現れるキーです。楽曲フィードバック（`song_feedback`）の保存形式は従来どおり `kind` / `score` / `comment` / `target_date` の4キーで、`#<ID>` を書いてもコメントの一部として保存されます（[song_feedback スキーマ](song_feedback_schema.md)）。
 
 ## LINE 返信フォーマット & パース仕様
 

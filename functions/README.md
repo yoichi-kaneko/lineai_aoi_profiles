@@ -22,7 +22,6 @@ pnpm test:all
 - 直接テスト:
   - `src/receiveLineMessage/parseRating.ts`
   - `src/receiveLineMessage/parseImageFeedback.ts`
-  - `src/receiveLineMessage/parseSongFeedback.ts`
   - `src/firebase/noteTypes.ts`
   - `src/receiveLineMessage/routing.ts`
   - `src/receiveLineMessage/jstDate.ts`
@@ -57,9 +56,8 @@ LINE Webhook からのリクエストを受け取る HTTP 関数。
 | キーワード | 保存先コレクション | 内容 |
 |---|---|---|
 | `評価`, `傾向` | `image_feedback` | 画像生成へのフィードバック（[スキーマ・パース仕様](../.claude/docs/image_feedback_schema.md)） |
-| `楽曲評価`, `音楽評価` | `song_feedback` | 楽曲生成へのフィードバック（[スキーマ・パース仕様](../.claude/docs/song_feedback_schema.md)） |
 
-パースの実体は `src/receiveLineMessage/parseImageFeedback.ts` / `parseSongFeedback.ts` です（日付・スコアの抽出は `parseRating.ts` を共用）。
+パースの実体は `src/receiveLineMessage/parseImageFeedback.ts` です（日付・スコアの抽出は `parseRating.ts` を共用）。
 
 #### EC2 コマンドのトリガー
 

@@ -148,6 +148,14 @@ describeShell("send_daily_line.sh の従来モード", () => {
     expect(status).toBe(0);
     expect(claudeCalls().some((line) => line.includes("target_doc_id"))).toBe(false);
   });
+
+  it.each(["song", "unknown"])('%s は未対応モードとして claude を起動しない', (mode) => {
+    const { status, stderr } = runRunner([mode]);
+
+    expect(status).not.toBe(0);
+    expect(stderr).toContain("未対応のモード");
+    expect(claudeCalls()).toHaveLength(0);
+  });
 });
 
 describeShell("作業領域（tmp/）の扱い", () => {

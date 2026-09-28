@@ -1,5 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "fs";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "vitest";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "fs";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -455,4 +470,58 @@ describe("resolveOutputPath", () => {
     expect(() => resolveOutputPath("assets/location_plot.png", root)).toThrow();
     expect(existsSync(path.join(root, "assets"))).toBe(false);
   });
+
+  it.skipIf(process.platform === "win32")(
+    "tmp/ 自体がプロジェクト外を指すシンボリックリンクなら拒否する",
+    () => {
+      const outsideDir = mkdtempSync(path.join(os.tmpdir(), "plot-locations-outside-"));
+      try {
+        symlinkSync(outsideDir, path.join(root, "tmp"));
+        expect(() => resolveOutputPath("tmp/location_plot.png", root)).toThrow(
+          "tmp/ 配下のパスを指定してください",
+        );
+        expect(existsSync(path.join(outsideDir, "location_plot.png"))).toBe(false);
+      } finally {
+        rmSync(path.join(root, "tmp"), { force: true });
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "出力先のダングリングシンボリックリンク（tmp/ 外）を拒否する",
+    () => {
+      const tmpDir = path.join(root, "tmp");
+      mkdirSync(tmpDir);
+      const danglingTarget = path.join(root, "outside-missing.png");
+      const linkPath = path.join(tmpDir, "location_plot.png");
+      symlinkSync(danglingTarget, linkPath);
+      expect(existsSync(linkPath)).toBe(false);
+      expect(() => resolveOutputPath("tmp/location_plot.png", root)).toThrow(
+        "tmp/ 配下のパスを指定してください",
+      );
+      expect(existsSync(danglingTarget)).toBe(false);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "出力先が tmp/ 外を指すシンボリックリンクなら拒否する",
+    () => {
+      const outsideDir = mkdtempSync(path.join(os.tmpdir(), "plot-locations-secret-"));
+      try {
+        const secretPath = path.join(outsideDir, "secret.png");
+        writeFileSync(secretPath, "secret");
+        const tmpDir = path.join(root, "tmp");
+        mkdirSync(tmpDir);
+        symlinkSync(secretPath, path.join(tmpDir, "location_plot.png"));
+        expect(() => resolveOutputPath("tmp/location_plot.png", root)).toThrow(
+          "tmp/ 配下のパスを指定してください",
+        );
+        expect(readFileSync(secretPath, "utf-8")).toBe("secret");
+      } finally {
+        rmSync(path.join(root, "tmp", "location_plot.png"), { force: true });
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    },
+  );
 });

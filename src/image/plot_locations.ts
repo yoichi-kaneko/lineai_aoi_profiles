@@ -1,4 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from "fs";
 import path, { resolve } from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
@@ -274,7 +281,7 @@ export function resolveInputPath(inputPath: string, root: string = PROJECT_ROOT)
 /**
  * 出力 PNG のパスを解決する。書き込み先はプロジェクトの tmp/ 配下に限り、
  * 保存先ディレクトリが無ければ作る。シンボリックリンク経由で tmp/ の外へ書く指定は、
- * ディレクトリを作る前に拒否する。
+ * ディレクトリを作る前に拒否する（tmp/ 自体の外部リンク、ダングリングな出力リンクも含む）。
  */
 export function resolveOutputPath(outputPath: string, root: string = PROJECT_ROOT): string {
   const message = `出力ファイルはプロジェクトの tmp/ 配下のパスを指定してください: ${outputPath}`;
@@ -285,7 +292,14 @@ export function resolveOutputPath(outputPath: string, root: string = PROJECT_ROO
   }
 
   mkdirSync(tmpDir, { recursive: true });
+  const realRoot = realpathSync(root);
+  const expectedTmpDir = path.join(realRoot, "tmp");
   const realTmpDir = realpathSync(tmpDir);
+  // root/tmp がプロジェクト外を指すシンボリックリンクなら、ここで拒否する
+  if (realTmpDir !== expectedTmpDir) {
+    throw new Error(message);
+  }
+
   const parentDir = path.dirname(resolvedPath);
   if (!isSameOrInside(realTmpDir, realpathOfNearestExisting(parentDir))) {
     throw new Error(message);
@@ -293,6 +307,17 @@ export function resolveOutputPath(outputPath: string, root: string = PROJECT_ROO
   mkdirSync(parentDir, { recursive: true });
 
   const outputFile = path.join(realpathSync(parentDir), path.basename(resolvedPath));
+  // ダングリングシンボリックリンクは existsSync が false になるため、lstat で検出して拒否する
+  try {
+    if (lstatSync(outputFile).isSymbolicLink()) {
+      throw new Error(message);
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message === message) {
+      throw error;
+    }
+    // 出力先がまだ無い通常ケース（ENOENT など）
+  }
   if (existsSync(outputFile) && !isPathInside(realTmpDir, realpathSync(outputFile))) {
     throw new Error(message);
   }

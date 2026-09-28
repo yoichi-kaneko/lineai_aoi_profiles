@@ -23,6 +23,8 @@ test/
 ├── env/
 │   └── dotenv_quiet.test.ts   # src/ 全体の dotenv.config が quiet: true を渡しているか
 ├── fixtures/
+│   ├── image/
+│   │   └── plot_locations/  # 点描画の入力に使う架空の座標
 │   └── yamap/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
 ├── firebase/
@@ -32,7 +34,8 @@ test/
 ├── google_calendar/
 │   └── get_events.test.ts     # 終日予定の最終日計算・日付検証・RFC3339 変換
 ├── image/
-│   └── embed_qr.test.ts       # QRコード埋め込みの引数解釈・アンカー座標・パス検証
+│   ├── embed_qr.test.ts       # QRコード埋め込みの引数解釈・アンカー座標・パス検証
+│   └── plot_locations.test.ts # 点描画の入力検証・投影・自動フィット・PNG の画素・パス検証
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/
@@ -58,7 +61,7 @@ test/
 ```
 
 現在の対象は、YAMAP の埋め込み JSON を使うパース・整形、Google Calendar の日付変換、
-Firestore / Todoist / Twitter / Cloudinary / Swarm / OpenWeather / 画像合成のうち
+Firestore / Todoist / Twitter / Cloudinary / Swarm / OpenWeather / 画像合成・点描画のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
 
@@ -100,6 +103,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/util/credentials.ts`
 - `src/util/google_oauth.ts`
 - `src/image/embed_qr.ts`
+- `src/image/plot_locations.ts`
 - `src/codex/review.ts`
 - `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
 - `src/**/*.ts` の `dotenv.config()` 呼び出し（`test/env/dotenv_quiet.test.ts`）
@@ -112,6 +116,14 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/codex/review.ts` の codex 起動そのもの（子プロセスの spawn・タイムアウト・終了コードの分岐）は、外部 CLI と外部 API に依存するため自動テスト対象外とする。純関数（引数解釈・環境変数の解決・引数の組み立て・環境変数の絞り込み）のみを直接テストし、`status` の5分岐（`ok` / `skipped` / `unavailable` / `timeout` / `error`）は手動で確認する。
 
 ## フィクスチャの方針
+
+点描画のフィクスチャ（`fixtures/image/plot_locations/`）は、実在のチェックインに由来しない**架空の座標**だけで作っている。
+Swarm（Foursquare）由来の座標の利用条件を確認中のため、実データから起こした座標は追加しない。
+
+| ファイル | 特徴 |
+|---|---|
+| `near_only.json` | 近場の地点だけ（8件） |
+| `near_and_far.json` | 先頭6件が `near_only.json` と同じ近場の地点で、遠方の地点2件が混じる（密度のムラの確認用） |
 
 活動記録のフィクスチャは、実ページの `__NEXT_DATA__` から
 **テストに必要なフィールドだけを抜いた縮小版**をコミットしている（1件あたり 10〜20KB）。

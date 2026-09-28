@@ -152,7 +152,7 @@ lineai_aoi_profiles/
 │   ├── google_calendar/   # Google Calendar 予定取得・OAuth認証
 │   ├── google_drive/      # Google Drive ファイルダウンロード・OAuth認証
 │   ├── google_map/        # Google Maps API（ジオコーディング）
-│   ├── image/             # 画像へのQRコード埋め込み（ローカル画像処理）
+│   ├── image/             # 画像へのQRコード埋め込み・緯度経度の点描画（ローカル画像処理）
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
@@ -304,6 +304,18 @@ lineai_aoi_profiles/
 | 役割 | ユーザーの行動履歴（チェックイン履歴）を読み込み、メッセージ構築のための情報収集を担う |
 | サービスURL | https://location.foursquare.com/developer/ |
 | スキル | `get_swarm_checkins` → [SKILL.md](.claude/skills/get_swarm_checkins/SKILL.md) |
+
+### 位置情報の点描画（ローカル処理・先行実装）
+
+| 項目 | 内容 |
+|------|------|
+| 役割 | 緯度経度の配列（最大12件）から、640×640px の黒背景に白い点を描いた PNG を生成する。週次モード「星図」で一週間のチェックイン地点を届けることを想定した描画部品 |
+| 外部サービス | なし。Webメルカトル投影による座標変換と、SVG から `sharp` による PNG 化をローカルで行い、Google Maps・Foursquare などの API にはアクセスしない |
+| スキル | `plot_locations` → [SKILL.md](.claude/skills/plot_locations/SKILL.md) |
+| 実装 | `src/image/plot_locations.ts`（入力 JSON のパスと、`tmp/` 配下の出力 PNG のパスを引数に取り、保存パスのみを標準出力へ返す） |
+| 利用状況 | **スキルと描画機能を先行して実装したもので、現在これを呼ぶモード・フローはプロファイル側に存在しない**。星図モード自体が未実装で、台紙への組版やモード手順への組み込みは別途扱う |
+| 入力座標 | Swarm（Foursquare）由来の座標を使った画像の保存・配信・帰属表示の条件を確認中のため、`get_swarm_checkins` で取得したチェックイン座標は渡さない。動作確認は `test/fixtures/image/plot_locations/` の架空の座標で行う。確認状況は [issue #213](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/213) で管理する |
+| 既知の課題 | 全点を単一の縮尺で収めるため、遠方の地点が混じると近場の点が密集して重なる |
 
 ### YAMAP
 

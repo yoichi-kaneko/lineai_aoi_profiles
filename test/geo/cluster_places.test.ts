@@ -130,6 +130,22 @@ describe("clusterPlaces", () => {
     expect(clusterPlaces(places, 12)).toHaveLength(1);
   });
 
+  it("同じ座標の地点が多く混ざっても、全地点を割り当て、描画後も点が重ならない", () => {
+    // 同じ座標の地点を統合しても、その座標を最近傍とする他の集合の距離は変わらない
+    const sameCoordinate = Array.from({ length: 200 }, (_, i) => ({
+      lat: 35.68,
+      lng: 139.76,
+      placeId: `same${i}`,
+    }));
+    const places = groupPlaces([...sameCoordinate, ...loadEntries("tokyo_wide.json")]);
+    const groups = clusterPlaces(places, 12);
+    expect(groups.length).toBeLessThanOrEqual(12);
+    expectPartition(places, groups);
+    expect(minRenderedSpacing(places, groups)).toBeGreaterThanOrEqual(
+      MIN_SEPARATION_PX - EPSILON,
+    );
+  });
+
   it("入力順を入れ替えても同じ結果になる", () => {
     const entries = loadEntries("tokyo_wide.json");
     expect(clusterPlaces(groupPlaces([...entries].reverse()), 12)).toEqual(

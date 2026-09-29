@@ -125,18 +125,23 @@ export function clusterPlaces(places: Place[], maxPoints: number): PlaceGroup[] 
       if (k === keep || clusters[k] === null) {
         continue;
       }
+      const distance = distanceBetween(k, keep);
       if (nearest[k] === keep || nearest[k] === drop) {
-        // 最近傍が統合で消えた、または代表地点が動いて遠ざかった可能性がある
-        updateNearest(k);
-      } else {
-        const distance = distanceBetween(k, keep);
-        if (
-          distance < nearestDistance[k] ||
-          (distance === nearestDistance[k] && keep < nearest[k])
-        ) {
+        // 統合後の集合が元の最近傍距離以内にあれば、他の集合はそれ以上離れているので走査し直さない。
+        // 同じ座標の地点が多い入力で、統合のたびに全集合を全件走査するのを避ける
+        if (distance <= nearestDistance[k]) {
           nearest[k] = keep;
           nearestDistance[k] = distance;
+        } else {
+          // 代表地点が動いて遠ざかったため、最近傍を探し直す
+          updateNearest(k);
         }
+      } else if (
+        distance < nearestDistance[k] ||
+        (distance === nearestDistance[k] && keep < nearest[k])
+      ) {
+        nearest[k] = keep;
+        nearestDistance[k] = distance;
       }
     }
     updateNearest(keep);

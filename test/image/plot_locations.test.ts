@@ -482,7 +482,8 @@ describe("resolveOutputPath", () => {
         );
         expect(existsSync(path.join(outsideDir, "location_plot.png"))).toBe(false);
       } finally {
-        rmSync(path.join(root, "tmp"), { force: true });
+        // ディレクトリを指すリンクは recursive が無いと拒否される。リンク先はたどらず、リンクだけを消す
+        rmSync(path.join(root, "tmp"), { recursive: true, force: true });
         rmSync(outsideDir, { recursive: true, force: true });
       }
     },

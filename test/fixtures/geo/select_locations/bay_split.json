@@ -1,0 +1,14 @@
+[
+  { "lat": 35.4007, "lng": 139.9387, "placeId": "kisarazu-02" },
+  { "lat": 35.3927, "lng": 139.9361, "placeId": "kisarazu-06" },
+  { "lat": 35.6099, "lng": 139.7142, "placeId": "tokyo-05" },
+  { "lat": 35.6169, "lng": 139.722, "placeId": "tokyo-03" },
+  { "lat": 35.4141, "lng": 139.9175, "placeId": "kisarazu-04" },
+  { "lat": 35.4138, "lng": 139.9306, "placeId": "kisarazu-05" },
+  { "lat": 35.4054, "lng": 139.9213, "placeId": "kisarazu-03" },
+  { "lat": 35.6207, "lng": 139.761, "placeId": "tokyo-01" },
+  { "lat": 35.3542, "lng": 139.9328, "placeId": "kisarazu-01" },
+  { "lat": 35.6342, "lng": 139.7491, "placeId": "tokyo-06" },
+  { "lat": 35.6237, "lng": 139.7288, "placeId": "tokyo-04" },
+  { "lat": 35.6156, "lng": 139.7867, "placeId": "tokyo-02" }
+]

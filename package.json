@@ -17,7 +17,7 @@
         "@doist/todoist-sdk": "15.3.1",
         "@google/genai": "2.24.0",
         "@googlemaps/google-maps-services-js": "3.4.2",
-        "@line/bot-sdk": "11.2.0",
+        "@line/bot-sdk": "11.3.0",
         "cheerio": "1.2.0",
         "cloudinary": "2.11.0",
         "dotenv": "18.0.4",

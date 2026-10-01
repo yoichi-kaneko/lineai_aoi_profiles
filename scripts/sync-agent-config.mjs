@@ -12,7 +12,12 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = fileURLToPath(new URL("../", import.meta.url));
 const checkOnly = process.argv.slice(2).includes("--check");
-const skillNames = ["dev_ship_change", "dev_apply_pr_review", "dev_apply_todoist_request"];
+const skillNames = [
+  "dev_ship_change",
+  "dev_apply_pr_review",
+  "dev_apply_todoist_request",
+  "dev_handle_renovate_pr",
+];
 const generatedNotice =
   "<!-- このファイルは .agents/skills/ の共有正本から自動生成されます。直接編集せず pnpm agent-config:sync を実行してください。 -->";
 

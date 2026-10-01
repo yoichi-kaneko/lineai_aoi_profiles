@@ -17,7 +17,7 @@
 - `functions/dist/**`
 - `tmp/**`
 - `pnpm-lock.yaml` の機械生成部分。ただし依存関係変更との不整合や不審な変更は確認する。
-- `.claude/skills/dev_ship_change/**` と `.claude/skills/dev_apply_pr_review/**` の内容そのもの。共有正本との一致は `pnpm agent-config:check` で確認する。
+- `.agents/skills/` に正本を持つ `.claude/skills/dev_*/**`（`scripts/sync-agent-config.mjs` の `skillNames`）の内容そのもの。共有正本との一致は `pnpm agent-config:check` で確認する。
 
 ## パス別の重点観点
 

@@ -30,7 +30,8 @@ lineai_aoi_profiles/
 │   └── skills/               # 共有開発 Skill の正本
 │       ├── dev_ship_change/
 │       ├── dev_apply_pr_review/
-│       └── dev_apply_todoist_request/
+│       ├── dev_apply_todoist_request/
+│       └── dev_handle_renovate_pr/
 ├── .claude/
 │   ├── hooks/                # Claude Code 専用フック
 │   ├── rules/                # 碧衣の常時ルール

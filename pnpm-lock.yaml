@@ -176,8 +176,8 @@ importers:
         specifier: 3.4.2
         version: 3.4.2(debug@4.4.3)
       '@line/bot-sdk':
-        specifier: 11.2.0
-        version: 11.2.0
+        specifier: 11.3.0
+        version: 11.3.0
       cheerio:
         specifier: 1.2.0
         version: 1.2.0
@@ -244,8 +244,8 @@ importers:
         specifier: 5.0.5
         version: 5.0.5
       '@line/bot-sdk':
-        specifier: 11.2.0
-        version: 11.2.0
+        specifier: 11.3.0
+        version: 11.3.0
       google-auth-library:
         specifier: 11.1.0
         version: 11.1.0
@@ -786,8 +786,8 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@line/bot-sdk@11.2.0':
-    resolution: {integrity: sha512-JKYFa3jaPYWqgI4hnc0ls+7tMmUEgnFF0Jb48kscKcGOO8qh4hddJyiq8/TFqaTWWxXQeSgYd1o5zrHjt6FrpQ==}
+  '@line/bot-sdk@11.3.0':
+    resolution: {integrity: sha512-AHCtmdgcVDElRLlrR8jxSracF4beWholl3Ywnl6TrPgEiSYH81fSovgWVO/LbyN0tlGidCzJMAsOLXNddF5FGg==}
     engines: {node: '>=22'}
 
   '@nodable/entities@3.0.0':
@@ -3283,7 +3283,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@line/bot-sdk@11.2.0':
+  '@line/bot-sdk@11.3.0':
     dependencies:
       '@types/node': 24.19.0
 

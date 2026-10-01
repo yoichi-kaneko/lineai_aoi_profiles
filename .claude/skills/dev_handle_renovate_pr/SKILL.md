@@ -89,8 +89,13 @@ gh run view <run-id> --log-failed
 ```sh
 git status --porcelain --untracked-files=no
 git rev-parse --abbrev-ref HEAD
-git fetch origin <base> <head>
+git fetch origin \
+  "+refs/heads/<base>:refs/remotes/origin/<base>" \
+  "+refs/heads/<head>:refs/remotes/origin/<head>"
+git rev-parse "origin/<head>"
 ```
+
+`git fetch` では base / head を remote-tracking ref（`origin/<base>`、`origin/<head>`）へ明示的に書き込みます。`FETCH_HEAD` だけに頼ると、実行環境の `remote.origin.fetch` 次第で後続が参照する `origin/<head>` が古いまま、または未作成のままになることがあります。`git rev-parse "origin/<head>"` の結果が手順 1 の `headRefOid` と一致することを、ブランチ切り替え前に確認します。一致しなければ中断します。
 
 Renovate はブランチ名を使い回すため、以前の PR で使った同名のローカルブランチが古いまま残っていることがあります。
 
@@ -171,7 +176,7 @@ git merge --no-edit -m "Merge branch '<base>' into <head>" origin/<base>
 競合したら次のとおり解消し、`git add <file>` のあと `git commit --no-edit` でマージを完了します（マージ中は `--ours` が PR 側、`--theirs` が base 側を指す）。
 
 - `functions/package-lock.json`: 直後に再生成するので、base 側を採る（`git checkout --theirs functions/package-lock.json`）。
-- `package.json` / `functions/package.json`: base 側を採り（`git checkout --theirs <file>`）、手順 1 で把握した更新（`dependencies` / `devDependencies` / `packageManager` の該当行）だけを新版に書き戻す。`git diff origin/<base> -- <file>` が PR の更新内容だけになっていることを確かめる。
+- `package.json` / `functions/package.json`: base 側を採り（`git checkout --theirs <file>`）、手順 1 で把握した Renovate の更新を、PR で変更されたすべてのフィールド（`dependencies` / `devDependencies` / `optionalDependencies` / `packageManager` など）に書き戻す。`git diff origin/<base> -- <file>` が PR の更新内容だけになっていることを確かめる。
 - `pnpm-lock.yaml`: base 側を採り（`git checkout --theirs pnpm-lock.yaml`）、上の `package.json` 類を解消したあとで `pnpm install --no-frozen-lockfile` を実行して作り直す。
 - `pnpm-workspace.yaml`: 両側の追加をどちらも残す形で解消できる場合だけ解消する。
 - 上記以外のファイル: `git merge --abort` して中断する。
@@ -229,10 +234,10 @@ gh run rerun <run-id> --failed
 
 [comment-template.md](comment-template.md) の形式で本文を作業ファイルに書き、投稿します。
 
-投稿する前に、外部リポジトリの PR・issue へのリンクや参照（comment-template.md の記載ルールで禁じている形）が紛れ込んでいないかを確かめます。このリポジトリは公開されているため、投稿すると参照先へ自動でメンションが飛びます。次のコマンドで何か出力されたら該当箇所を書き直し、出力が無くなってから投稿します。
+投稿する前に、外部リポジトリの PR・issue へのリンクや参照、およびユーザーメンション（comment-template.md の記載ルールで禁じている形）が紛れ込んでいないかを確かめます。このリポジトリは公開されているため、投稿すると参照先や該当ユーザーへ自動でメンションが飛びます。次のコマンドで何か出力されたら該当箇所を書き直し、出力が無くなってから投稿します。npm のスコープ付きパッケージ名（`@scope/name`）は検出しません。
 
 ```sh
-grep -nE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/(pull|issues)/[0-9]|[[:alnum:]_.-]+/[[:alnum:]_.-]+#[0-9]|(^|[^[:alnum:]_&])#[0-9]' <作業ファイル>
+grep -nE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/(pull|issues)/[0-9]|[[:alnum:]_.-]+/[[:alnum:]_.-]+#[0-9]|(^|[^[:alnum:]_&])#[0-9]|(^|[^[:alnum:]_/])@[A-Za-z0-9_-]+([^/A-Za-z0-9_-]|$)' <作業ファイル>
 ```
 
 本文の1行目のマーカーで、このスキルが以前に投稿したコメントを見分けます。

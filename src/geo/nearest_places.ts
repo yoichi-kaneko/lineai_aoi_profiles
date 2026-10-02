@@ -12,9 +12,31 @@ import {
  */
 export const NEAREST_RADIUS_KM = 30;
 
+/** ② の中心の位置 */
+export interface CenterPoint {
+  lat: number;
+  lng: number;
+}
+
+/**
+ * 中心の決め方。specified は呼び出し元が座標を指定したもの、auto は地点の最も集まる実在の地点を
+ * chooseCenter() で選んだもの
+ */
+export type CenterSource = "specified" | "auto";
+
+export interface NearestSelectOptions {
+  /**
+   * 中心に据える座標。入力にある地点である必要はない（チェックインの無い山頂なども指定できる）。
+   * 省略時は chooseCenter() で自動判定する
+   */
+  center?: CenterPoint;
+  radiusKm?: number;
+}
+
 export interface NearestSelection {
-  /** 中心に選んだ地点（Place.index） */
-  center: number;
+  /** 中心の位置。自動判定で地点が1件も無い場合は null */
+  center: CenterPoint | null;
+  centerSource: CenterSource;
   groups: PlaceGroup[];
   /** 選択範囲の外にあった地点の数 */
   outsideRadius: number;
@@ -57,33 +79,46 @@ export function chooseCenter(places: Place[], radiusKm: number = NEAREST_RADIUS_
 }
 
 /**
- * ② 中心近傍選択: 地点の最も集まる場所を中心に、半径内の地点を近い順に最大 maxPoints 点選ぶ。
+ * ② 中心近傍選択: 中心から半径内の地点を近い順に最大 maxPoints 点選ぶ。
+ * 中心は options.center で座標を指定でき、省略時は地点の最も集まる実在の地点を自動で選ぶ。
  *
+ * - 描く点は常に入力にある実在の地点で、指定した中心の座標そのものは描かない
  * - 既に選んだ点と MIN_SEPARATION_PX 未満で重なる地点は選ばず、その点に代表させる（吸収）
  * - 重なりの判定は半径内の全地点を自動フィットした倍率で行う。選んだ点は半径内の地点の一部なので、
  *   描画時の倍率はこれ以上になり、選んだ点は描画後も重ならない
- * - 半径外の地点は、点数が上限に満たなくても加えない
+ * - 半径外の地点は、点数が上限に満たなくても加えない。指定した中心の半径内に地点が無ければ0点になる
  *
  * places は groupPlaces() の結果（通し番号の順）を渡す。
  */
 export function selectNearestPlaces(
   places: Place[],
   maxPoints: number,
-  radiusKm: number = NEAREST_RADIUS_KM,
+  options: NearestSelectOptions = {},
 ): NearestSelection {
+  const radiusKm = options.radiusKm ?? NEAREST_RADIUS_KM;
+  const centerSource: CenterSource = options.center ? "specified" : "auto";
   if (places.length === 0) {
-    return { center: -1, groups: [], outsideRadius: 0, absorbed: 0, cut: 0 };
+    return {
+      center: options.center ? { ...options.center } : null,
+      centerSource,
+      groups: [],
+      outsideRadius: 0,
+      absorbed: 0,
+      cut: 0,
+    };
   }
-  const center = chooseCenter(places, radiusKm);
+  const centerPlace = options.center ?? places[chooseCenter(places, radiusKm)];
+  const center: CenterPoint = { lat: centerPlace.lat, lng: centerPlace.lng };
   const withDistance = places.map((place) => ({
     place,
-    distance: haversineKm(places[center], place),
+    distance: haversineKm(center, place),
   }));
   const inside = withDistance
     .filter((item) => item.distance <= radiusKm)
     .sort((a, b) => a.distance - b.distance || a.place.index - b.place.index)
     .map((item) => item.place);
-  const minSeparation = minSeparationFor(inside);
+  // 指定した中心の半径内に地点が無いときは比べる点も無いため、間隔は使われない
+  const minSeparation = inside.length > 0 ? minSeparationFor(inside) : 0;
 
   const groups: PlaceGroup[] = [];
   let absorbed = 0;
@@ -113,6 +148,7 @@ export function selectNearestPlaces(
 
   return {
     center,
+    centerSource,
     groups,
     outsideRadius: places.length - inside.length,
     absorbed,

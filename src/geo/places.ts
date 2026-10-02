@@ -13,7 +13,8 @@ export const MAX_ENTRIES = 1000;
  */
 export const MIN_SEPARATION_PX = 4 * DOT_RADIUS;
 
-const MAX_LONGITUDE = 180;
+/** 受け付ける経度の範囲（±180°） */
+export const MAX_LONGITUDE = 180;
 /** 日付変更線をまたぐ入力は対象外。plot_locations と同じ条件で拒否する */
 const MAX_LONGITUDE_SPAN = 180;
 /** 地表距離の計算に使う地球の平均半径（km） */

@@ -13,7 +13,7 @@ lineai_aoi_profiles/
 ├── send_daily_line.sh        # 碧衣のモードを起動する runner
 ├── refresh_tmp.sh            # 作業領域 tmp/ の掃除
 ├── assets/                   # 画像・綴葉のガイドと素材
-├── modes/                    # 暁・望・小夜・登山・綴葉・響のモード定義
+├── modes/                    # 暁・望・小夜・登山・綴葉・響・結星（実装中）のモード定義
 ├── src/                      # Skill の TypeScript 実装
 ├── test/                     # ルート src とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
@@ -54,8 +54,10 @@ lineai_aoi_profiles/
 | 暁・望・小夜 | `modes/morning.md`、`modes/noon.md`、`modes/night.md` |
 | 入山・山小屋到着・下山 | `modes/up_mountain.md`、`modes/stay_mountain.md`、`modes/off_mountain.md` |
 | SNS 代筆 | `modes/scribe.md` |
+| 週次（結星。実装中） | `modes/weekly.md` |
 | 画像生成 | `assets/image_guideline*.md` |
 | 綴葉の画像 | `assets/scribe_image_guideline.md` |
+| 結星の画像（実装中） | `assets/weekly_image_guideline.md` |
 | モード横断の実行手順 | `.claude/docs/*.md` |
 
 プロファイルには現在有効な判断材料だけを書きます。移行や仕様変更の経緯は追記しません。

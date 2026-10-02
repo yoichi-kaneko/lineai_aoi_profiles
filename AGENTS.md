@@ -6,7 +6,7 @@
 
 LINE AI アシスタント「碧衣（あおい）」のプロファイル、実行 Skill、外部 API クライアント、LINE Webhook を管理するリポジトリです。
 
-- `aoi.md`、`modes/`、`.claude/rules/`、`assets/`: 碧衣の日次・登山・SNS代筆・対話モードと生成ガイドライン
+- `aoi.md`、`modes/`、`.claude/rules/`、`assets/`: 碧衣の日次・登山・SNS代筆・対話・週次（結星。実装中）モードと生成ガイドライン
 - `.agents/skills/`: Claude Code と Codex が共有する開発 Skill の正本（`dev_ship_change` / `dev_apply_pr_review` / `dev_apply_todoist_request` / `dev_handle_renovate_pr`）
 - `.claude/skills/`: Claude Code が利用する Skill。共有開発 Skillは自動生成、日次実行 Skill はここで直接管理
 - `src/`: 外部 API クライアントなどの TypeScript 実装

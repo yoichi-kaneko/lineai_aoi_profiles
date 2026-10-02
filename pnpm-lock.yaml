@@ -170,8 +170,8 @@ importers:
         specifier: 15.3.1
         version: 15.3.1(type-fest@5.10.0)
       '@google/genai':
-        specifier: 2.24.0
-        version: 2.24.0
+        specifier: 2.27.0
+        version: 2.27.0
       '@googlemaps/google-maps-services-js':
         specifier: 3.4.2
         version: 3.4.2(debug@4.4.3)
@@ -574,8 +574,8 @@ packages:
     resolution: {integrity: sha512-7ckgSjeEprV92VrlLjpYFA3PFerflvFtF7Ea86oQXGNCprGZq5rtpAVK0zgWnCy+44mLjms42M7MiWa433gz2A==}
     engines: {node: '>=22'}
 
-  '@google/genai@2.24.0':
-    resolution: {integrity: sha512-bIu5eoxF1AaPWs9ivmUJGp1RpDHyapoODvWvnkzRDx2CTIW6UJXFhDdjj0BlRve3ZHMMuEkQBVrA/ALqpW4apA==}
+  '@google/genai@2.27.0':
+    resolution: {integrity: sha512-W6F9Y9d4h7cVQNa85IPCOVVP9PiUzve/ZQPBvQnBmnBJcLvxstEw+R2X/RyCH0SOe0HVDQzeKDpDUf6ZRtbmdQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.25.2
@@ -3038,7 +3038,7 @@ snapshots:
       - supports-color
     optional: true
 
-  '@google/genai@2.24.0':
+  '@google/genai@2.27.0':
     dependencies:
       google-auth-library: 10.9.1
       p-retry: 4.6.2
@@ -3352,7 +3352,7 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
-      '@types/node': 24.13.6
+      '@types/node': 24.19.0
 
   '@types/ms@2.1.0': {}
 

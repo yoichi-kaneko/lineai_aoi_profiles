@@ -219,15 +219,15 @@ lineai_aoi_profiles/
 
 | モード名 | 入力トリガー形式 | 主な役割 |
 |---|---|---|
-| 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 前日の振り返り（`night_handover`）、朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
+| 暁（あかつき） | `daily message (暁): YYYY-MM-DD` | 前日の振り返り（`night_handover`。月曜は結星の `weekly_handover` も踏まえる）、朝の予定確認、タスク整理、天気予報の取得、一日の出発を導く |
 | 望（のぞみ） | `daily message (望): YYYY-MM-DD` | 近日の登山計画や下山記録を踏まえ、昼の状況に合う短い言葉を届ける |
-| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録をもとに夜の報告と画像を生成し、綴葉の `scribe_handover` がある場合はそれを「登山レポートへの想い」の素材にする（レポート自体は再読しない）。翌朝の暁へ `night_handover` で引き継ぐ。画像を生成した場合は構図・情景を `image_logs` に1件記録する |
+| 小夜（さよ） | `daily message (小夜): YYYY-MM-DD` | 一日の振り返り、完了タスク、行動記録をもとに夜の報告と画像を生成し、綴葉の `scribe_handover` がある場合はそれを「登山レポートへの想い」の素材にする（レポート自体は再読しない）。翌朝の暁へ `night_handover` で引き継ぐ（週明けの結星も7日分を読む）。画像を生成した場合は構図・情景を `image_logs` に1件記録する |
 | 門灯（もんとう） | LINE `登山開始...` → `up_mountain` | 入山直前に家族LINEグループへ登山開始を通知し、Firestore に `type: up_mountain` の記録を残す |
 | 継灯（けいとう） | LINE `山小屋...` → `stay_mountain` | 宿泊を伴う山行でその日の宿泊地（山小屋）に到着した際、家族LINEグループへその日の行動終了を通知し、Firestore に `type: stay_mountain` の記録を残す。まだ下山はしておらず翌日も山行が続く。ユーザー個人への送信・画像生成は行わない（この日の画像は小夜モードが通常どおり生成する） |
 | 帰灯（きとう） | LINE `下山...` / `無事下山...` → `off_mountain` | 下山直後に山行を振り返り、画像をユーザーと家族グループへ送り、家族向け下山報告とユーザー向け報告を送信する。送信画像は `image_logs` に1件記録する |
 | 綴葉（つづりは） | `run_aoi_scribe`（手動起動） | ユーザーが綴った YAMAP 登山レポートを碧衣が読み解き、登山日の Firestore 記録（ユーザーの言葉・写真、門灯／継灯／帰灯の申し送り）を補助材料に加えたうえで、SNS（Twitter/X）へ**代筆投稿**する。投稿に添えるレポート画像には、レポートURLのQRコードを後付けで埋め込む。`run_aoi_scribe` スキル経由の手動起動のみで、自動トリガーはない。同日の小夜モードの前に実行する想定で、碧衣→ユーザー視点の感想を `scribe_handover` として小夜へ引き継ぐ（小夜モードが担っていたYAMAPレポート読解は本モードへ移設） |
 | 響（ひびき） | LINE `碧衣...` → `talk` | ユーザーがLINEで「碧衣」と呼びかけた際に、その内容へ応答する対話モード。画像生成・家族への連絡・天気の確認・碧衣自身への質問・雑談を扱う。Webhook が保存した `line_text` のドキュメントIDと投稿日を受け取り、その1件だけを主題とする。同じ日に何度でも実行され、run_logs による当日実行済みのスキップや時間帯による自動判定の対象ではない。画像を生成した場合は `image_logs` に `mode: talk` で1件記録する |
-| 結星（ゆいぼし） | 月曜 00:00〜04:59 → `weekly` / `run_aoi_weekly`（手動起動）（**実装中**） | **実装中で、現在は起動しても処理を行わない**。前週（月〜日）の申し送りとチェックイン記録を振り返り、訪問先の配置（`select_locations` / `plot_locations` で作る点描画）をもとに、プラネタリウム装置「天縫（あまぬい）」が投影する星座の画像を生成して、ユーザー個人へ本文とともに届ける週次モードとして準備している。`modes/weekly.md` は手順の仮組みで、未決定事項を注記として残している。進捗は [issue #243](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/243) で管理する |
+| 結星（ゆいぼし） | 月曜 00:00〜04:59 → `weekly` / `run_aoi_weekly`（手動起動）（**実装中**） | **実装中で、現在は起動しても処理を行わない**。前週（月〜日）7日分の `night_handover` とチェックイン記録を振り返り、訪問先の配置（`select_locations` / `plot_locations` で作る点描画）をもとに、プラネタリウム装置「天縫（あまぬい）」が投影する星座の画像を生成して、ユーザー個人へ本文とともに届け、同じ月曜の朝の暁へ `weekly_handover` で引き継ぐ週次モードとして準備している。`modes/weekly.md` は手順の仮組みで、未決定事項を注記として残している。進捗は [issue #243](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/243) で管理する |
 
 `send_daily_line.sh` は `morning` / `noon` / `night` / `up_mountain` / `stay_mountain` / `off_mountain` / `talk` / `weekly` の各モードを受け取り、対応するトリガーキーで碧衣を起動します。`talk`（響）だけは応答対象を特定する必要があるため、`send_daily_line.sh talk <対象ドキュメントID> <投稿日(YYYY-MM-DD)>` の形式で追加の引数を取り、いずれかが欠けている・書式が不正な場合は碧衣を起動せずに終了します（別のメッセージを代用して応答しないため）。`morning` / `noon` / `night` / `weekly` については実行前に Firestore の `run_logs` コレクションを確認し、当日分が実行済みの場合はスキップします（二重送信防止）。登山開始・山小屋到着・下山の即時連絡と、「碧衣」で始まる呼びかけは、LINE Webhook を受けた Cloud Functions が AWS SSM 経由で EC2 上の `send_daily_line.sh` を該当モード付きで起動します（呼びかけの場合は、保存した `line_text` のドキュメントIDと投稿日も渡します）。
 

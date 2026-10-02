@@ -275,6 +275,19 @@ describe("parseArgs", () => {
   ])("%j はエラーにする", (argv, message) => {
     expect(() => parseArgs(argv)).toThrow(message);
   });
+
+  it("不明なオプションの = 付き指定では、エラー文に値を含めない", () => {
+    const argv = ["tmp/in.json", "tmp/out.json", "--centre=35.6,139.7"];
+    expect(() => parseArgs(argv)).toThrow("不明なオプションです: --centre");
+    try {
+      parseArgs(argv);
+    } catch (error) {
+      const message = (error as Error).message;
+      expect(message).not.toContain("35.6");
+      expect(message).not.toContain("139.7");
+      expect(message).not.toContain("=");
+    }
+  });
 });
 
 describe("parseCenter", () => {

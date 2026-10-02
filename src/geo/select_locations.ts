@@ -246,7 +246,8 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const eq = arg.indexOf("=");
     const name = eq === -1 ? arg : arg.slice(0, eq);
     if (!(OPTION_NAMES as readonly string[]).includes(name)) {
-      throw new Error(`不明なオプションです: ${arg}`);
+      // `--centre=緯度,経度` のような誤記でも値（座標）をログへ出さない
+      throw new Error(`不明なオプションです: ${name}`);
     }
     let value: string | undefined;
     if (eq !== -1) {

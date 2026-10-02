@@ -81,6 +81,37 @@ function claudeCalls(): string[] {
   }
 }
 
+/**
+ * runner が呼ぶ `pnpm exec tsx src/firebase/*.ts` を差し替えるスタブを置く。
+ * 時間帯の判定は `STUB_WEEKLY_WINDOW_EXIT`、run_logs の有無は `STUB_HAS_LOG` で切り替え、
+ * Firestore へは接続しない。呼び出しは1回1行で `pnpm_calls.txt` に記録する。
+ */
+function installPnpmStub(): void {
+  const stub = join(workDir, "pnpm");
+  writeFileSync(
+    stub,
+    [
+      "#!/bin/bash",
+      'echo "$*" >> "$(dirname "$0")/pnpm_calls.txt"',
+      'case "$3" in',
+      '  src/firebase/check_weekly_window.ts) exit "${STUB_WEEKLY_WINDOW_EXIT:-0}" ;;',
+      '  src/firebase/has_log.ts) echo "${STUB_HAS_LOG:-false}" ;;',
+      "esac",
+      "exit 0",
+    ].join("\n"),
+    "utf-8",
+  );
+  chmodSync(stub, 0o755);
+}
+
+function pnpmCalls(): string[] {
+  try {
+    return readFileSync(join(workDir, "pnpm_calls.txt"), "utf-8").split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 beforeEach(() => {
   workDir = setupWorkDir();
 });
@@ -159,6 +190,43 @@ describeShell("send_daily_line.sh の従来モード", () => {
       expect(claudeCalls()).toHaveLength(0);
     },
   );
+});
+
+describeShell("send_daily_line.sh の weekly（結星）モード", () => {
+  beforeEach(() => {
+    installPnpmStub();
+  });
+
+  it("実行時間帯内で当日の run_logs が無ければ xhigh で起動し、完了後に記録する", () => {
+    const { status } = runRunner(["weekly"]);
+
+    expect(status).toBe(0);
+    const calls = claudeCalls();
+    expect(calls.some((line) => line.startsWith("daily message (結星): "))).toBe(true);
+    // 画像を生成するため xhigh で起動する
+    expect(calls).toContain("xhigh");
+
+    const pnpm = pnpmCalls();
+    expect(pnpm.some((line) => line.includes("src/firebase/has_log.ts") && line.endsWith(" weekly"))).toBe(true);
+    expect(pnpm.some((line) => line.includes("src/firebase/put_log.ts") && line.endsWith(" weekly"))).toBe(true);
+  });
+
+  it("実行時間帯の外では run_logs も確認せず、claude を起動しない", () => {
+    const { status, stderr } = runRunner(["weekly"], { STUB_WEEKLY_WINDOW_EXIT: "1" });
+
+    expect(status).not.toBe(0);
+    expect(stderr).toContain("月曜 00:00-04:59");
+    expect(claudeCalls()).toHaveLength(0);
+    expect(pnpmCalls().some((line) => line.includes("src/firebase/has_log.ts"))).toBe(false);
+  });
+
+  it("同じ日付の run_logs があれば起動も記録もせずにスキップする", () => {
+    const { status } = runRunner(["weekly"], { STUB_HAS_LOG: "true" });
+
+    expect(status).toBe(0);
+    expect(claudeCalls()).toHaveLength(0);
+    expect(pnpmCalls().some((line) => line.includes("src/firebase/put_log.ts"))).toBe(false);
+  });
 });
 
 describeShell("作業領域（tmp/）の扱い", () => {

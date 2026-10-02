@@ -31,7 +31,7 @@ test/
 │       └── activity/   # 活動記録ページの __NEXT_DATA__ を縮小したJSON
 ├── firebase/
 │   ├── noteTypes.test.ts      # NOTE_TYPE の許可値
-│   ├── runLogModes.test.ts    # JST 時間帯境界
+│   ├── runLogModes.test.ts    # JST 時間帯境界（日次モードの判定・結星の実行時間帯）
 │   └── get_docs.test.ts       # 取得条件の解釈（--type / --collection / 日付範囲）・type 絞り込み・出力整形
 ├── geo/
 │   ├── places.test.ts             # 候補の検証・同じ地点のまとめ・距離計算
@@ -47,7 +47,7 @@ test/
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/
-│   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性）と作業領域 tmp/ の扱い
+│   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性、結星の実行時間帯と run_logs による実行済みスキップ）と作業領域 tmp/ の扱い
 ├── swarm/
 │   └── get_checkins.test.ts   # JST 範囲計算・整形
 ├── todoist/

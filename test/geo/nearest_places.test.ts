@@ -72,7 +72,8 @@ describe("chooseCenter", () => {
 describe("selectNearestPlaces", () => {
   it("0件なら空の結果を返す", () => {
     expect(selectNearestPlaces([], 12)).toEqual({
-      center: -1,
+      center: null,
+      centerSource: "auto",
       groups: [],
       outsideRadius: 0,
       absorbed: 0,
@@ -86,7 +87,7 @@ describe("selectNearestPlaces", () => {
     expect(result.outsideRadius).toBe(3);
     for (const group of result.groups) {
       for (const member of group.members) {
-        expect(haversineKm(places[result.center], places[member])).toBeLessThanOrEqual(
+        expect(haversineKm(result.center!, places[member])).toBeLessThanOrEqual(
           NEAREST_RADIUS_KM,
         );
       }
@@ -112,11 +113,11 @@ describe("selectNearestPlaces", () => {
     expect(result.cut).toBeGreaterThan(0);
     const selected = new Set(result.groups.map((group) => group.representative));
     const selectedDistance = Math.max(
-      ...[...selected].map((index) => haversineKm(places[result.center], places[index])),
+      ...[...selected].map((index) => haversineKm(result.center!, places[index])),
     );
     for (const place of places) {
       if (!result.groups.some((group) => group.members.includes(place.index))) {
-        expect(haversineKm(places[result.center], place)).toBeGreaterThanOrEqual(
+        expect(haversineKm(result.center!, place)).toBeGreaterThanOrEqual(
           selectedDistance,
         );
       }
@@ -156,5 +157,63 @@ describe("selectNearestPlaces", () => {
     expect(selectNearestPlaces(groupPlaces([...entries].reverse()), 12)).toEqual(
       selectNearestPlaces(groupPlaces(entries), 12),
     );
+  });
+
+  it("中心を省略すると、自動判定した実在の地点の座標を中心として返す", () => {
+    const places = loadPlaces("tokyo_few_far_many.json");
+    const result = selectNearestPlaces(places, 12);
+    const centerPlace = places[chooseCenter(places)];
+    expect(result.centerSource).toBe("auto");
+    expect(result.center).toEqual({ lat: centerPlace.lat, lng: centerPlace.lng });
+  });
+});
+
+describe("selectNearestPlaces（中心の指定）", () => {
+  it("指定した座標を中心に、自動判定では範囲外になる地域の地点を選ぶ", () => {
+    // 自動判定では遠征先（alps-）が中心になる分布で、東京の地点を中心に指定する
+    const places = loadPlaces("tokyo_few_far_many.json");
+    const tokyo = places.find((place) => place.placeId?.startsWith("tokyo-"))!;
+    const result = selectNearestPlaces(places, 12, {
+      center: { lat: tokyo.lat, lng: tokyo.lng },
+    });
+    expect(result.centerSource).toBe("specified");
+    expect(result.center).toEqual({ lat: tokyo.lat, lng: tokyo.lng });
+    expect(result.groups.length).toBeGreaterThan(0);
+    for (const group of result.groups) {
+      expect(places[group.representative].placeId).toMatch(/^tokyo-/);
+    }
+  });
+
+  it("入力に無い座標も中心にでき、描く点はその近くの実在の地点から選ぶ", () => {
+    const places = groupPlaces([
+      { lat: 35.0, lng: 139.0, placeId: "near" },
+      { lat: 35.1, lng: 139.0, placeId: "middle" },
+      { lat: 35.2, lng: 139.0, placeId: "far" },
+      { lat: 36.0, lng: 139.0, placeId: "outside" },
+    ]);
+    const result = selectNearestPlaces(places, 2, { center: { lat: 34.95, lng: 139.0 } });
+    expect(result.groups.map((group) => places[group.representative].placeId)).toEqual([
+      "near",
+      "middle",
+    ]);
+    expect(result.cut).toBe(1);
+    expect(result.outsideRadius).toBe(1);
+  });
+
+  it("指定した中心の半径内に地点が無ければ、0点で返す", () => {
+    const places = loadPlaces("tokyo_wide.json");
+    const result = selectNearestPlaces(places, 12, { center: { lat: 43.0, lng: 141.3 } });
+    expect(result.groups).toEqual([]);
+    expect(result.outsideRadius).toBe(places.length);
+    expect(result.absorbed).toBe(0);
+    expect(result.cut).toBe(0);
+  });
+
+  it("地点が0件でも、指定した中心をそのまま返す", () => {
+    expect(selectNearestPlaces([], 12, { center: { lat: 35.0, lng: 139.0 } })).toMatchObject({
+      center: { lat: 35.0, lng: 139.0 },
+      centerSource: "specified",
+      groups: [],
+    });
   });
 });

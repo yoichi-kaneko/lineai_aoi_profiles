@@ -1,6 +1,6 @@
 ---
 name: select_locations
-description: 緯度経度の候補（最大1000件）をJSONファイルで渡すと、集合化（③）と中心近傍選択（②）の両方で描画する点（最大12点）を選んで評価し、良いほうをplot_locationsへそのまま渡せるJSONとしてtmp/に保存する。外部APIにはアクセスしない。星図モード向けの先行実装で、現在これを呼ぶモードは無い。Swarmのチェックイン座標は渡さないこと。
+description: 緯度経度の候補（最大1000件）をJSONファイルで渡すと、集合化（③）と中心近傍選択（②）の両方で描画する点（最大12点）を選んで評価し、良いほうをplot_locationsへそのまま渡せるJSONとしてtmp/に保存する。②の中心は座標で指定できる（省略時は自動判定）。外部APIにはアクセスしない。星図モード向けの先行実装で、現在これを呼ぶモードは無い。Swarmのチェックイン座標は渡さないこと。
 ---
 
 # select_locations
@@ -38,8 +38,10 @@ description: 緯度経度の候補（最大1000件）をJSONファイルで渡�
 
 ### ② 中心近傍選択（第二候補）
 
-- **地点が最も集まっている場所の実在の地点**を中心にします。各地点について、半径 30km 以内の地点を距離に応じて重み付けした密度を求め、最も高い地点を選びます（全地点の平均のような、どちらの地域でもない位置は中心にしません）
-- 中心から半径 30km 以内の地点を近い順に、最大12点選びます。**点が足りなくても半径は広げません**
+- **中心は `--center 緯度,経度` で指定できます**。その週の重要な出来事の場所など、焦点を当てたい位置を渡します。入力にある地点である必要はなく、チェックインの無い山頂なども指定できます
+- `--center` を省略した場合は、**地点が最も集まっている場所の実在の地点**を中心にします。各地点について、半径 30km 以内の地点を距離に応じて重み付けした密度を求め、最も高い地点を選びます（全地点の平均のような、どちらの地域でもない位置は中心にしません）
+- 中心から半径 30km 以内の地点を近い順に、最大12点選びます。**点が足りなくても半径は広げません**。指定した中心の半径内に地点が1件も無ければ、②は0点になります
+- 描く点は常に入力にある実在の地点です。指定した中心の座標そのものは点として描きません
 - 既に選んだ点と描画後に重なる地点は選ばず、その点に代表させます（吸収）
 - 特定の地域へ焦点を当てる表現になり、半径外の地域は描かれません
 
@@ -93,6 +95,13 @@ pnpm exec tsx src/geo/select_locations.ts "tmp/select_locations_input.json" "tmp
    - **第2引数**: 出力 JSON のパス（必須）。`tmp/` 配下で、拡張子は `.json` に限ります。同名のファイルがあれば上書きします
    - **`--method auto|cluster|nearest`**（任意）: 既定は `auto`（評価で選ぶ）。`cluster` は③、`nearest` は②に固定します
    - **`--max-points 1〜12`**（任意）: 描く点の上限。既定は 12 で、plot_locations の上限と同じです
+   - **`--center 緯度,経度`**（任意）: ②の中心に据える座標（例: `--center 35.6586,139.7454`）。10進数の度で、緯度は ±85.05112878°、経度は ±180° の範囲に限ります。省略時は自動判定です。③の結果には影響しません
+
+   ②の中心を指定して、②の結果を描く場合の例です。
+
+```bash
+pnpm exec tsx src/geo/select_locations.ts "tmp/select_locations_input.json" "tmp/plot_nearest.json" --method nearest --center "35.6586,139.7454"
+```
 
    架空の座標で動作を確かめる場合は、入力にフィクスチャを指定します。
 
@@ -102,7 +111,9 @@ pnpm exec tsx src/geo/select_locations.ts "test/fixtures/geo/select_locations/si
 
 3. 標準出力の要約 JSON を読み、`pointCount` を確認してください。
    - **`pointCount` が1以上**: 出力 JSON をそのまま plot_locations の入力に渡せます（`pnpm exec tsx src/image/plot_locations.ts "tmp/plot_locations.json" "tmp/location_plot.png"`）
-   - **`pointCount` が0**（`method` が `none`）: 描ける地点がありません。出力 JSON は空の配列で、plot_locations は空の配列を受け付けないため、描画の工程は飛ばしてください
+   - **`pointCount` が0**: 描ける地点がありません。出力 JSON は空の配列で、plot_locations は空の配列を受け付けないため、描画の工程は飛ばしてください。次の2通りがあります
+     - `method` が `none`: 入力に有効な地点がありません
+     - `method` が `nearest`: `--method nearest` と `--center` を指定し、その中心から半径 30km 以内に地点がありませんでした（`nearest.outsideRadius` が地点数と一致します）
 
 ### 代表的な分布と結果
 
@@ -152,7 +163,7 @@ pnpm exec tsx src/geo/select_locations.ts "test/fixtures/geo/select_locations/si
   "pointCount": 12,
   "input": { "entries": 37, "invalid": 0, "places": 25 },
   "cluster": { "pointCount": 2, "represented": 1, "detail": 0.167, "legibility": 1, "minSpacingPx": 551.6, "score": 0.408, "merged": 23 },
-  "nearest": { "pointCount": 12, "represented": 0.52, "detail": 1, "legibility": 1, "minSpacingPx": 29.3, "score": 0.52, "radiusKm": 30, "outsideRadius": 1, "absorbed": 1, "cut": 11 },
+  "nearest": { "pointCount": 12, "represented": 0.52, "detail": 1, "legibility": 1, "minSpacingPx": 29.3, "score": 0.52, "centerSource": "auto", "radiusKm": 30, "outsideRadius": 1, "absorbed": 1, "cut": 11 },
   "outputPath": "/Users/xxx/lineai_aoi_profiles/tmp/plot_locations.json"
 }
 ```
@@ -162,6 +173,7 @@ pnpm exec tsx src/geo/select_locations.ts "test/fixtures/geo/select_locations/si
 | `method` | 採用した方式。`cluster`（③）/ `nearest`（②）/ `none`（描ける地点なし） |
 | `input` | 入力件数（`entries`）、除外した件数（`invalid`）、同じ地点をまとめた後の地点数（`places`） |
 | `cluster.merged` | ③で他の点へまとめた地点の数 |
+| `nearest.centerSource` | ②の中心の決め方。`specified`（`--center` の指定）/ `auto`（自動判定）。中心の座標そのものは要約に含めません |
 | `nearest.outsideRadius` | ②の半径外で描かなかった地点の数 |
 | `nearest.absorbed` | ②で近くの点に代表させた地点の数 |
 | `nearest.cut` | ②の半径内だが、上限に達して描かなかった地点の数 |
@@ -188,5 +200,5 @@ pnpm exec tsx src/geo/select_locations.ts "test/fixtures/geo/select_locations/si
 - **② の結果は週全体ではない**: ② を採用した場合、半径外の地域（`nearest.outsideRadius`）は描かれていません。画像を週全体の訪問履歴として扱わないでください
 - **点の意味**: 出力する点はすべて実在の訪問地点ですが、`places` が2以上の点は周辺の地点をまとめたものです。点だけでは、他の地点も代表していることは伝わりません
 - **取得が不完全な入力**: 取得件数の上限などで候補が欠けている場合、結果もその範囲の要約にすぎません。週全体として扱わないでください
-- **位置情報の扱い**: 入力・出力の座標は位置情報です。入力 JSON・出力 JSON の中身を、報告本文や Firestore の記録へ転記しないでください
+- **位置情報の扱い**: 入力・出力の座標と `--center` に渡す座標は位置情報です。入力 JSON・出力 JSON の中身や中心の座標を、報告本文や Firestore の記録へ転記しないでください
 - **計算時間**: すべて別の地点からなる 1,000 件でも、選択・評価の計算は 0.2 秒程度です（ローカル環境での目安。保証値ではありません）

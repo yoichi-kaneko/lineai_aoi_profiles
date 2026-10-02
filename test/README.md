@@ -36,7 +36,7 @@ test/
 ├── geo/
 │   ├── places.test.ts             # 候補の検証・同じ地点のまとめ・距離計算
 │   ├── cluster_places.test.ts     # ③集合化の統合・停止条件・代表地点・描画後の点の間隔
-│   ├── nearest_places.test.ts     # ②中心近傍選択の中心決定・半径・吸収・上限
+│   ├── nearest_places.test.ts     # ②中心近傍選択の中心決定・中心の指定・半径・吸収・上限
 │   ├── evaluate_selection.test.ts # 描画後の見た目による評価・方式の採否
 │   └── select_locations.test.ts   # 分布ごとの採用方式・出力形式・要約・引数解釈
 ├── google_calendar/

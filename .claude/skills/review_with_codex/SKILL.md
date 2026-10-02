@@ -55,7 +55,7 @@ CODEX_REVIEW_EFFORT=""
 
 ### 手順
 
-1. **レビュー依頼文の保存**: [codex レビュー](../../docs/codex_review.md) のセクション2の骨格に従って依頼文を組み立て、`tmp/codex_review_input.md` に保存してください（Write ツールで書き込み）。観点セット（`image_prompt` / `scribe_image_prompt` / `scribe_post`）は呼び出し元の手順が指定します。
+1. **レビュー依頼文の保存**: [codex レビュー](../../docs/codex_review.md) のセクション2の骨格に従って依頼文を組み立て、`tmp/codex_review_input.md` に保存してください（Write ツールで書き込み）。観点セット（`image_prompt` / `scribe_image_prompt` / `weekly_image_prompt` / `scribe_post`）は呼び出し元の手順が指定します。
 
 2. **レビューの実行**: 以下をプロジェクトルートから実行してください。
 
@@ -77,7 +77,7 @@ pnpm exec tsx src/codex/review.ts "tmp/codex_review_input.md"
    | `timeout` | 制限時間内に終わらなかった | 同上 |
    | `error` | codex の実行が失敗した | 同上 |
 
-4. **指摘の反映**: 読み取った指摘のうち、妥当なものを成果物へ反映してください。採否の判断基準・反映後に確かめること・ログへ残す値は [codex レビュー](../../docs/codex_review.md) のセクション6に従います。
+4. **指摘の反映**: 読み取った指摘のうち、妥当なものを成果物へ反映してください。採否の判断基準・反映後に確かめること・ログへ残す値は [codex レビュー](../../docs/codex_review.md) のセクション7に従います。
 
 ### 失敗時の扱い
 

@@ -74,7 +74,7 @@ export function resolveDailyRunLogModeFromTokyoTime(now: Date = new Date()): Run
  * - 月曜 00:00-04:59 → true
  * - それ以外 → false
  *
- * 日曜の小夜の申し送り（night_handover）と夜のチェックインまでを対象期間に含めるため、
+ * 日曜の小夜の申し送り（night_handover）と「今日の一枚」（image_logs）までを対象期間に含めるため、
  * 週明けの深夜に限る。曜日で絞るため、run_logs の確認は同じ日付だけで足りる。
  */
 export function isWeeklyRunWindowInTokyoTime(now: Date = new Date()): boolean {

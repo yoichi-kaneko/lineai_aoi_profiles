@@ -26,10 +26,18 @@ export const NOTE_TYPE = {
    * 入方向の `line_text` / `line_image` や、後続向け要約の `from_aoi` とは別。
    */
   LINE_UNDELIVERED: "line_undelivered",
-  /** 小夜モードが翌朝の暁モードへ残す一日の概要・引き継ぎメモ。`date` は振り返り対象日（前日）を指定する。 */
+  /**
+   * 小夜モードが翌朝の暁モードへ残す一日の概要・引き継ぎメモ。`date` は振り返り対象日（前日）を指定する。
+   * 結星モードも、前週7日分をこの type だけで読み、一週間の振り返りの素材にする。
+   */
   NIGHT_HANDOVER: "night_handover",
   /** 綴葉モードが同日の小夜モードへ残す引き継ぎメモ。SNS本文はユーザーの代筆のため、碧衣→ユーザー視点でのレポートの感想を含める。`date` は当日を指定する。 */
   SCRIBE_HANDOVER: "scribe_handover",
+  /**
+   * 結星モードが同じ月曜の朝の暁モードへ残す引き継ぎメモ。送信の成否と、届けた内容（週の要約・本文で触れた話題・主役の星座）を含める。`date` は実行日（月曜）を指定する。
+   * 翌週の結星も、主役の星座や話題の重複を避けるために読む。
+   */
+  WEEKLY_HANDOVER: "weekly_handover",
 } as const;
 
 /** {@link NOTE_TYPE} の値の union。 */

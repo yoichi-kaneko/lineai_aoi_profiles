@@ -17,7 +17,7 @@ POSTED_DATE=${3:-""}
 # 未対応・廃止済みの MODE は暁へフォールバックさせず、Claude 起動前に拒否する。
 # （例: 旧 cron が song を残していても、意図しない朝メッセージを送らない）
 case "$MODE" in
-  morning | noon | night | up_mountain | stay_mountain | off_mountain | talk) ;;
+  morning | noon | night | up_mountain | stay_mountain | off_mountain | talk | weekly) ;;
   *)
     echo "[ERROR] 未対応の MODE です: ${MODE}" >&2
     exit 1
@@ -79,11 +79,24 @@ if [ "$MODE" = "talk" ]; then
   TARGET_DATE="$POSTED_DATE"
 fi
 
+# 2-3. 結星（weekly）は月曜 00:00-04:59（JST）に限って起動する
+# ------------------------------------------------------------------
+# 日曜の小夜の申し送りと「今日の一枚」までを集計するため、週明けの深夜に実行する。
+# 曜日で絞ることで、run_logs の実行前チェックは同じ日付だけで週1回に収まる。
+# 判定は run_aoi_weekly スキルと同じ src/firebase/check_weekly_window.ts を使う。
+# ------------------------------------------------------------------
+if [ "$MODE" = "weekly" ]; then
+  if ! pnpm exec tsx src/firebase/check_weekly_window.ts >/dev/null; then
+    echo "[ERROR] 結星（weekly）は月曜 00:00-04:59（JST）の間だけ起動します。MODE=${MODE}, DATE=${TARGET_DATE}" >&2
+    exit 1
+  fi
+fi
+
 # 共通: run_logs（二重実行防止）の対象モードかどうかを判定する
 # 許可される mode 値は src/firebase/runLogModes.ts の RUN_LOG_MODE を正とする
 is_run_log_mode() {
   case "$1" in
-    morning | noon | night) return 0 ;;
+    morning | noon | night | weekly) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -114,14 +127,16 @@ elif [ "$MODE" = "off_mountain" ]; then
   TRIGGER_PROMPT="daily message (帰灯): ${TARGET_DATE}"
 elif [ "$MODE" = "talk" ]; then
   TRIGGER_PROMPT="daily message (響): ${TARGET_DATE} target_doc_id=${TARGET_DOC_ID}"
+elif [ "$MODE" = "weekly" ]; then
+  TRIGGER_PROMPT="daily message (結星): ${TARGET_DATE}"
 else
   TRIGGER_PROMPT="daily message (暁): ${TARGET_DATE}"
 fi
 
 # 3-2. モードに応じて effort レベルを決定
-# 画像生成を伴うモード（小夜・帰灯）は xhigh、それ以外は medium に抑える
+# 画像生成を伴うモード（小夜・帰灯・結星）は xhigh、それ以外は medium に抑える
 # 響（talk）は依頼によって画像生成まで含みうるため xhigh とする
-if [ "$MODE" = "night" ] || [ "$MODE" = "off_mountain" ] || [ "$MODE" = "talk" ]; then
+if [ "$MODE" = "night" ] || [ "$MODE" = "off_mountain" ] || [ "$MODE" = "talk" ] || [ "$MODE" = "weekly" ]; then
   EFFORT="xhigh"
 else
   EFFORT="medium"
@@ -154,7 +169,7 @@ else
   echo "[WARN] flock が見つからないため実行の直列化を行いません。他の実行と重なると tmp/ の一時ファイルが競合する可能性があります。MODE=${MODE}" >&2
 fi
 
-# 4. morning / noon / night は run_logs を確認し、実行済みならスキップ
+# 4. morning / noon / night / weekly は run_logs を確認し、実行済みならスキップ
 if is_run_log_mode "$MODE"; then
   HAS_LOG_OUTPUT=$(pnpm exec tsx src/firebase/has_log.ts "$TARGET_DATE" "$MODE")
   HAS_LOG_EXIT=$?
@@ -202,7 +217,7 @@ if [ $EXIT_CODE -ne 0 ]; then
   exit $EXIT_CODE
 fi
 
-# 6. morning / noon / night は実行ログを run_logs に記録する
+# 6. morning / noon / night / weekly は実行ログを run_logs に記録する
 # ------------------------------------------------------------------
 # ステップ4の実行前チェック（has_log.ts）が参照するのはこのログだが、headless 実行には
 # put_log.ts を呼ぶ経路が存在せず、当日分のログが残らないままだった（対話モードの

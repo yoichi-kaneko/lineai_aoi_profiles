@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   RUN_LOG_MODE,
   isRunLogMode,
+  isWeeklyRunWindowInTokyoTime,
   resolveDailyRunLogModeFromTokyoTime,
 } from "../../src/firebase/runLogModes.js";
 
@@ -24,5 +25,15 @@ describe("firebase/runLogModes", () => {
     ["2026-08-20T15:00:00Z", null],
   ])("%s の Tokyo 時刻境界を判定する", (iso, expected) => {
     expect(resolveDailyRunLogModeFromTokyoTime(new Date(iso))).toBe(expected);
+  });
+
+  it.each([
+    ["2026-10-04T14:59:00Z", false], // 日曜 23:59
+    ["2026-10-04T15:00:00Z", true], // 月曜 00:00
+    ["2026-10-04T19:59:00Z", true], // 月曜 04:59
+    ["2026-10-04T20:00:00Z", false], // 月曜 05:00
+    ["2026-10-05T15:00:00Z", false], // 火曜 00:00
+  ])("%s が結星の実行時間帯（月曜 00:00-04:59 JST）かを判定する", (iso, expected) => {
+    expect(isWeeklyRunWindowInTokyoTime(new Date(iso))).toBe(expected);
   });
 });

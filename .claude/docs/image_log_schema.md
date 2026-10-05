@@ -89,7 +89,7 @@
 
 結星（weekly）モード（実装中）が届ける、天縫の投影する星座の一枚も、**`image_logs` に記録しません**。
 
-- **抽選軸が本スキーマと合わない**: 結星の画像は [weekly_image_guideline.md](../../assets/weekly_image_guideline.md) を正とし、構図（背中越しに見上げる構図）・衣装（`outfit_a`）・登場人物（ルリのみ）を固定します。本スキーマの主役である `shot_size` / `camera_direction` / `companions` は固定値になり、混ぜると偏り集計が実態と乖離します。結星で抽選するのは碧衣の姿勢・ルリの位置・天縫の演出効果で、いずれも本スキーマに無い軸です。
+- **抽選軸が本スキーマと合わない**: 結星の画像は [weekly_image_guideline.md](../../assets/weekly_image_guideline.md) を正とし、構図（背中越しに見上げる構図）・衣装（`outfit_a`）・ドームの中の登場人物（ルリのみ。蛍・漆は思い出のホログラムの中にだけ映ることがある）を固定します。本スキーマの主役である `shot_size` / `camera_direction` / `companions` は固定値になり、混ぜると偏り集計が実態と乖離します。結星で抽選するのは碧衣の姿勢・ルリの位置・天縫の演出効果で、いずれも本スキーマに無い軸です。
 - **改善の宛先が別である**: 修正の宛先は `assets/image_guideline.md` ではなく `assets/weekly_image_guideline.md` です。改善への要望は、`aoi.md` の**共通ステップ：要望のフィードバック**（Todoist）で受けます。
 - **評価の紐付け**: 結星の画像へは `評価` を送らない運用とします。そのため、結星を実行した日に小夜の一枚とあわせて画像が2枚届いても、宛先未指定の `評価` は綴葉のように曖昧扱いにせず、**通常どおり小夜の一枚へ紐付けます**（[review_image_feedback](../skills/review_image_feedback/SKILL.md) ステップ2の照合規則のまま）。
 

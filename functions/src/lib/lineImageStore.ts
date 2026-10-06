@@ -25,8 +25,30 @@ export type LineImageChannel = keyof typeof LINE_IMAGE_PUBLIC_ID_PREFIX;
 /** LINE のメッセージ ID は数字列。public_id に使える文字だけを許し、想定外の値では保存しない。 */
 const MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
+/** LINE からの画像取得の待ち時間の上限。接続やストリーム読み取りが止まっても Webhook を長く止めない。 */
+const FETCH_TIMEOUT_MS = 30_000;
+
 /** アップロードの待ち時間の上限。Webhook の応答を長く止めないため、SDK 既定の 60 秒より短くする。 */
 const UPLOAD_TIMEOUT_MS = 30_000;
+
+/** 期限付きで Promise を待つ。超過したら message の Error で reject し、タイマーは必ず消す。 */
+export async function raceWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
 
 export function buildLineImagePublicId(channel: LineImageChannel, messageId: string): string | null {
   if (!MESSAGE_ID_PATTERN.test(messageId)) {
@@ -111,12 +133,18 @@ export interface LineImageStoreDeps {
 
 async function fetchLineContent(messageId: string, accessToken: string): Promise<Buffer> {
   const client = new messagingApi.MessagingApiBlobClient({ channelAccessToken: accessToken });
-  const readable = await client.getMessageContent(messageId);
-  const chunks: Buffer[] = [];
-  for await (const chunk of readable) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
+  return raceWithTimeout(
+    (async () => {
+      const readable = await client.getMessageContent(messageId);
+      const chunks: Buffer[] = [];
+      for await (const chunk of readable) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      return Buffer.concat(chunks);
+    })(),
+    FETCH_TIMEOUT_MS,
+    "LINE content fetch timed out",
+  );
 }
 
 function uploadToCloudinary(data: Buffer, options: UploadApiOptions): Promise<void> {

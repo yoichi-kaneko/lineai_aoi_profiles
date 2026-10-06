@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildLineImagePublicId,
   buildUploadOptions,
+  raceWithTimeout,
   resolveLineImageStoreConfig,
   storeLineImage,
   storeLineImageFromEnv,
@@ -83,6 +84,15 @@ describe("buildUploadOptions", () => {
     expect(buildUploadOptions({ ...config, assetFolder: "inbox" }, "line_aoi_1").asset_folder).toBe(
       "inbox",
     );
+  });
+});
+
+describe("raceWithTimeout", () => {
+  it("期限内なら結果を返し、超過したら例外を返す", async () => {
+    await expect(raceWithTimeout(Promise.resolve("ok"), 50, "timed out")).resolves.toBe("ok");
+    await expect(
+      raceWithTimeout(new Promise(() => {}), 10, "LINE content fetch timed out"),
+    ).rejects.toThrow("LINE content fetch timed out");
   });
 });
 

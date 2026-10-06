@@ -44,6 +44,8 @@ test/
 ├── image/
 │   ├── embed_qr.test.ts       # QRコード埋め込みの引数解釈・アンカー座標・パス検証
 │   └── plot_locations.test.ts # 点描画の入力検証・投影・自動フィット・PNG の画素・パス検証
+├── line/
+│   └── download_image.test.ts # 受け取った画像の取得先の切り替え（Cloudinary → LINE）・public_id の組み立てと functions 側との一致・署名付き URL
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/
@@ -69,7 +71,7 @@ test/
 ```
 
 現在の対象は、YAMAP の埋め込み JSON を使うパース・整形、Google Calendar の日付変換、
-Firestore / Todoist / Twitter / Cloudinary / Swarm / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
+Firestore / Todoist / Twitter / Cloudinary / LINE / Swarm / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
 
@@ -104,6 +106,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/todoist/get_task.ts`
 - `src/twitter/post.ts`
 - `src/cloudinary/upload_image.ts`
+- `src/line/download_image.ts`
 - `src/openweather/forecast.ts`
 - `src/swarm/get_checkins.ts`
 - `src/util/random_choice.ts`

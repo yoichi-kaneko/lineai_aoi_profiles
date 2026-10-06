@@ -63,6 +63,33 @@ function createTextRequest(
   };
 }
 
+function createImageRequest(messageId = "123456789012345678"): HandlerRequest {
+  return {
+    headers: { "x-line-signature": "sig" },
+    rawBody: Buffer.from("body"),
+    body: {
+      destination: "dest",
+      events: [
+        {
+          type: "message",
+          timestamp: new Date("2026-10-06T03:00:00Z").getTime(),
+          source: { type: "user", userId: "user-1" },
+          message: {
+            type: "image",
+            id: messageId,
+            contentProvider: { type: "line" },
+            quoteToken: "qt1",
+          },
+          replyToken: "reply",
+          mode: "active",
+          webhookEventId: "w1",
+          deliveryContext: { isRedelivery: false },
+        },
+      ],
+    },
+  };
+}
+
 describe("createReceiveLineMessageHandler", () => {
   const originalEnv = process.env;
 
@@ -496,5 +523,105 @@ describe("createReceiveLineMessageHandler", () => {
 
     expect(sent).toEqual([]);
     expect(adds).toHaveLength(0);
+  });
+
+  it("画像は notes に line_image として記録してから Cloudinary へ保存する", async () => {
+    const order: string[] = [];
+    const adds: Array<{ collection: string; data: Record<string, unknown> }> = [];
+    const firestore: FirestoreLike = {
+      collection(name: string) {
+        return {
+          async add(data: Record<string, unknown>) {
+            order.push("add");
+            adds.push({ collection: name, data });
+            return { id: "doc-1" };
+          },
+        };
+      },
+    };
+    const storeMock = vi.fn(async () => {
+      order.push("store");
+    });
+    const { response, sent } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      storeLineImageFn: storeMock,
+    });
+
+    await handler(createImageRequest("123456789012345678"), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].collection).toBe("notes");
+    expect(adds[0].data.type).toBe("line_image");
+    expect(adds[0].data.description).toBe(JSON.stringify({ id: "123456789012345678" }));
+    expect(storeMock).toHaveBeenCalledWith("123456789012345678");
+    expect(order).toEqual(["add", "store"]);
+  });
+
+  it("Cloudinary への保存に失敗しても記録は残り 200 を返し、例外の中身をそのままログへ出さない", async () => {
+    const { firestore, adds } = createFirestoreMock();
+    const { response, sent } = createResponseMock();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const failure = Object.assign(new Error("upload failed"), {
+      http_code: 500,
+      request: { headers: { authorization: "Bearer secret-token" } },
+    });
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      storeLineImageFn: vi.fn(async () => {
+        throw failure;
+      }),
+    });
+
+    await handler(createImageRequest(), response);
+
+    expect(sent).toEqual([{ code: 200, body: "OK" }]);
+    expect(adds).toHaveLength(1);
+    expect(adds[0].data.type).toBe("line_image");
+    const logged = errorSpy.mock.calls.flat().map(String).join(" ");
+    expect(logged).toContain("upload failed");
+    expect(logged).toContain("status=500");
+    expect(logged).not.toContain("secret-token");
+  });
+
+  it("記録に失敗した画像は Cloudinary へ保存しない", async () => {
+    const firestore: FirestoreLike = {
+      collection() {
+        return {
+          async add() {
+            throw new Error("firestore unavailable");
+          },
+        };
+      },
+    };
+    const storeMock = vi.fn(async () => {});
+    const { response } = createResponseMock();
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      storeLineImageFn: storeMock,
+    });
+
+    await expect(handler(createImageRequest(), response)).rejects.toThrow("firestore unavailable");
+    expect(storeMock).not.toHaveBeenCalled();
+  });
+
+  it("テキストでは Cloudinary への保存を呼ばない", async () => {
+    const { firestore } = createFirestoreMock();
+    const { response } = createResponseMock();
+    const storeMock = vi.fn(async () => {});
+    const handler = createReceiveLineMessageHandler({
+      firestore,
+      validateSignatureFn: () => true,
+      execEc2CommandFn: vi.fn(),
+      storeLineImageFn: storeMock,
+    });
+
+    await handler(createTextRequest("こんにちは"), response);
+
+    expect(storeMock).not.toHaveBeenCalled();
   });
 });

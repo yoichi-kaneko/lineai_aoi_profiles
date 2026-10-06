@@ -246,6 +246,9 @@ importers:
       '@line/bot-sdk':
         specifier: 11.3.0
         version: 11.3.0
+      cloudinary:
+        specifier: 2.11.0
+        version: 2.11.0
       google-auth-library:
         specifier: 11.1.0
         version: 11.1.0

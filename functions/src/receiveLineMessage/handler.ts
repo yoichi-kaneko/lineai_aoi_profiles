@@ -2,6 +2,7 @@ import { Timestamp } from "@google-cloud/firestore";
 import { validateSignature, webhook } from "@line/bot-sdk";
 import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
+import { storeLineImageFromEnv, summarizeError } from "../lib/lineImageStore";
 import { jstDateFromYmd, jstYmd, startOfJstDay } from "./jstDate";
 import { parseImageFeedback } from "./parseImageFeedback";
 import { findTriggerMode, requiresTargetDoc } from "./routing";
@@ -32,6 +33,8 @@ export interface HandlerDeps {
   firestore: FirestoreLike;
   validateSignatureFn?: typeof validateSignature;
   execEc2CommandFn?: typeof execEc2Command;
+  /** 受け取った画像を Cloudinary へ保存する。既定は環境変数の設定で保存する。 */
+  storeLineImageFn?: (messageId: string) => Promise<void>;
   now?: () => Date;
 }
 
@@ -78,6 +81,9 @@ export async function addFeedbackDoc(
 export function createReceiveLineMessageHandler(deps: HandlerDeps) {
   const validateSignatureFn = deps.validateSignatureFn ?? validateSignature;
   const execEc2CommandFn = deps.execEc2CommandFn ?? execEc2Command;
+  const storeLineImageFn =
+    deps.storeLineImageFn ??
+    ((messageId: string) => storeLineImageFromEnv("aoi", messageId, "LINE_ACCESS_TOKEN"));
   const now = deps.now ?? (() => new Date());
 
   return async (req: HandlerRequest, res: HandlerResponse): Promise<void> => {
@@ -189,6 +195,14 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
           type: NOTE_TYPE.LINE_IMAGE,
           createdAt: Timestamp.fromDate(now()),
         });
+
+        // 記録を先に残してから保存する。直後の呼びかけで起動した響モードが記録を見つけられるようにするため。
+        // 保存に失敗しても記録は残っており、碧衣は LINE からの取得に回るため、応答は止めない。
+        try {
+          await storeLineImageFn(imageMessage.id);
+        } catch (error) {
+          console.error("storeLineImage failed:", summarizeError(error));
+        }
         continue;
       }
 

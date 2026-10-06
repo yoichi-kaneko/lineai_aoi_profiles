@@ -176,7 +176,7 @@ lineai_aoi_profiles/
 │   └── src/
 │       ├── index.ts             # Cloud Functions エントリポイント
 │       ├── lib/                 # Cloud Functions 共通処理
-│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・登山/下山/呼びかけトリガー
+│       └── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・受信画像の Cloudinary 保存・登山/下山/呼びかけトリガー
 ├── .github/
 │   └── workflows/
 │       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions（Node.js は .nvmrc に従う）
@@ -252,7 +252,7 @@ lineai_aoi_profiles/
 | 送信仕様 | Push Message の `messages` に最大5件まで同梱可能。[`send_line_image`](.claude/skills/send_line_image/SKILL.md) / [`send_line_audio`](.claude/skills/send_line_audio/SKILL.md) はメディア→テキストの順で**1リクエスト**にまとめて送信。[`send_line_text`](.claude/skills/send_line_text/SKILL.md) はテキスト単独送信用 |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 | 送信失敗時 | Push 失敗（429・クオータ等）時は [LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い `put_firestore_doc` で `type: line_undelivered` に退避 |
-| 画像取得の期限 | [`download_line_image`](.claude/skills/download_line_image/SKILL.md) が扱えるのは LINE 側の保存期間内のコンテンツのみ。`notes` の `line_image` に残るのはメッセージIDであり、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
+| 画像取得の期限 | 受け取った画像は、Webhook が受信時に Cloudinary へ非公開（`authenticated`）で保存する。[`download_line_image`](.claude/skills/download_line_image/SKILL.md) はまず Cloudinary から取得し、無ければ LINE から取得する。`notes` の `line_image` に残るのはメッセージIDだけで、Cloudinary 上の名前はメッセージIDから決まる。Cloudinary に無い画像（保存の仕組みより前に届いたもの・保存に失敗したもの）は LINE 側の保存期間内しか取得できず、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
 
 ### Google Calendar API
 
@@ -355,7 +355,7 @@ lineai_aoi_profiles/
 | `type` 定義 | `notes` コレクションの `type` は `src/firebase/noteTypes.ts` の `NOTE_TYPE` を正とする（日跨ぎ引き継ぎは `night_handover`）。専用コレクション（`image_logs` 等）の `type` はコレクション内識別用の別系統 |
 | 取得仕様 | `get_firestore_docs` は `dateFrom` / `dateTo` による日付範囲指定で取得する。`--collection` オプションで `notes` 以外の専用コレクションも読み書きできる（デフォルトは `notes`で後方互換。`notes` 以外は `NOTE_TYPE` 検証をバイパス） |
 | 絞り込み | `get_firestore_docs` の `--type "line_text,line_image"`（繰り返し指定も可）で `type` を絞り込める。数日以上の範囲を取得すると長文の引き継ぎ記録でレスポンスが大きくなるため、使う `type` が決まっている処理では絞って取得する。 |
-| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 必要に応じて EC2 コマンド実行） |
+| Cloud Functions | `functions/src/receiveLineMessage/`（LINE Webhook 受信 → Firestore 保存 → 画像は Cloudinary へ非公開で保存 → 必要に応じて EC2 コマンド実行） |
 | LINE受信トリガー | ユーザーからの `登山開始` は `up_mountain`、`山小屋` は `stay_mountain`、`下山` / `無事下山` は `off_mountain` として扱い、Firestore 保存後に EC2 コマンドを実行する。`評価` / `傾向` で始まる返信は画像フィードバックとして `image_feedback` コレクションへ振り分け、`line_text` には保存せず EC2 トリガーも発火させない（[image_feedback_schema.md](.claude/docs/image_feedback_schema.md)）。 |
 | `line_undelivered` | LINE Push 失敗時に碧衣発の送信予定本文（および必要ならメディア URL）を退避する type。詳細は [line_send_fallback.md](.claude/docs/line_send_fallback.md) |
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は headless では `send_daily_line.sh` が `src/firebase/put_log.ts` を、対話モードでは `run_aoi_daily` スキルが同スクリプトを呼んで書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。結星（`weekly`）モードは `send_daily_line.sh` と `run_aoi_weekly` スキルの両方で、実行前の確認と完了後の記録を行う。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
@@ -424,9 +424,11 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Cloudinary |
-| 役割 | LINE への画像・音声メッセージ送信に際し、ファイルを公開URLとしてホスティングするために使用される |
+| 役割 | LINE への画像・音声メッセージ送信に際し、ファイルを公開URLとしてホスティングする。あわせて、ユーザーから LINE で受け取った画像を非公開で保存する |
 | サービスURL | https://cloudinary.com/ |
-| 利用スキル | `send_line_image` / `send_line_audio`（アップロード後、LINEへメディア+テキストを同梱送信） |
+| 利用スキル | `send_line_image` / `send_line_audio`（アップロード後、LINEへメディア+テキストを同梱送信）、`download_line_image`（受信時に保存した画像の取得） |
+
+受け取った画像は、Webhook（`functions/src/receiveLineMessage/`）が配信タイプ `authenticated` で保存し、原本も加工版も署名付き URL でしか取得できないようにします。碧衣が LINE へ送る画像は、LINE のサーバーが公開 URL から取りに来るため、従来どおり公開（`upload`）のままです。詳細は [functions/README.md](functions/README.md) の「受け取った画像の保存（Cloudinary）」を参照してください。
 
 `send_line_audio` と `src/cloudinary/upload_audio.ts` は将来の音声モードで再利用できるよう汎用の音声送信経路として保持します。現在のモードからは呼び出しません。`assets/archives/audio_samples/` も過去の生成サンプルの記録として保持します。
 

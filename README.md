@@ -57,7 +57,7 @@ sh deploy.sh
 3. `git reflog expire --expire=now --all` と `git gc --prune=now --quiet` で履歴・不要オブジェクトを整理する。
 4. `pnpm install --frozen-lockfile` で更新後のロックファイルに従って依存関係をインストールする。
 
-従来の `git deploy` と同様に、追跡ファイルの未コミット変更は上書きされ、ローカルのコミットも `origin/main` に置き換わります。途中の処理が失敗した場合は非ゼロの終了コードで停止します。依存関係のインストールが失敗した場合も、Git の更新は反映済みです。
+従来の `git deploy` と同様に、追跡ファイルの未コミット変更は上書きされ、ローカルのコミットも `origin/main` に置き換わります。また、`origin/main` に新しい追跡ファイルが追加され、同じパスに EC2 側の未追跡ファイルがある場合、その未追跡ファイルは削除されます。途中の処理が失敗した場合は非ゼロの終了コードで停止します。依存関係のインストールが失敗した場合も、Git の更新は反映済みです。
 
 既存の `git deploy` alias を使っている環境では、このスクリプトを含む `main` を一度 `git deploy` で取り込んでから、以後は `sh deploy.sh` を使用します。Cloud Functions のデプロイ手順は [functions/README.md](functions/README.md) を参照してください。
 

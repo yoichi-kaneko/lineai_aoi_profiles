@@ -41,6 +41,26 @@ codex --version              # 動作確認
 
 日次実行を担う EC2 側でレビューを効かせる場合も、上記の手順4を同じように実行してください。`~/.codex/config.toml` は最小構成で構いません（モデルは `.env` の `CODEX_REVIEW_MODEL` が未設定のとき、この設定の既定値が使われます）。**認証が切れた場合もレビューがスキップされるだけで、日次処理は完走します**。
 
+### EC2 へのデプロイ
+
+EC2 のチェックアウトを更新するときは、リポジトリルートの [deploy.sh](deploy.sh) を実行します。実行環境には Git、Node.js（`.nvmrc` に合わせる）、pnpm（`package.json` の `packageManager` に合わせる）が必要です。
+
+```sh
+cd lineai_aoi_profiles
+sh deploy.sh
+```
+
+スクリプトは自身の配置先を作業ディレクトリにし、以下を順に実行します。
+
+1. `git fetch --depth 1 origin main` で最新の `main` を取得する。
+2. `git reset --hard origin/main` でチェックアウトを更新する。
+3. `git reflog expire --expire=now --all` と `git gc --prune=now --quiet` で履歴・不要オブジェクトを整理する。
+4. `pnpm install --frozen-lockfile` で更新後のロックファイルに従って依存関係をインストールする。
+
+従来の `git deploy` と同様に、追跡ファイルの未コミット変更は上書きされ、ローカルのコミットも `origin/main` に置き換わります。また、`origin/main` に新しい追跡ファイルが追加され、同じパスに EC2 側の未追跡ファイルがある場合、その未追跡ファイルは削除されます。途中の処理が失敗した場合は非ゼロの終了コードで停止します。依存関係のインストールが失敗した場合も、Git の更新は反映済みです。
+
+既存の `git deploy` alias を使っている環境では、このスクリプトを含む `main` を一度 `git deploy` で取り込んでから、以後は `sh deploy.sh` を使用します。Cloud Functions のデプロイ手順は [functions/README.md](functions/README.md) を参照してください。
+
 ### Codex cloud のコンテナセットアップ
 
 Codex cloud では `.codex/setup.sh` が `.nvmrc` に従って Node.js を用意し、pnpm の依存関係をインストールします。外部パッケージレジストリへの接続に環境の HTTP(S) プロキシが必要な場合は、Node.js にプロキシ環境変数を使用させるため、次のように実行してください。
@@ -140,6 +160,7 @@ lineai_aoi_profiles/
 ├── aoi.md                 # 碧衣のプロファイル定義
 ├── package.json           # pnpm パッケージ管理（ルート）
 ├── .nvmrc                 # Node.js のバージョン正本（CI とクラウド環境のセットアップが参照）
+├── deploy.sh              # EC2 のチェックアウト更新と pnpm 依存関係のインストール
 ├── send_daily_line.sh     # 碧衣の送信処理を実行するスクリプト
 ├── refresh_tmp.sh         # tmp/ ディレクトリのクリーンアップスクリプト
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / scribe / talk / weekly）

@@ -49,6 +49,7 @@ test/
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/
+│   ├── deploy.test.ts         # 一時 Git リポジトリでの更新・依存インストール・失敗時の停止
 │   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性、結星の実行時間帯と run_logs による実行済みスキップ）と作業領域 tmp/ の扱い
 ├── swarm/
 │   └── get_checkins.test.ts   # JST 範囲計算・整形
@@ -79,6 +80,8 @@ Firestore / Todoist / Twitter / Cloudinary / LINE / Swarm / OpenWeather / 画像
 （`test/shell/send_daily_line.test.ts` 参照）。実際の claude 起動・LINE 送信・Firestore アクセスは行わず、リポジトリの `tmp/` にも触れない。
 `test/shell/` は Bash と Unix の symlink / `flock` の挙動を前提とし、Windows では運用上も対象スクリプトを実行しないため、テストをスキップする。Linux CI では従来どおり実行する。
 `run_logs` を確認するモード（`morning` / `noon` / `night`）は `pnpm exec tsx` を呼ぶため、この方式では扱わない。
+
+`deploy.sh` は一時ディレクトリ内の Git リポジトリとローカルの bare リポジトリを使って検証する。`pnpm` は起動内容を記録するスタブに置き換え、開発中のチェックアウトの更新や実際の依存インストールは行わない。
 
 CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 「直接起動されたときだけ走らせる」ガード（`src/firebase/get_docs.ts` の `isDirectRun` 参照）で囲み、
@@ -122,6 +125,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/geo/select_locations.ts`
 - `src/codex/review.ts`
 - `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
+- `deploy.sh`（`test/shell/deploy.test.ts`）
 - `src/**/*.ts` の `dotenv.config()` 呼び出し（`test/env/dotenv_quiet.test.ts`）
 
 ### 間接カバーまたは今回の対象外

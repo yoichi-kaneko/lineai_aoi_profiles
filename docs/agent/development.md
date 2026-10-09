@@ -10,6 +10,7 @@ lineai_aoi_profiles/
 ├── CLAUDE.md                 # Claude Code のモード切り替え
 ├── README.md                 # プロジェクト概要と利用者向け説明
 ├── aoi.md                    # 碧衣のメインプロファイル
+├── deploy.sh                 # EC2 のチェックアウト更新と pnpm 依存関係のインストール
 ├── send_daily_line.sh        # 碧衣のモードを起動する runner
 ├── refresh_tmp.sh            # 作業領域 tmp/ の掃除
 ├── assets/                   # 画像・綴葉のガイドと素材

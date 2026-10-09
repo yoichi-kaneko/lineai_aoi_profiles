@@ -10,6 +10,7 @@ LINE AI アシスタント「碧衣（あおい）」のプロファイル、実
 - `.agents/skills/`: Claude Code と Codex が共有する開発 Skill の正本（`dev_ship_change` / `dev_apply_pr_review` / `dev_apply_todoist_request` / `dev_handle_renovate_pr`）
 - `.claude/skills/`: Claude Code が利用する Skill。共有開発 Skillは自動生成、日次実行 Skill はここで直接管理
 - `src/`: 外部 API クライアントなどの TypeScript 実装
+- `deploy.sh`: EC2 のチェックアウト更新と pnpm 依存関係のインストール
 - `send_daily_line.sh` / `refresh_tmp.sh`: 碧衣のモードを起動する runner と、作業領域 `tmp/` の掃除
 - `functions/`: LINE Webhook を受ける Firebase Cloud Functions
 - `docs/agent/`: 開発・Git 運用・レビューの詳細規則

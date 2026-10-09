@@ -24,7 +24,7 @@
         "firebase-admin": "14.5.0",
         "google-auth-library": "11.1.0",
         "googleapis": "182.0.0",
-        "openai": "7.28.0",
+        "openai": "7.32.0",
         "qrcode": "1.5.4",
         "sharp": "0.35.5",
         "twitter-api-v2": "1.29.1",

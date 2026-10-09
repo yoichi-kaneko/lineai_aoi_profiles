@@ -185,8 +185,8 @@ importers:
         specifier: 2.11.0
         version: 2.11.0
       dotenv:
-        specifier: 18.0.4
-        version: 18.0.4
+        specifier: 18.0.7
+        version: 18.0.7
       firebase-admin:
         specifier: 14.5.0
         version: 14.5.0
@@ -1396,8 +1396,8 @@ packages:
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
 
-  dotenv@18.0.4:
-    resolution: {integrity: sha512-jGt9uI5BIxpVO15kvy+iEFqNAwxYClKWnkptLjSNPnFLC003Imd0ofr3aEVsbpHdSBdSsbcApNIlz4nbyGMwdA==}
+  dotenv@18.0.7:
+    resolution: {integrity: sha512-QEvMEF8ca3GNZJJnAbOgxpj5ULhBvnMcURp+XKrtvqFNPgjBvYoswQ0Jl2cO7JzCjxZjJhr9ZuIEhlrRxMft/Q==}
     engines: {node: '>=12'}
     hasBin: true
 
@@ -3757,7 +3757,7 @@ snapshots:
       domelementtype: 2.3.0
       domhandler: 5.0.3
 
-  dotenv@18.0.4: {}
+  dotenv@18.0.7: {}
 
   dunder-proto@1.0.1:
     dependencies:

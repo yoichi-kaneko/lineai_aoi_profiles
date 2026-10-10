@@ -31,6 +31,9 @@ afterEach(() => {
 describe("buildLineImagePublicId", () => {
   it("チャネルの接頭辞とメッセージ ID で public_id を組み立てる", () => {
     expect(buildLineImagePublicId("aoi", "123456789012345678")).toBe("line_aoi_123456789012345678");
+    expect(buildLineImagePublicId("checkin", "123456789012345678")).toBe(
+      "line_checkin_123456789012345678",
+    );
   });
 
   it("public_id に使えない文字や長すぎる ID は受け付けない", () => {

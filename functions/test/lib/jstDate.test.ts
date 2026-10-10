@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { jstDateFromYmd, jstYmd, startOfJstDay } from "../../src/receiveLineMessage/jstDate";
+import { jstDateFromYmd, jstYmd, startOfJstDay } from "../../src/lib/jstDate";
 
 describe("jstDate helpers", () => {
   it("UTC 午後は JST 当日に丸める", () => {

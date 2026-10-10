@@ -2,8 +2,9 @@ import { Timestamp } from "@google-cloud/firestore";
 import { validateSignature, webhook } from "@line/bot-sdk";
 import { NOTE_TYPE } from "../firebase/noteTypes";
 import { execEc2Command } from "../lib/execEc2Command";
+import { jstDateFromYmd, jstYmd, startOfJstDay } from "../lib/jstDate";
 import { storeLineImageFromEnv, summarizeError } from "../lib/lineImageStore";
-import { jstDateFromYmd, jstYmd, startOfJstDay } from "./jstDate";
+import { authenticateLineWebhook, judgeEventSource } from "../lib/lineWebhook";
 import { parseImageFeedback } from "./parseImageFeedback";
 import { findTriggerMode, requiresTargetDoc } from "./routing";
 
@@ -87,41 +88,25 @@ export function createReceiveLineMessageHandler(deps: HandlerDeps) {
   const now = deps.now ?? (() => new Date());
 
   return async (req: HandlerRequest, res: HandlerResponse): Promise<void> => {
-    const channelSecret = process.env.LINE_CHANNEL_SECRET ?? "";
-    const lineUserId = process.env.LINE_USER_ID ?? "";
-    const signatureHeader = req.headers["x-line-signature"];
-    const signature = Array.isArray(signatureHeader)
-      ? signatureHeader[0]
-      : signatureHeader;
-
-    if (!channelSecret) {
-      res.status(500).send("LINE_CHANNEL_SECRET is not configured");
-      return;
-    }
-
-    if (!signature || !req.rawBody || !validateSignatureFn(req.rawBody, channelSecret, signature)) {
-      res.status(401).send("Unauthorized");
-      return;
-    }
-
-    if (!lineUserId) {
-      res.status(500).send("LINE_USER_ID is not configured");
+    const auth = authenticateLineWebhook(req, {
+      channelSecretEnvName: "LINE_CHANNEL_SECRET",
+      validateSignatureFn,
+    });
+    if (!auth.ok) {
+      res.status(auth.status).send(auth.body);
       return;
     }
 
     const events = req.body.events ?? [];
 
     for (const event of events) {
-      if (event.source?.type === "group" || event.source?.type === "room") {
+      const verdict = judgeEventSource(event, auth.lineUserId);
+      if (verdict === "ignore") {
         continue;
       }
-
-      if (event.type === "message") {
-        const sourceUserId = event.source?.userId;
-        if (sourceUserId !== lineUserId) {
-          res.status(403).send("Forbidden");
-          return;
-        }
+      if (verdict === "forbidden") {
+        res.status(403).send("Forbidden");
+        return;
       }
 
       if (event.type !== "message") {

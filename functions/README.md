@@ -24,21 +24,31 @@ pnpm test:all
   - `src/receiveLineMessage/parseImageFeedback.ts`
   - `src/firebase/noteTypes.ts`
   - `src/receiveLineMessage/routing.ts`
-  - `src/receiveLineMessage/jstDate.ts`
   - `src/receiveLineMessage/handler.ts`
+  - `src/receiveCheckinMessage/handler.ts`
   - `src/lib/execEc2Command.ts`
+  - `src/lib/jstDate.ts`
   - `src/lib/lineImageStore.ts`
+  - `src/lib/lineWebhook.ts`
 - 間接カバー:
-  - `src/receiveLineMessage/index.ts` は handler 登録のみのため、`handler.ts` のテストで間接カバーする
-  - `src/index.ts` は `receiveLineMessage/index.ts` の import のみのため、個別テストは持たない
+  - `src/receiveLineMessage/index.ts` / `src/receiveCheckinMessage/index.ts` は handler 登録のみのため、各 `handler.ts` のテストで間接カバーする
+  - `src/index.ts` は各関数の `index.ts` の import のみのため、個別テストは持たない
 
 方針:
 
 - 実 Firestore / LINE / AWS / Cloudinary には接続せず、モックで分岐と保存内容を検証する
 - group/room の無視、署名検証、ユーザー制限、フィードバック隔離、EC2 トリガー抑止/発火、受け取った画像の保存に失敗しても記録と応答が続くことを自動テストで担保する
-- 署名検証や Functions Framework 登録の薄い部分は、依存注入可能な `createReceiveLineMessageHandler()` を中心に検証する
+- `receiveCheckinMessage` では、地写のチャネルシークレットでの署名検証、3種のメッセージの保存内容、それ以外のイベントを例外にせず読み飛ばすこと、ログに本文・座標・住所を出さないことを担保する
+- 署名検証や Functions Framework 登録の薄い部分は、依存注入可能な `createReceiveLineMessageHandler()` / `createReceiveCheckinMessageHandler()` を中心に検証する
 
 ## 関数一覧
+
+関数は LINE 公式アカウント（チャネル）ごとに分け、各関数がそれぞれのチャネルシークレットで署名を検証します。署名の検証と送信者の確認は `src/lib/lineWebhook.ts` に共通化しています。
+
+| 関数 | 受けるアカウント | 保存先 |
+|---|---|---|
+| `receiveLineMessage` | 碧衣 | `notes`（フィードバックは `image_feedback`） |
+| `receiveCheckinMessage` | チェックイン用（地写） | `checkin_logs` |
 
 ### `receiveLineMessage`
 
@@ -111,6 +121,51 @@ LINE 側のコンテンツは一定期間で削除され、`line_image` に残�
 - **失敗時**: 取得・アップロードに失敗しても、ログに出すだけで処理を続け、200 を返します。記録は残っているため、碧衣は LINE からの取得に回ります。ログには例外の名前・メッセージ・HTTP ステータスだけを出し、画像の URL やトークンは出しません。
 - **設定が無いとき**: `LINE_ACCESS_TOKEN` や Cloudinary の設定が無い場合は、不足している変数名を警告して、保存だけを飛ばします。シークレットの登録とデプロイの順番に関係なく、従来の記録は続きます。
 
+### `receiveCheckinMessage`
+
+チェックイン用の LINE 公式アカウント（碧衣の世界観の上では観測ドローン「地写」）の Webhook を受け、外出先から送った位置情報・写真・テキストを Firestore の `checkin_logs` へ保存する HTTP 関数。保存した記録を碧衣の各モードが読む仕組みは、まだ無い。
+
+- 署名の検証は、地写のチャネルシークレット（`CHECKIN_LINE_CHANNEL_SECRET`）で行う
+- 送信者は `LINE_USER_ID` だけを受け付け、それ以外のメッセージは 403 を返す。グループ・複数人トークは無視する（`receiveLineMessage` と同じ）
+- 保存するのは、位置情報・テキスト・画像の3種のみ。それ以外のメッセージ（スタンプ・動画など）や、メッセージ以外のイベント（友だち追加の follow など）は、例外にせず読み飛ばして 200 を返す。地写では友だち追加の時点で follow イベントが届くため
+- 碧衣への言葉（`line_text`）としては扱わない。トリガー語の判定・EC2 の起動・フィードバックの振り分けは行わない
+- 受信の確認は返さない。地写からメッセージを送ることは一切ない
+- ログには種別と件数だけを出し、本文・座標・住所は出さない
+- 画像は `checkin_logs` へ記録した後に、`receiveLineMessage` と同じ処理で Cloudinary へ非公開で保存する。public_id は `line_checkin_<メッセージID>`（`src/lib/lineImageStore.ts` の `LINE_IMAGE_PUBLIC_ID_PREFIX.checkin`）。失敗時・設定が無いときの扱いも同じで、アクセストークンには `CHECKIN_LINE_ACCESS_TOKEN` を使う
+
+#### `checkin_logs` の形
+
+1メッセージを1ドキュメントとして保存します。`notes` / `image_logs` と同じ形を踏襲し、`get_firestore_docs --collection checkin_logs` でそのまま読めます。`notes` に混ぜないのは、日次の各モードが `notes` を日付範囲で全件読むため、チェックインの多い日に各モードの入力が膨らむのを避けるためです。
+
+| フィールド | 型 | 内容 |
+|---|---|---|
+| `date` | Timestamp | 送った日（JST の日付。`notes` と同じく UTC 0時で表す） |
+| `postedAt` | Timestamp | イベントの時刻（ミリ秒まで）。位置情報との紐づけと時刻判定の基準 |
+| `type` | string | `location` / `text` / `image`（このコレクションの中だけの区別。`notes` の `NOTE_TYPE` とは別系統） |
+| `description` | string | 種別ごとの中身を入れた JSON 文字列（下記） |
+| `createdAt` | Timestamp | 登録した日時 |
+
+```jsonc
+// location（title / address は付いていなければ省略）
+{"message_id":"…","latitude":35.62,"longitude":139.72,"title":"…","address":"…"}
+// text（quoted_message_id は引用返信したときだけ）
+{"message_id":"…","text":"…","quoted_message_id":"…"}
+// image（image_set は複数枚をまとめて送ったときだけ。index / total は LINE が付けたときだけ）
+{"message_id":"…","image_set":{"id":"…","index":1,"total":3}}
+```
+
+- 座標が欠けている・範囲外の位置情報、本文の無いテキスト、外部の URL を指す画像は保存しない
+- 位置情報と写真・テキストは別々の Webhook で届くため、受信時には紐づけない。紐づけは読み出す側で `postedAt` の順に並べて行う。そのための材料（ミリ秒までの時刻、メッセージ ID、引用元のメッセージ ID、`image_set`）を漏れなく残す
+- 画像の Cloudinary 上の名前はメッセージ ID から決まるため、保存先を `description` に持たない
+
+#### LINE 側の設定
+
+- 地写のチャネルは、碧衣と同じプロバイダーで作る。LINE のユーザー ID はプロバイダーごとに異なるため、同じプロバイダーなら `LINE_USER_ID` に碧衣と同じ値を使える（プロバイダーは作成後に変えられない）
+- Messaging API を有効にし、Webhook URL に `receiveCheckinMessage` の URL を設定して、Webhook の利用をオンにする
+- 応答メッセージ・あいさつメッセージをオフにする
+- グループ・複数人トークへの参加を許可しない
+- Webhook の再送は、既定の「無効」のままにする（有効にすると、同じメッセージが二重に保存されることがあるため）
+
 ## デプロイ
 
 `deploy.sh` を使ってデプロイします。
@@ -118,6 +173,7 @@ LINE 側のコンテンツは一定期間で削除され、`line_image` に残�
 ```bash
 cd functions
 ./deploy.sh receiveLineMessage
+./deploy.sh receiveCheckinMessage
 ```
 
 スクリプトは `src/<function_name>/` 配下の `.env.yaml`（環境変数）と `.secrets`（Secret Manager 参照）を自動検出して `gcloud functions deploy` コマンドに渡します。
@@ -148,6 +204,10 @@ npm --prefix functions run lock:regenerate
 
 ### 環境変数（`.env.yaml`）
 
+`.env.yaml` は関数ごとに `src/<function_name>/` へ置きます（コミットしない）。
+
+#### `receiveLineMessage`
+
 | 変数名 | 用途 |
 |---|---|
 | `LINE_USER_ID` | LINEのユーザーID |
@@ -157,7 +217,19 @@ npm --prefix functions run lock:regenerate
 | `CLOUDINARY_CLOUD_NAME` | 受け取った画像の保存先の Cloudinary の Cloud Name（ルート `.env` と同じ値） |
 | `CLOUDINARY_RECEIVED_IMAGE_ASSET_FOLDER` | 受け取った画像の保存フォルダ（任意。送信画像の `aoi_daily` とは分ける） |
 
+#### `receiveCheckinMessage`
+
+| 変数名 | 用途 |
+|---|---|
+| `LINE_USER_ID` | LINEのユーザーID（碧衣と同じプロバイダーのため、`receiveLineMessage` と同じ値） |
+| `CLOUDINARY_CLOUD_NAME` | 受け取った画像の保存先の Cloudinary の Cloud Name（ルート `.env` と同じ値） |
+| `CLOUDINARY_RECEIVED_IMAGE_ASSET_FOLDER` | 地写で受け取った画像の保存フォルダ（任意。碧衣で受け取った画像のフォルダとは分ける） |
+
+AWS 関係の変数は不要です（EC2 を起動しないため）。
+
 ### シークレット（`.secrets` / Secret Manager）
+
+#### `receiveLineMessage`
 
 | 変数名 | 用途 |
 |---|---|
@@ -168,9 +240,18 @@ npm --prefix functions run lock:regenerate
 | `CLOUDINARY_API_KEY` | 受け取った画像を Cloudinary へ保存するための API Key（ルート `.env` と同じ値） |
 | `CLOUDINARY_API_SECRET` | 受け取った画像を Cloudinary へ保存するための API Secret（ルート `.env` と同じ値） |
 
+#### `receiveCheckinMessage`
+
+| 変数名 | 用途 |
+|---|---|
+| `CHECKIN_LINE_CHANNEL_SECRET` | 地写の LINE 署名検証用チャンネルシークレット |
+| `CHECKIN_LINE_ACCESS_TOKEN` | 地写で受け取った画像を LINE から取得するためのチャネルアクセストークン（地写のチャネル） |
+| `CLOUDINARY_API_KEY` | `receiveLineMessage` と共用 |
+| `CLOUDINARY_API_SECRET` | `receiveLineMessage` と共用 |
+
 #### Secret Manager への登録
 
-`.secrets` で参照するシークレットは、**デプロイより前に** Secret Manager へ登録しておく必要があります。未登録のシークレットを参照すると、デプロイが失敗します。
+`.secrets` で参照するシークレットは、**デプロイより前に** Secret Manager へ登録しておく必要があります。未登録のシークレットを参照すると、デプロイが失敗します。`receiveCheckinMessage` を初めてデプロイする前には、`CHECKIN_LINE_CHANNEL_SECRET` と `CHECKIN_LINE_ACCESS_TOKEN` を新たに登録してください（Cloudinary の2つは登録済みのものを共用します）。
 
 - シークレットの名前は、`.secrets` の右辺（`ENV_VAR_NAME=SECRET_NAME:VERSION` の `SECRET_NAME`）に合わせる
 - 関数の実行サービスアカウント（既定では Compute Engine のデフォルトサービスアカウント）に、各シークレットの `roles/secretmanager.secretAccessor` を付与する。プロジェクト単位で付与済みなら不要

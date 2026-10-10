@@ -1,4 +1,4 @@
-/** notes の `date` 用。JST 基準で日付を揃え、UTC midnight として返す */
+/** Firestore の `date` 用。JST 基準で日付を揃え、UTC midnight として返す */
 export function startOfJstDay(base: Date): Date {
   const jstOffsetMs = 9 * 60 * 60 * 1000;
   const jst = new Date(base.getTime() + jstOffsetMs);

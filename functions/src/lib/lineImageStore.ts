@@ -4,20 +4,26 @@ import { v2 as cloudinary, type UploadApiOptions } from "cloudinary";
 /**
  * LINE で受け取った画像を、受信時に Cloudinary へ非公開で保存する。
  *
- * LINE 側のコンテンツは一定期間で削除され、`notes` の `line_image` に残るのはメッセージ ID だけのため、
- * 画像の実体を自前で持つために使う。
+ * LINE 側のコンテンツは一定期間で削除され、Firestore の記録（`notes` の `line_image`、`checkin_logs` の `image`）に
+ * 残るのはメッセージ ID だけのため、画像の実体を自前で持つために使う。
  *
  * 配信タイプは `authenticated`（原本も加工版も署名付き URL でしか取得できない）とする。
  * `private` は加工版が既定で公開のままで、それを塞ぐ Strict Transformations はアカウント全体に効き、
  * 送信画像のプレビュー URL（署名なしの縮小 URL）まで止めてしまうため使わない。
  *
- * public_id はメッセージ ID から決める。碧衣側の `src/line/download_image.ts` が同じ規則で組み立てて
- * 取得するため、Firestore の記録に保存先を持たせずに済む。
+ * public_id は、受けたチャネルの接頭辞とメッセージ ID から決める。碧衣側の `src/line/download_image.ts` が
+ * 同じ規則で組み立てて取得するため、Firestore の記録に保存先を持たせずに済む。
  */
 
-/** 受信したチャネルごとの public_id の接頭辞。`src/line/download_image.ts` の値と一致させる。 */
+/**
+ * 受信したチャネルごとの public_id の接頭辞。
+ *
+ * `aoi` は碧衣のチャネル。`src/line/download_image.ts` の値と一致させる。
+ * `checkin` はチェックイン用のチャネル（地写）。取得する側は、記録を読む仕組みとあわせて作る。
+ */
 export const LINE_IMAGE_PUBLIC_ID_PREFIX = {
   aoi: "line_aoi_",
+  checkin: "line_checkin_",
 } as const;
 
 export type LineImageChannel = keyof typeof LINE_IMAGE_PUBLIC_ID_PREFIX;

@@ -11,6 +11,13 @@ reviews:
       instructions: |
         レビューコメントと説明は日本語で書いてください。
         AGENTS.md の「Code Review Rules」と docs/agent/review-policy.md を読み、共通の重点観点・対象外・採否基準に従ってください。
+  # docstring の付与率は採否基準にしない（docs/agent/review-policy.md）
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+  finishing_touches:
+    docstrings:
+      enabled: false
   tools:
     # Oxlint (.oxlintrc.json) は Biome が無効の場合のみ動作するため無効化
     biome:

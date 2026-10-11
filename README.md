@@ -139,13 +139,13 @@ pnpm agent-config:check  # 正本と生成物の不一致を検出
 
 | 用語 | 意味するところ |
 |---|---|
-| アクティビティ | YAMAP の活動記録に限らず、Swarm のチェックイン、Google カレンダーの予定、Todoist のタスクなど「人間の活動全般」を対象に含めることを表す |
+| アクティビティ | YAMAP の活動記録に限らず、外出先から送るチェックインの記録、Google カレンダーの予定、Todoist のタスクなど「人間の活動全般」を対象に含めることを表す |
 | 駆動（Driven） | 受け身のチャットボットではなく、一日の時間軸やイベントの発生（登山開始・下山など）をトリガーに自律的に動作することを表す |
 | フレームワーク | データ収集 → 解析 → 出力（テキスト・画像）という一連のプロセスを、単一機能ではなく統合された「仕組み」として備えていることを表す |
 
 ### 特徴
 
-- 複数のサードパーティサービス（Google Calendar / Todoist / Swarm / YAMAP / OpenWeatherMap など）を横断的に集約する
+- 複数のサードパーティサービス（Google Calendar / Todoist / YAMAP / OpenWeatherMap など）と、LINE で送るチェックインの記録を横断的に集約する
 - 集約した情報を、人格（ペルソナ）を持ったエージェントが解釈し、メッセージ・画像として還元する
 - Firestore を用いてモード間で情報を引き継ぎ、前日の夜から翌朝への日跨ぎ引き継ぎ（`night_handover`）を含め、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
 - 上記のプロセス全体を、自律的なプロンプトフローとして実行する
@@ -179,7 +179,7 @@ lineai_aoi_profiles/
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
-│   ├── swarm/             # Swarm チェックイン取得
+│   ├── swarm/             # Swarm チェックイン取得（どのモードも参照しない。削除は issue #262）
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
@@ -324,12 +324,22 @@ lineai_aoi_profiles/
 | サービスURL | https://openweathermap.org/api |
 | スキル | `get_openweather_forecast` → [SKILL.md](.claude/skills/get_openweather_forecast/SKILL.md) |
 
+### チェックイン記録（LINE・地写）
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | LINE Messaging API（チェックイン用の LINE 公式アカウント。碧衣の世界観の上では観測ドローン「地写」） |
+| 役割 | ユーザーが外出先から送った位置情報・写真・テキストを行動履歴として読み込み、メッセージ構築のための情報収集を担う。暁（前日の振り返りのフォールバック）・望・小夜・帰灯・継灯・響の各モードが参照する |
+| 受信 | `functions/src/receiveCheckinMessage/` が Webhook を受け、1メッセージ=1ドキュメントで Firestore の `checkin_logs` へ保存する。画像は Cloudinary へ非公開で保存する（[functions/README.md](functions/README.md)） |
+| スキル | `get_checkins` → [SKILL.md](.claude/skills/get_checkins/SKILL.md)。写真は `download_line_image` に `--channel checkin` を付けて取得する |
+| 紐づけ | 位置情報1件を1件のチェックインとし、位置情報への引用返信のテキストは引用元へ、それ以外は直前の位置情報から10分以内に届いたテキスト・写真をその位置情報へ紐づける。受信時ではなく読み出し時に行う（`src/checkin/get_checkins.ts`）。10分の目安は、実データを見て見直す（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)） |
+
 ### Swarm API
 
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Swarm API |
-| 役割 | ユーザーの行動履歴（チェックイン履歴）を読み込み、メッセージ構築のための情報収集を担う |
+| 役割 | ユーザーの行動履歴（チェックイン履歴）の取得。**現在はどのモードも参照しない**（行動履歴は前節のチェックイン記録へ置き換えた）。スキル・実装・環境変数の削除は [issue #262](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/262) で行う |
 | サービスURL | https://location.foursquare.com/developer/ |
 | スキル | `get_swarm_checkins` → [SKILL.md](.claude/skills/get_swarm_checkins/SKILL.md) |
 

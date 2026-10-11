@@ -166,6 +166,7 @@ lineai_aoi_profiles/
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / scribe / talk / weekly）
 ├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／結星の投影画像）
 ├── src/                   # 各スキルの処理実装
+│   ├── checkin/           # チェックイン記録（checkin_logs）の取得と、位置情報へのテキスト・写真の紐づけ
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
 │   ├── codex/             # Codex CLI による生成物レビュー（画像プロンプト・SNS本文）
 │   ├── firebase/          # Firebase / Firestore アクセス
@@ -383,7 +384,7 @@ lineai_aoi_profiles/
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は headless では `send_daily_line.sh` が `src/firebase/put_log.ts` を、対話モードでは `run_aoi_daily` スキルが同スクリプトを呼んで書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。結星（`weekly`）モードは `send_daily_line.sh` と `run_aoi_weekly` スキルの両方で、実行前の確認と完了後の記録を行う。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯・響モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず、`review_image_feedback`（柱C）と、その週の「今日の一枚」を選ぶ結星モードだけが参照する。**綴葉モードの SNS レポート画像と、結星モードの投影画像は対象外**（構図を固定するため記録すべき抽選軸が無く、改善の宛先も `assets/image_guideline.md` ではない）。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
-| `checkin_logs` コレクション | チェックイン用の LINE 公式アカウント（地写）へ送った位置情報・テキスト・画像を、`receiveCheckinMessage` Webhook が1メッセージ=1ドキュメントで保存する専用コレクション（`type: location` / `text` / `image`）。現在はどのモードも参照しない。形状は [functions/README.md](functions/README.md) の「`checkin_logs` の形」を正とする |
+| `checkin_logs` コレクション | チェックイン用の LINE 公式アカウント（地写）へ送った位置情報・テキスト・画像を、`receiveCheckinMessage` Webhook が1メッセージ=1ドキュメントで保存する専用コレクション（`type: location` / `text` / `image`）。`notes` には混ぜず、`get_checkins` スキルが位置情報ごとにまとめて読み出す。形状は [functions/README.md](functions/README.md) の「`checkin_logs` の形」を正とする |
 | `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる。**マーカーを記録するのは取得期間に `image_logs` があり、かつ `period_to` が前回から進んだ場合だけ**（ログ0件や締め切り据え置きでは記録しない） |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）

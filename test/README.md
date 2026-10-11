@@ -16,6 +16,8 @@ GitHub へプッシュすると `.github/workflows/test.yml` が同じ `pnpm tes
 
 ```text
 test/
+├── checkin/
+│   └── get_checkins.test.ts   # チェックイン記録の読み取り・位置情報への紐づけ（引用返信・10分以内・複数枚の組）・JST 範囲計算
 ├── cloudinary/
 │   └── upload_image.test.ts   # プレビュー縮小計算
 ├── codex/
@@ -72,7 +74,7 @@ test/
 ```
 
 現在の対象は、YAMAP の埋め込み JSON を使うパース・整形、Google Calendar の日付変換、
-Firestore / Todoist / Twitter / Cloudinary / LINE / Swarm / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
+Firestore（チェックイン記録の紐づけを含む） / Todoist / Twitter / Cloudinary / LINE / Swarm / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
 
@@ -101,6 +103,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/yamap/fetch_activity.ts`
 - `src/google_calendar/get_events.ts`
 - `src/firebase/get_docs.ts`
+- `src/checkin/get_checkins.ts`
 - `src/firebase/noteTypes.ts`
 - `src/firebase/runLogModes.ts`
 - `src/todoist/put_task.ts`

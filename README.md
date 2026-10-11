@@ -274,7 +274,7 @@ lineai_aoi_profiles/
 | 送信仕様 | Push Message の `messages` に最大5件まで同梱可能。[`send_line_image`](.claude/skills/send_line_image/SKILL.md) / [`send_line_audio`](.claude/skills/send_line_audio/SKILL.md) はメディア→テキストの順で**1リクエスト**にまとめて送信。[`send_line_text`](.claude/skills/send_line_text/SKILL.md) はテキスト単独送信用 |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 | 送信失敗時 | Push 失敗（429・クオータ等）時は [LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い `put_firestore_doc` で `type: line_undelivered` に退避 |
-| 画像取得の期限 | 受け取った画像は、Webhook が受信時に Cloudinary へ非公開（`authenticated`）で保存する。[`download_line_image`](.claude/skills/download_line_image/SKILL.md) はまず Cloudinary から取得し、無ければ LINE から取得する。`notes` の `line_image` に残るのはメッセージIDだけで、Cloudinary 上の名前はメッセージIDから決まる。Cloudinary に無い画像（保存の仕組みより前に届いたもの・保存に失敗したもの）は LINE 側の保存期間内しか取得できず、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
+| 画像取得の期限 | 受け取った画像は、Webhook が受信時に Cloudinary へ非公開（`authenticated`）で保存する（チェックイン用アカウントの画像も同じ。取得時は `--channel checkin` を付ける）。[`download_line_image`](.claude/skills/download_line_image/SKILL.md) はまず Cloudinary から取得し、無ければ LINE から取得する。`notes` の `line_image` に残るのはメッセージIDだけで、Cloudinary 上の名前はメッセージIDから決まる。Cloudinary に無い画像（保存の仕組みより前に届いたもの・保存に失敗したもの）は LINE 側の保存期間内しか取得できず、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
 
 ### Google Calendar API
 

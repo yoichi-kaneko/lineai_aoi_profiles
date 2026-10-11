@@ -3,12 +3,13 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  AOI_LINE_IMAGE_PUBLIC_ID_PREFIX,
+  LINE_IMAGE_CHANNELS,
   buildLineImagePublicId,
   buildSignedImageUrl,
   fetchLineImage,
   isValidMessageId,
   normalizeContentType,
+  parseArgs,
   resolveCloudinaryCredentials,
   type FetchedImage,
 } from "../../src/line/download_image.js";
@@ -27,14 +28,20 @@ describe("line/download_image", () => {
       expect(buildLineImagePublicId("123456789012345678")).toBe("line_aoi_123456789012345678");
     });
 
-    it("保存する側（functions）の接頭辞と一致している", () => {
+    it("チェックイン用のチャネルを指定すると、その接頭辞を付ける", () => {
+      expect(buildLineImagePublicId("123456789012345678", "checkin")).toBe(
+        "line_checkin_123456789012345678",
+      );
+    });
+
+    it.each(["aoi", "checkin"] as const)("保存する側（functions）の %s の接頭辞と一致している", (channel) => {
       // functions は別パッケージのため import せず、定義の文字列を突き合わせる
       const source = readFileSync(
         resolve(__dirname, "../../functions/src/lib/lineImageStore.ts"),
         "utf8",
       );
-      const match = source.match(/aoi:\s*"([^"]+)"/);
-      expect(match?.[1]).toBe(AOI_LINE_IMAGE_PUBLIC_ID_PREFIX);
+      const match = source.match(new RegExp(`${channel}:\\s*"([^"]+)"`));
+      expect(match?.[1]).toBe(LINE_IMAGE_CHANNELS[channel].publicIdPrefix);
     });
 
     it("ファイル名と public_id に使えない messageId を拒否する", () => {
@@ -42,6 +49,23 @@ describe("line/download_image", () => {
       expect(isValidMessageId("")).toBe(false);
       expect(isValidMessageId("../.env")).toBe(false);
       expect(isValidMessageId("1".repeat(65))).toBe(false);
+    });
+  });
+
+  describe("parseArgs", () => {
+    it("チャネルの指定が無ければ碧衣のチャネルにする", () => {
+      expect(parseArgs(["123"])).toEqual({ messageId: "123", channel: "aoi" });
+    });
+
+    it("--channel をどちらの書き方でも受け付ける", () => {
+      expect(parseArgs(["123", "--channel", "checkin"])).toEqual({ messageId: "123", channel: "checkin" });
+      expect(parseArgs(["--channel=checkin", "123"])).toEqual({ messageId: "123", channel: "checkin" });
+    });
+
+    it("知らないチャネルは拒否する", () => {
+      expect(() => parseArgs(["123", "--channel", "swarm"])).toThrow("--channel");
+      expect(() => parseArgs(["123", "--channel"])).toThrow("--channel");
+      expect(() => parseArgs(["123", "--channel", "toString"])).toThrow("--channel");
     });
   });
 

@@ -45,7 +45,7 @@ test/
 │   ├── embed_qr.test.ts       # QRコード埋め込みの引数解釈・アンカー座標・パス検証
 │   └── plot_locations.test.ts # 点描画の入力検証・投影・自動フィット・PNG の画素・パス検証
 ├── line/
-│   └── download_image.test.ts # 受け取った画像の取得先の切り替え（Cloudinary → LINE）・public_id の組み立てと functions 側との一致・署名付き URL
+│   └── download_image.test.ts # 受け取った画像の取得先の切り替え（Cloudinary → LINE）・チャネルの指定・public_id の組み立てと functions 側との一致・署名付き URL
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
 ├── shell/

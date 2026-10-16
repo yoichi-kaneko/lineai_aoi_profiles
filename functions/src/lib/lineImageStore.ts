@@ -18,8 +18,8 @@ import { v2 as cloudinary, type UploadApiOptions } from "cloudinary";
 /**
  * 受信したチャネルごとの public_id の接頭辞。
  *
- * `aoi` は碧衣のチャネル。`src/line/download_image.ts` の値と一致させる。
- * `checkin` はチェックイン用のチャネル（地写）。取得する側は、記録を読む仕組みとあわせて作る。
+ * `aoi` は碧衣のチャネル、`checkin` はチェックイン用のチャネル（地写）。
+ * どちらも `src/line/download_image.ts` の `LINE_IMAGE_CHANNELS` の値と一致させる。
  */
 export const LINE_IMAGE_PUBLIC_ID_PREFIX = {
   aoi: "line_aoi_",

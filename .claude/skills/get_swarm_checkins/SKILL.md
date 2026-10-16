@@ -1,11 +1,13 @@
 ---
 name: get_swarm_checkins
-description: 指定した日付範囲のSwarm（Foursquare）チェックインを取得する。環境変数で設定されたOAuthトークンを使用し、場所・コメント・写真URLを含むチェックイン一覧をJSON形式で返す。
+description: 指定した日付範囲のSwarm（Foursquare）チェックインを取得する。環境変数で設定されたOAuthトークンを使用し、場所・コメント・写真URLを含むチェックイン一覧をJSON形式で返す。現在はどのモードも使用しない（行動履歴の取得は get_checkins を使う）。
 ---
 
 # get_swarm_checkins
 
 環境変数で指定されたSwarm OAuthトークンを使って、指定日時範囲のチェックインを取得するスタンドアロン CLI スクリプトです。
+
+> **現在はどのモードも使用しません。** 碧衣の各モードが行動履歴として読むのは、LINE で送るチェックインの記録です。[get_checkins](../get_checkins/SKILL.md) を使ってください。
 
 ## 概要
 

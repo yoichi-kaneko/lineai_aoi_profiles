@@ -139,13 +139,13 @@ pnpm agent-config:check  # 正本と生成物の不一致を検出
 
 | 用語 | 意味するところ |
 |---|---|
-| アクティビティ | YAMAP の活動記録に限らず、Swarm のチェックイン、Google カレンダーの予定、Todoist のタスクなど「人間の活動全般」を対象に含めることを表す |
+| アクティビティ | YAMAP の活動記録に限らず、外出先から送るチェックインの記録、Google カレンダーの予定、Todoist のタスクなど「人間の活動全般」を対象に含めることを表す |
 | 駆動（Driven） | 受け身のチャットボットではなく、一日の時間軸やイベントの発生（登山開始・下山など）をトリガーに自律的に動作することを表す |
 | フレームワーク | データ収集 → 解析 → 出力（テキスト・画像）という一連のプロセスを、単一機能ではなく統合された「仕組み」として備えていることを表す |
 
 ### 特徴
 
-- 複数のサードパーティサービス（Google Calendar / Todoist / Swarm / YAMAP / OpenWeatherMap など）を横断的に集約する
+- 複数のサードパーティサービス（Google Calendar / Todoist / YAMAP / OpenWeatherMap など）と、LINE で送るチェックインの記録を横断的に集約する
 - 集約した情報を、人格（ペルソナ）を持ったエージェントが解釈し、メッセージ・画像として還元する
 - Firestore を用いてモード間で情報を引き継ぎ、前日の夜から翌朝への日跨ぎ引き継ぎ（`night_handover`）を含め、ユーザーの移動距離や予定の性質から「明日の重要度」を判定するなど、生活に密着した動的なコンテキスト解析を行う
 - 上記のプロセス全体を、自律的なプロンプトフローとして実行する
@@ -166,6 +166,7 @@ lineai_aoi_profiles/
 ├── modes/                 # モード別設定（morning / noon / night / up_mountain / stay_mountain / off_mountain / scribe / talk / weekly）
 ├── assets/                # 画像素材・生成ガイドライン（画像／山行構図／SNS投稿画像／結星の投影画像）
 ├── src/                   # 各スキルの処理実装
+│   ├── checkin/           # チェックイン記録（checkin_logs）の取得と、位置情報へのテキスト・写真の紐づけ
 │   ├── cloudinary/        # Cloudinary 画像・音声アップロード
 │   ├── codex/             # Codex CLI による生成物レビュー（画像プロンプト・SNS本文）
 │   ├── firebase/          # Firebase / Firestore アクセス
@@ -178,7 +179,7 @@ lineai_aoi_profiles/
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
-│   ├── swarm/             # Swarm チェックイン取得
+│   ├── swarm/             # Swarm チェックイン取得（どのモードも参照しない。削除は issue #262）
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
@@ -274,7 +275,7 @@ lineai_aoi_profiles/
 | 送信仕様 | Push Message の `messages` に最大5件まで同梱可能。[`send_line_image`](.claude/skills/send_line_image/SKILL.md) / [`send_line_audio`](.claude/skills/send_line_audio/SKILL.md) はメディア→テキストの順で**1リクエスト**にまとめて送信。[`send_line_text`](.claude/skills/send_line_text/SKILL.md) はテキスト単独送信用 |
 | 送信先指定 | `send_line_*` は `--destination user\|group\|both` に対応。`group` / `both` では `LINE_DESTINATION_GROUP_ID` を使用 |
 | 送信失敗時 | Push 失敗（429・クオータ等）時は [LINE 送信失敗時の Firestore 退避](.claude/docs/line_send_fallback.md) に従い `put_firestore_doc` で `type: line_undelivered` に退避 |
-| 画像取得の期限 | 受け取った画像は、Webhook が受信時に Cloudinary へ非公開（`authenticated`）で保存する。[`download_line_image`](.claude/skills/download_line_image/SKILL.md) はまず Cloudinary から取得し、無ければ LINE から取得する。`notes` の `line_image` に残るのはメッセージIDだけで、Cloudinary 上の名前はメッセージIDから決まる。Cloudinary に無い画像（保存の仕組みより前に届いたもの・保存に失敗したもの）は LINE 側の保存期間内しか取得できず、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
+| 画像取得の期限 | 受け取った画像は、Webhook が受信時に Cloudinary へ非公開（`authenticated`）で保存する（チェックイン用アカウントの画像も同じ。取得時は `--channel checkin` を付ける）。[`download_line_image`](.claude/skills/download_line_image/SKILL.md) はまず Cloudinary から取得し、無ければ LINE から取得する。`notes` の `line_image` に残るのはメッセージIDだけで、Cloudinary 上の名前はメッセージIDから決まる。Cloudinary に無い画像（保存の仕組みより前に届いたもの・保存に失敗したもの）は LINE 側の保存期間内しか取得できず、期間を過ぎた過去日の画像は取得できない。登山日から日を置いて動く綴葉モードはこれを前提とし、写真から読み取った内容は帰灯・継灯モードの記録に言葉として残す |
 
 ### Google Calendar API
 
@@ -323,12 +324,22 @@ lineai_aoi_profiles/
 | サービスURL | https://openweathermap.org/api |
 | スキル | `get_openweather_forecast` → [SKILL.md](.claude/skills/get_openweather_forecast/SKILL.md) |
 
+### チェックイン記録（LINE・地写）
+
+| 項目 | 内容 |
+|------|------|
+| サービス名 | LINE Messaging API（チェックイン用の LINE 公式アカウント。碧衣の世界観の上では観測ドローン「地写」） |
+| 役割 | ユーザーが外出先から送った位置情報・写真・テキストを行動履歴として読み込み、メッセージ構築のための情報収集を担う。暁（前日の振り返りのフォールバック）・望・小夜・帰灯・継灯・響の各モードが参照する |
+| 受信 | `functions/src/receiveCheckinMessage/` が Webhook を受け、1メッセージ=1ドキュメントで Firestore の `checkin_logs` へ保存する。画像は Cloudinary へ非公開で保存する（[functions/README.md](functions/README.md)） |
+| スキル | `get_checkins` → [SKILL.md](.claude/skills/get_checkins/SKILL.md)。写真は `download_line_image` に `--channel checkin` を付けて取得する |
+| 紐づけ | 位置情報1件を1件のチェックインとし、位置情報への引用返信のテキストは引用元へ、それ以外は直前の位置情報から10分以内に届いたテキスト・写真をその位置情報へ紐づける。受信時ではなく読み出し時に行う（`src/checkin/get_checkins.ts`）。10分の目安は、実データを見て見直す（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)） |
+
 ### Swarm API
 
 | 項目 | 内容 |
 |------|------|
 | サービス名 | Swarm API |
-| 役割 | ユーザーの行動履歴（チェックイン履歴）を読み込み、メッセージ構築のための情報収集を担う |
+| 役割 | ユーザーの行動履歴（チェックイン履歴）の取得。**現在はどのモードも参照しない**（行動履歴は前節のチェックイン記録へ置き換えた）。スキル・実装・環境変数の削除は [issue #262](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/262) で行う |
 | サービスURL | https://location.foursquare.com/developer/ |
 | スキル | `get_swarm_checkins` → [SKILL.md](.claude/skills/get_swarm_checkins/SKILL.md) |
 
@@ -383,7 +394,7 @@ lineai_aoi_profiles/
 | `run_logs` コレクション | `morning` / `noon` / `night` の各モード実行後に保存されるログ。`date`（Timestamp）・`mode`（string）・`createdAt`（Timestamp）の3フィールドを持つ。`send_daily_line.sh` 実行時に `src/firebase/has_log.ts` で参照し、当日分が存在する場合はスキップする（二重実行防止）。実行後は headless では `send_daily_line.sh` が `src/firebase/put_log.ts` を、対話モードでは `run_aoi_daily` スキルが同スクリプトを呼んで書き込む。綴葉（`scribe`）モードも `run_aoi_scribe` スキル完了時に記録するが、手動起動のため `send_daily_line.sh` の二重実行チェックの対象ではない。結星（`weekly`）モードは `send_daily_line.sh` と `run_aoi_weekly` スキルの両方で、実行前の確認と完了後の記録を行う。許可される `mode` 値は `src/firebase/runLogModes.ts` の `RUN_LOG_MODE` を正とする |
 | `image_logs` コレクション | 小夜・帰灯・響モードが画像生成直後に1枚=1ドキュメント記録する専用コレクション（`type: image_log`）。構図・情景の偏り検知の客観的土台で、日々の各モードのコンテキストには流入させず、`review_image_feedback`（柱C）と、その週の「今日の一枚」を選ぶ結星モードだけが参照する。**綴葉モードの SNS レポート画像と、結星モードの投影画像は対象外**（構図を固定するため記録すべき抽選軸が無く、改善の宛先も `assets/image_guideline.md` ではない）。形状は [image_log_schema.md](.claude/docs/image_log_schema.md) を正とする |
 | `image_feedback` コレクション | ユーザーが LINE 返信（`評価` / `傾向`）で寄せた画像フィードバックを `receiveLineMessage` Webhook が振り分けて保存する専用コレクション（`type: image_feedback`）。形状・パース仕様は [image_feedback_schema.md](.claude/docs/image_feedback_schema.md) を正とする |
-| `checkin_logs` コレクション | チェックイン用の LINE 公式アカウント（地写）へ送った位置情報・テキスト・画像を、`receiveCheckinMessage` Webhook が1メッセージ=1ドキュメントで保存する専用コレクション（`type: location` / `text` / `image`）。現在はどのモードも参照しない。形状は [functions/README.md](functions/README.md) の「`checkin_logs` の形」を正とする |
+| `checkin_logs` コレクション | チェックイン用の LINE 公式アカウント（地写）へ送った位置情報・テキスト・画像を、`receiveCheckinMessage` Webhook が1メッセージ=1ドキュメントで保存する専用コレクション（`type: location` / `text` / `image`）。`notes` には混ぜず、`get_checkins` スキルが位置情報ごとにまとめて読み出す。形状は [functions/README.md](functions/README.md) の「`checkin_logs` の形」を正とする |
 | `image_feedback_reviews` コレクション | `review_image_feedback`（柱C）が1〜3週間サイクルのレビュー完了時に記録する区切りマーカー（`type: review_marker`）。`period_from` / `period_to` 等を保持し、次サイクルの起点（dateFrom = `period_to` の翌日）に使う。`period_to` は**レビュー実施日ではなく、評価が届いている連続区間の末尾**（実際に集計した末日は `analyzed_to` に別途記録する）。フィードバックは評価対象画像の日付で保存されるため、実施日で締めると未評価のまま閉じた区間へ後から評価を書いても拾えなくなる。**マーカーを記録するのは取得期間に `image_logs` があり、かつ `period_to` が前回から進んだ場合だけ**（ログ0件や締め切り据え置きでは記録しない） |
 
 #### 画像生成フィードバック・サイクル（image_logs / image_feedback）

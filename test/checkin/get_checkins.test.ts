@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  FETCH_LOOKAHEAD_MS,
   LINK_WINDOW_MS,
   groupCheckins,
   parseCheckinLogDoc,
+  resolveFetchEndMs,
   resolveJstRange,
   toJstIsoString,
   type CheckinLogRecord,
@@ -63,6 +65,13 @@ describe("checkin/get_checkins", () => {
       expect(() => resolveJstRange("2026-02-30", "2026-02-30")).toThrow("YYYY-MM-DD");
       expect(() => resolveJstRange(undefined, "2026-10-11")).toThrow("YYYY-MM-DD");
       expect(() => resolveJstRange("2026-10-12", "2026-10-11")).toThrow("以前");
+    });
+  });
+
+  describe("resolveFetchEndMs", () => {
+    it("範囲の終わりから FETCH_LOOKAHEAD_MS 先までを返す（通常の紐づけ窓より長い）", () => {
+      expect(resolveFetchEndMs(range)).toBe(range.endMs + FETCH_LOOKAHEAD_MS);
+      expect(FETCH_LOOKAHEAD_MS).toBeGreaterThan(LINK_WINDOW_MS);
     });
   });
 
@@ -221,6 +230,18 @@ describe("checkin/get_checkins", () => {
       expect(checkins.map((c) => c.message_id)).toEqual(["1"]);
       expect(checkins[0].photos.map((p) => p.message_id)).toEqual(["2"]);
       expect(checkins[0].photos[0].posted_at).toBe("2026-10-12T00:03:00+09:00");
+      expect(unlinked).toEqual([]);
+    });
+
+    it("範囲の終わりから10分を超えた引用返信も、範囲内の位置情報へ紐づける", () => {
+      // 23:55 JST の位置情報へ、翌日 00:20 JST に引用返信（通常の紐づけ窓外）
+      const nearEnd = (range.endMs - BASE) / MINUTE - 5;
+      const { checkins, unlinked } = groupCheckins(
+        [location("1", nearEnd), text("2", nearEnd + 25, "1")],
+        range,
+      );
+      expect(checkins[0].comments.map((c) => c.message_id)).toEqual(["2"]);
+      expect(checkins[0].comments[0].posted_at).toBe("2026-10-12T00:20:00+09:00");
       expect(unlinked).toEqual([]);
     });
 

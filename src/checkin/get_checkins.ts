@@ -25,6 +25,14 @@ export const LINK_WINDOW_MS = 10 * 60 * 1000;
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * 範囲の終わりより後まで Firestore から読む長さ。
+ * 通常の紐づけは {@link LINK_WINDOW_MS} だが、位置情報への引用返信は時間によらず紐づけるため、
+ * 翌日に届いた引用返信も取れるよう1日分伸ばす（`quoted_message_id` は description 内にあり、
+ * Firestore では引用元 ID で絞れない）。
+ */
+export const FETCH_LOOKAHEAD_MS = DAY_MS;
+
 interface ImageSet {
   id: string;
   index?: number;
@@ -335,6 +343,11 @@ export function resolveJstRange(startDate: string | undefined, endDate: string |
   };
 }
 
+/** Firestore 取得の上限（含まない）。範囲の終わりに {@link FETCH_LOOKAHEAD_MS} を足す。 */
+export function resolveFetchEndMs(range: CheckinRange): number {
+  return range.endMs + FETCH_LOOKAHEAD_MS;
+}
+
 async function main() {
   const [startDate, endDate] = process.argv.slice(2);
 
@@ -350,12 +363,12 @@ async function main() {
 
   const db = initFirestore();
 
-  // 範囲の終わりをまたいで届いたテキスト・写真も紐づけられるよう、終わりは紐づけの時間だけ広げて取る
+  // 範囲の終わりをまたいで届いたテキスト・写真（10分以内の紐づけと、翌日までの引用返信）も取れるよう伸ばす
   const snapshot = await withFirestoreTimeout(
     db
       .collection(CHECKIN_COLLECTION)
       .where("postedAt", ">=", Timestamp.fromMillis(range.startMs))
-      .where("postedAt", "<", Timestamp.fromMillis(range.endMs + LINK_WINDOW_MS))
+      .where("postedAt", "<", Timestamp.fromMillis(resolveFetchEndMs(range)))
       .get(),
     `コレクション ${CHECKIN_COLLECTION} の取得`,
     "read",

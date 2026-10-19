@@ -18,10 +18,25 @@ export const CONTENT_TYPE_TO_EXT: Record<string, string> = {
 };
 
 /**
- * 受信時に Cloudinary へ保存した碧衣宛の画像の public_id の接頭辞。
- * 保存する側（`functions/src/lib/lineImageStore.ts` の `LINE_IMAGE_PUBLIC_ID_PREFIX.aoi`）と一致させる。
+ * 画像を受け取ったチャネルごとの設定。
+ *
+ * - `aoi`: 碧衣のチャネル（`line_image` の画像）
+ * - `checkin`: チェックイン用のチャネル（地写。`checkin_logs` の画像）
+ *
+ * `publicIdPrefix` は受信時に Cloudinary へ保存した画像の public_id の接頭辞で、保存する側
+ * （`functions/src/lib/lineImageStore.ts` の `LINE_IMAGE_PUBLIC_ID_PREFIX`）と一致させる。
+ * `accessTokenEnvName` は、Cloudinary に無いときに LINE から取得するためのアクセストークンの変数名。
  */
-export const AOI_LINE_IMAGE_PUBLIC_ID_PREFIX = "line_aoi_";
+export const LINE_IMAGE_CHANNELS = {
+  aoi: { publicIdPrefix: "line_aoi_", accessTokenEnvName: "LINE_ACCESS_TOKEN" },
+  checkin: { publicIdPrefix: "line_checkin_", accessTokenEnvName: "CHECKIN_LINE_ACCESS_TOKEN" },
+} as const;
+
+export type LineImageChannel = keyof typeof LINE_IMAGE_CHANNELS;
+
+function isLineImageChannel(value: string): value is LineImageChannel {
+  return Object.hasOwn(LINE_IMAGE_CHANNELS, value);
+}
 
 /** LINE のメッセージ ID は数字列。保存先のファイル名と public_id に使うため、使える文字を限る。 */
 const MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -45,8 +60,35 @@ export function isValidMessageId(messageId: string): boolean {
   return MESSAGE_ID_PATTERN.test(messageId);
 }
 
-export function buildLineImagePublicId(messageId: string): string {
-  return `${AOI_LINE_IMAGE_PUBLIC_ID_PREFIX}${messageId}`;
+export function buildLineImagePublicId(messageId: string, channel: LineImageChannel = "aoi"): string {
+  return `${LINE_IMAGE_CHANNELS[channel].publicIdPrefix}${messageId}`;
+}
+
+/**
+ * コマンドライン引数から messageId とチャネルを取り出す。
+ * チャネルは `--channel checkin` / `--channel=checkin` で指定し、省略時は碧衣のチャネル（`aoi`）。
+ */
+export function parseArgs(argv: string[]): { messageId: string | undefined; channel: LineImageChannel } {
+  const positionals: string[] = [];
+  let channel: string = "aoi";
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--channel") {
+      channel = argv[++i] ?? "";
+    } else if (arg.startsWith("--channel=")) {
+      channel = arg.slice("--channel=".length);
+    } else {
+      positionals.push(arg);
+    }
+  }
+
+  if (!isLineImageChannel(channel)) {
+    throw new Error(
+      `--channel には ${Object.keys(LINE_IMAGE_CHANNELS).join(" / ")} のいずれかを指定してください`,
+    );
+  }
+  return { messageId: positionals[0], channel };
 }
 
 /** `image/jpeg; charset=...` のような値から MIME タイプだけを取り出す。 */
@@ -85,9 +127,10 @@ export function buildSignedImageUrl(publicId: string, credentials: CloudinaryCre
 /** Cloudinary から取得する。保存されていなければ `null`、それ以外の失敗は例外を投げる。 */
 async function fetchFromCloudinary(
   messageId: string,
+  channel: LineImageChannel,
   credentials: CloudinaryCredentials,
 ): Promise<FetchedImage | null> {
-  const url = buildSignedImageUrl(buildLineImagePublicId(messageId), credentials);
+  const url = buildSignedImageUrl(buildLineImagePublicId(messageId, channel), credentials);
   const response = await fetch(url, { signal: AbortSignal.timeout(CLOUDINARY_FETCH_TIMEOUT_MS) });
   if (response.status === 404) {
     return null;
@@ -110,10 +153,11 @@ async function readableToBuffer(readable: Readable): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
-async function fetchFromLine(messageId: string): Promise<FetchedImage> {
-  const token = process.env.LINE_ACCESS_TOKEN;
+async function fetchFromLine(messageId: string, channel: LineImageChannel): Promise<FetchedImage> {
+  const tokenEnvName = LINE_IMAGE_CHANNELS[channel].accessTokenEnvName;
+  const token = process.env[tokenEnvName];
   if (!token) {
-    throw new Error("環境変数 LINE_ACCESS_TOKEN が設定されていません");
+    throw new Error(`環境変数 ${tokenEnvName} が設定されていません`);
   }
 
   const client = new messagingApi.MessagingApiBlobClient({ channelAccessToken: token });
@@ -162,12 +206,25 @@ export async function fetchLineImage(
   return { source: "line", image: await deps.fromLine(messageId) };
 }
 
+function printUsage() {
+  console.error("使用方法: npx tsx src/line/download_image.ts <messageId> [--channel aoi|checkin]");
+  console.error("例: npx tsx src/line/download_image.ts \"123456789\"");
+  console.error("例: npx tsx src/line/download_image.ts \"123456789\" --channel checkin");
+}
+
 async function main() {
-  const messageId = process.argv[2];
+  let messageId: string | undefined;
+  let channel: LineImageChannel;
+  try {
+    ({ messageId, channel } = parseArgs(process.argv.slice(2)));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    printUsage();
+    process.exit(1);
+  }
 
   if (!messageId) {
-    console.error("使用方法: npx tsx src/line/download_image.ts <messageId>");
-    console.error("例: npx tsx src/line/download_image.ts \"123456789\"");
+    printUsage();
     process.exit(1);
   }
 
@@ -178,8 +235,8 @@ async function main() {
 
   const credentials = resolveCloudinaryCredentials(process.env);
   const { source, image } = await fetchLineImage(messageId, {
-    fromCloudinary: credentials ? (id) => fetchFromCloudinary(id, credentials) : null,
-    fromLine: fetchFromLine,
+    fromCloudinary: credentials ? (id) => fetchFromCloudinary(id, channel, credentials) : null,
+    fromLine: (id) => fetchFromLine(id, channel),
   });
 
   const { contentType } = image;

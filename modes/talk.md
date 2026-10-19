@@ -50,7 +50,7 @@
 | 情報源 | スキル | 使う場面 |
 |---|---|---|
 | 予定 | `get_google_calendar_events` | 予定・行き先・段取りが関わる依頼 |
-| 行動履歴 | `get_swarm_checkins` | 「どこにいたか」「何をしていたか」が関わる依頼 |
+| 行動履歴 | `get_checkins` | 「どこにいたか」「何をしていたか」が関わる依頼 |
 | タスク | `get_todoist_tasks` / `get_todoist_completed_tasks` | やるべきこと・終えたことが関わる依頼 |
 | 天気 | `get_openweather_forecast` | 天候・コンディションが関わる依頼（ステップ4の**天気**を参照） |
 | 山行の計画・記録 | `fetch_yamap_plan` / `fetch_yamap_activity` | 依頼に該当するURLが含まれる場合 |

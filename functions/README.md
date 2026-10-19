@@ -123,7 +123,7 @@ LINE 側のコンテンツは一定期間で削除され、`line_image` に残�
 
 ### `receiveCheckinMessage`
 
-チェックイン用の LINE 公式アカウント（碧衣の世界観の上では観測ドローン「地写」）の Webhook を受け、外出先から送った位置情報・写真・テキストを Firestore の `checkin_logs` へ保存する HTTP 関数。保存した記録を碧衣の各モードが読む仕組みは、まだ無い。
+チェックイン用の LINE 公式アカウント（碧衣の世界観の上では観測ドローン「地写」）の Webhook を受け、外出先から送った位置情報・写真・テキストを Firestore の `checkin_logs` へ保存する HTTP 関数。保存した記録は、碧衣側の `get_checkins` スキル（[../src/checkin/get_checkins.ts](../src/checkin/get_checkins.ts)）が位置情報ごとにまとめて読み出す。
 
 - 署名の検証は、地写のチャネルシークレット（`CHECKIN_LINE_CHANNEL_SECRET`）で行う
 - 送信者は `LINE_USER_ID` だけを受け付け、それ以外のメッセージは 403 を返す。グループ・複数人トークは無視する（`receiveLineMessage` と同じ）
@@ -131,7 +131,7 @@ LINE 側のコンテンツは一定期間で削除され、`line_image` に残�
 - 碧衣への言葉（`line_text`）としては扱わない。トリガー語の判定・EC2 の起動・フィードバックの振り分けは行わない
 - 受信の確認は返さない。地写からメッセージを送ることは一切ない
 - ログには種別と件数だけを出し、本文・座標・住所は出さない
-- 画像は `checkin_logs` へ記録した後に、`receiveLineMessage` と同じ処理で Cloudinary へ非公開で保存する。public_id は `line_checkin_<メッセージID>`（`src/lib/lineImageStore.ts` の `LINE_IMAGE_PUBLIC_ID_PREFIX.checkin`）。失敗時・設定が無いときの扱いも同じで、アクセストークンには `CHECKIN_LINE_ACCESS_TOKEN` を使う
+- 画像は `checkin_logs` へ記録した後に、`receiveLineMessage` と同じ処理で Cloudinary へ非公開で保存する。public_id は `line_checkin_<メッセージID>`（`src/lib/lineImageStore.ts` の `LINE_IMAGE_PUBLIC_ID_PREFIX.checkin`）で、碧衣側の `download_line_image` が `--channel checkin` の指定で同じ規則で組み立てて取得する（接頭辞の一致はルートの `test/line/download_image.test.ts` が検査する）。失敗時・設定が無いときの扱いも同じで、アクセストークンには `CHECKIN_LINE_ACCESS_TOKEN` を使う
 
 #### `checkin_logs` の形
 
@@ -155,7 +155,7 @@ LINE 側のコンテンツは一定期間で削除され、`line_image` に残�
 ```
 
 - 座標が欠けている・範囲外の位置情報、本文の無いテキスト、外部の URL を指す画像は保存しない
-- 位置情報と写真・テキストは別々の Webhook で届くため、受信時には紐づけない。紐づけは読み出す側で `postedAt` の順に並べて行う。そのための材料（ミリ秒までの時刻、メッセージ ID、引用元のメッセージ ID、`image_set`）を漏れなく残す
+- 位置情報と写真・テキストは別々の Webhook で届くため、受信時には紐づけない。紐づけは読み出す側（`get_checkins`）で `postedAt` の順に並べて行う。そのための材料（ミリ秒までの時刻、メッセージ ID、引用元のメッセージ ID、`image_set`）を漏れなく残す
 - 画像の Cloudinary 上の名前はメッセージ ID から決まるため、保存先を `description` に持たない
 
 #### LINE 側の設定

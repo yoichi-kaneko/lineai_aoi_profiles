@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@doist/todoist-sdk':
-        specifier: 15.7.0
-        version: 15.7.0(type-fest@5.10.0)
+        specifier: 15.8.0
+        version: 15.8.0(type-fest@5.10.0)
       '@google/genai':
         specifier: 2.30.0
         version: 2.30.0
@@ -344,8 +344,8 @@ packages:
   '@doist/sdk-kmp@0.5.0':
     resolution: {integrity: sha512-VrHre+tE6FwU3Q8qBHIUXi3ZFnBjD9OIC7JKbWxB5ZCpeCw7NH2bTZ9k5SJjznqZUEz3GKKOoV9P7Z6z2fWRcQ==}
 
-  '@doist/todoist-sdk@15.7.0':
-    resolution: {integrity: sha512-xsG7VoJAQXwep0KHo9rOfpW+sYjLZ8Dd0eSd6Qb7dyHD5UE44PwDcOzBBHR+7XWtUO1tANXRG5o1iPBk5N1x5A==}
+  '@doist/todoist-sdk@15.8.0':
+    resolution: {integrity: sha512-mVDdmC/Wd6hzv35Ei3AlUCxgZBBCjVhcp6yodmgCXUjNVV8UYokZHP1+kjUpUcTl37+e0O/zQK4h1XAv+oNTTg==}
     engines: {node: '>=24', npm: '>=11'}
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
@@ -2871,7 +2871,7 @@ snapshots:
 
   '@doist/sdk-kmp@0.5.0': {}
 
-  '@doist/todoist-sdk@15.7.0(type-fest@5.10.0)':
+  '@doist/todoist-sdk@15.8.0(type-fest@5.10.0)':
     dependencies:
       '@doist/sdk-kmp': 0.5.0
       camelcase: 6.3.0

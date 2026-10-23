@@ -15,7 +15,7 @@
     },
     "dependencies": {
         "@doist/todoist-sdk": "15.7.0",
-        "@google/genai": "2.30.0",
+        "@google/genai": "2.31.0",
         "@googlemaps/google-maps-services-js": "3.4.2",
         "@line/bot-sdk": "11.3.0",
         "cheerio": "1.2.0",

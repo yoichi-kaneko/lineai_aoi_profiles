@@ -14,7 +14,7 @@ import { loadJsonCredential } from "../util/credentials";
 /**
  * Firestore 操作を打ち切るまでの既定時間（ミリ秒）。
  *
- * Firestore は他の連携先（Todoist / Swarm / Calendar 等の REST）と異なり gRPC で接続するため、
+ * Firestore は他の連携先（Todoist / Calendar 等の REST）と異なり gRPC で接続するため、
  * 接続が詰まると google-gax が指数バックオフで再試行し続け、クライアント側に期限がない。
  * 上位（Bash ツールやシェルの timeout）任せにすると「結果不明のまま宙ぶらりん」になるので、
  * CLI 側で明示的に打ち切る。

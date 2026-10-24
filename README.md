@@ -179,7 +179,6 @@ lineai_aoi_profiles/
 │   ├── line/              # LINE メッセージ送信・画像ダウンロード
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
-│   ├── swarm/             # Swarm チェックイン取得（どのモードも参照しない。削除は issue #262）
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
@@ -334,25 +333,16 @@ lineai_aoi_profiles/
 | スキル | `get_checkins` → [SKILL.md](.claude/skills/get_checkins/SKILL.md)。写真は `download_line_image` に `--channel checkin` を付けて取得する |
 | 紐づけ | 位置情報1件を1件のチェックインとし、位置情報への引用返信のテキストは引用元へ、それ以外は直前の位置情報から10分以内に届いたテキスト・写真をその位置情報へ紐づける。受信時ではなく読み出し時に行う（`src/checkin/get_checkins.ts`）。10分の目安は、実データを見て見直す（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)） |
 
-### Swarm API
-
-| 項目 | 内容 |
-|------|------|
-| サービス名 | Swarm API |
-| 役割 | ユーザーの行動履歴（チェックイン履歴）の取得。**現在はどのモードも参照しない**（行動履歴は前節のチェックイン記録へ置き換えた）。スキル・実装・環境変数の削除は [issue #262](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/262) で行う |
-| サービスURL | https://location.foursquare.com/developer/ |
-| スキル | `get_swarm_checkins` → [SKILL.md](.claude/skills/get_swarm_checkins/SKILL.md) |
-
 ### 位置情報の点描画（ローカル処理・先行実装）
 
 | 項目 | 内容 |
 |------|------|
 | 役割 | 緯度経度の配列（最大12件）から、640×640px の黒背景に白い点を描いた PNG を生成する。結星（weekly）モードで、一週間の訪問先の座標図を作ることを想定した描画部品 |
-| 外部サービス | なし。Webメルカトル投影による座標変換と、SVG から `sharp` による PNG 化をローカルで行い、Google Maps・Foursquare などの API にはアクセスしない |
+| 外部サービス | なし。Webメルカトル投影による座標変換と、SVG から `sharp` による PNG 化をローカルで行い、Google Maps などの API にはアクセスしない |
 | スキル | `plot_locations` → [SKILL.md](.claude/skills/plot_locations/SKILL.md) |
 | 実装 | `src/image/plot_locations.ts`（入力 JSON のパスと、`tmp/` 配下の出力 PNG のパスを引数に取り、保存パスのみを標準出力へ返す） |
 | 利用状況 | **スキルと描画機能を先行して実装したもので、現在これを呼ぶモード・フローはプロファイル側に存在しない**。結星モードは座標図を使わずに実装を進めており、Swarm を置き換える LINE ベースのチェックイン記録（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)）の座標で結星の座標図を作る段階（同 issue の手順4）で、再利用する見込み |
-| 入力座標 | Swarm（Foursquare）の API から取得したデータを使って生成した画像は、Foursquare の規約上保持できないため、`get_swarm_checkins` で取得したチェックイン座標は渡さない（規約確認の記録は [issue #213](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/213)）。動作確認は `test/fixtures/image/plot_locations/` の架空の座標で行う |
+| 入力座標 | Swarm（Foursquare）の API から取得したデータを使って生成した画像は、Foursquare の規約上保持できないため、Swarm のチェックイン座標は渡さない（規約確認の記録は [issue #213](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/213)）。動作確認は `test/fixtures/image/plot_locations/` の架空の座標で行う |
 | 既知の課題 | 全点を単一の縮尺で収めるため、遠方の地点が混じると近場の点が密集して重なる。描く点の絞り込みと重なる点のまとめは、次節の「描画する座標の選択・集約」で扱う |
 
 ### 描画する座標の選択・集約（ローカル処理・先行実装）
@@ -360,12 +350,12 @@ lineai_aoi_profiles/
 | 項目 | 内容 |
 |------|------|
 | 役割 | 一週間分の訪問地点のような多数の緯度経度（最大1,000件）から、点描画で描く点を最大12点に絞り込む。候補が12件を超える週や、東京の生活圏と遠征先が混在して点が重なる週を扱う、結星（weekly）モードの座標図向けの部品。出力は `plot_locations` の入力へそのまま渡せる |
-| 外部サービス | なし。距離計算・集約・評価をすべてローカルで行い、Google Maps・Foursquare などの API にはアクセスしない |
+| 外部サービス | なし。距離計算・集約・評価をすべてローカルで行い、Google Maps などの API にはアクセスしない |
 | スキル | `select_locations` → [SKILL.md](.claude/skills/select_locations/SKILL.md) |
 | 実装 | `src/geo/`（入力 JSON のパスと、`tmp/` 配下の出力 JSON のパスを引数に取り、採用方式・評価値・件数の要約を標準出力へ返す。要約には座標を含めない） |
 | アルゴリズム | ③ **集合化**（第一候補）: 代表地点どうしが最も近い集合を統合し、12点以下かつ描画後に点が重ならなくなるまで続ける。代表は重心に最も近い実在の地点。② **中心近傍選択**（第二候補）: `--center` で指定した座標（省略時は地点の最も集まる実在の地点）を中心に、半径30km以内から近い順に最大12点を選ぶ。**両方式を毎回計算し**、`plot_locations` と同じ自動フィットで描いたときの見た目（代表性・細かさ・重なり）で評価して、② が ③ を一定以上上回った場合だけ ② を採用する。判定の詳細は SKILL.md を参照 |
 | 利用状況 | **スキルと選択・集約のアルゴリズムを先行して実装したもので、現在これを呼ぶモード・フローはプロファイル側に存在しない**。`plot_locations` と同じく、LINE ベースのチェックイン記録（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)）の座標で結星の座標図を作る段階（同 issue の手順4）で、再利用する見込み |
-| 入力座標 | `plot_locations` と同じ理由で、`get_swarm_checkins` で取得したチェックイン座標は渡さない。動作確認は `test/fixtures/geo/select_locations/` の架空の座標で行う。設計の検討事項は [issue #218](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/218) に残している |
+| 入力座標 | `plot_locations` と同じ理由で、Swarm のチェックイン座標は渡さない。動作確認は `test/fixtures/geo/select_locations/` の架空の座標で行う。設計の検討事項は [issue #218](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/218) に残している |
 | 既知の課題 | 全地点を同じ縮尺の1枚に収める限り、東京と遠征先の両方を細部まで描くことはできない（③ は細部をまとめ、② は範囲外の地域を描かない） |
 
 ### YAMAP
@@ -533,7 +523,7 @@ Claude 内部の各コマンド実行の上限です。既定の120秒では画�
 
 #### 層3: CLI 自身（Firestore のみ）
 
-Firestore は他の連携先（Todoist / Swarm / Calendar 等の REST）と異なり gRPC で接続するため、接続が詰まると google-gax が指数バックオフで再試行し続け、クライアント側に期限がありません。上位任せにすると「結果不明のまま宙ぶらりん」になるので、`src/firebase/client.ts` で明示的に打ち切ります。
+Firestore は他の連携先（Todoist / Calendar 等の REST）と異なり gRPC で接続するため、接続が詰まると google-gax が指数バックオフで再試行し続け、クライアント側に期限がありません。上位任せにすると「結果不明のまま宙ぶらりん」になるので、`src/firebase/client.ts` で明示的に打ち切ります。
 
 | 項目 | 値 |
 |---|---|

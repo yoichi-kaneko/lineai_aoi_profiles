@@ -11,7 +11,7 @@ description: 緯度経度の候補（最大1000件）をJSONファイルで渡�
 ## 現在の位置づけ（先行実装）
 
 - **スキルと選択・集約のアルゴリズムを先行して実装したもので、現在このスキルを呼ぶモード・フローはありません**。碧衣の各モードの実行中に、このスキルを自発的に使わないでください。
-- Swarm（Foursquare）の API から取得したデータを使って生成した画像は、Foursquare の規約上保持できません。描画の前段である本スキルにも、**`get_swarm_checkins` で取得したチェックイン座標を入力にしないでください**。動作確認には、`test/fixtures/geo/select_locations/` にある架空の座標を使います。
+- Swarm（Foursquare）の API から取得したデータを使って生成した画像は、Foursquare の規約上保持できません。描画の前段である本スキルにも、**Swarm のチェックイン座標を入力にしないでください**。動作確認には、`test/fixtures/geo/select_locations/` にある架空の座標を使います。
 - **今後の利用の目処**: [plot_locations](../plot_locations/SKILL.md) と同じく、Swarm を置き換える LINE ベースのチェックイン記録（[issue #247](https://github.com/yoichi-kaneko/lineai_aoi_profiles/issues/247)）の座標で、結星モードの座標図を作る際に再利用する見込みです（同 issue の手順4）。②の中心の決め方（`--center` に渡す座標の出どころ）も、その段階で改めて定めます。
 
 ## 概要

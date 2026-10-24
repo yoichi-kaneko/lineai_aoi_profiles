@@ -53,8 +53,6 @@ test/
 ├── shell/
 │   ├── deploy.test.ts         # 一時 Git リポジトリでの更新・依存インストール・失敗時の停止
 │   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性、結星の実行時間帯と run_logs による実行済みスキップ）と作業領域 tmp/ の扱い
-├── swarm/
-│   └── get_checkins.test.ts   # JST 範囲計算・整形
 ├── todoist/
 │   ├── put_task.test.ts       # タスク作成の引数解釈・description ファイルのパス検証
 │   ├── task_url.test.ts       # タスクURL・タスクIDの正規化
@@ -74,7 +72,7 @@ test/
 ```
 
 現在の対象は、YAMAP の埋め込み JSON を使うパース・整形、Google Calendar の日付変換、
-Firestore（チェックイン記録の紐づけを含む） / Todoist / Twitter / Cloudinary / LINE / Swarm / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
+Firestore（チェックイン記録の紐づけを含む） / Todoist / Twitter / Cloudinary / LINE / OpenWeather / 画像合成・点描画・座標の選択と集約のうち
 **外部接続なしで価値の高い判断ロジック**です。いずれもネットワークへ出ない純関数、
 または `fetch` / SDK を呼ぶ手前の境界検証を対象にします。
 
@@ -114,7 +112,6 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/cloudinary/upload_image.ts`
 - `src/line/download_image.ts`
 - `src/openweather/forecast.ts`
-- `src/swarm/get_checkins.ts`
 - `src/util/random_choice.ts`
 - `src/util/download_image.ts`
 - `src/util/credentials.ts`

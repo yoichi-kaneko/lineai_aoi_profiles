@@ -63,7 +63,7 @@ describe("line/download_image", () => {
     });
 
     it("知らないチャネルは拒否する", () => {
-      expect(() => parseArgs(["123", "--channel", "swarm"])).toThrow("--channel");
+      expect(() => parseArgs(["123", "--channel", "unknown"])).toThrow("--channel");
       expect(() => parseArgs(["123", "--channel"])).toThrow("--channel");
       expect(() => parseArgs(["123", "--channel", "toString"])).toThrow("--channel");
     });

@@ -13,7 +13,7 @@
     "@aws-sdk/client-ssm": "3.1156.0",
     "@google-cloud/firestore": "9.4.0",
     "@google-cloud/functions-framework": "5.0.5",
-    "@line/bot-sdk": "11.3.0",
+    "@line/bot-sdk": "11.4.0",
     "cloudinary": "2.11.0",
     "google-auth-library": "11.3.1"
   },

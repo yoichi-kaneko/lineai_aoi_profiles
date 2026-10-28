@@ -17,7 +17,7 @@ LINE AI「碧衣」のキャラクター設定や応答プロファイルを管�
 ### 前提条件
 
 - [Node.js](https://nodejs.org/)（LTS 推奨）
-- [pnpm](https://pnpm.io/) 10.x（`package.json` の `packageManager` に合わせる）
+- [pnpm](https://pnpm.io/)（`package.json` の `packageManager` に合わせる）
 - [Codex CLI](https://github.com/openai/codex)（任意）— 生成物のレビュー（`review_with_codex`）に使用します。**未導入でも構いません**。その場合はレビューがスキップされるだけで、碧衣の各モードは最後まで完走します
 
 ### 手順

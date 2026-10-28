@@ -17,7 +17,7 @@ LINE AI アシスタント「碧衣（あおい）」のプロファイル、実
 
 ## Basic Commands
 
-プロジェクトルートで実行します。パッケージ管理には pnpm 10.x を使用します。
+プロジェクトルートで実行します。パッケージ管理には pnpm を使用し、バージョンは `package.json` の `packageManager` に従います。
 
 ```text
 pnpm install --frozen-lockfile   依存関係をロックファイルどおりに導入

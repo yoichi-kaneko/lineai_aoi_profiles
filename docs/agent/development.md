@@ -84,7 +84,7 @@ lineai_aoi_profiles/
 
 ## パッケージ管理と検査
 
-pnpm 10.x を使用します。依存追加時は `package.json` と `pnpm-lock.yaml` を同じ変更に含めます。
+pnpm を使用し、バージョンは `package.json` の `packageManager` に従います。依存追加時は `package.json` と `pnpm-lock.yaml` を同じ変更に含めます。
 
 ```text
 pnpm install --frozen-lockfile

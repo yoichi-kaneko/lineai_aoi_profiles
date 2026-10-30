@@ -39,14 +39,15 @@ codex --version              # 動作確認
 # false にするとレビューを常にスキップする（既定: true）
 CODEX_REVIEW_ENABLED="true"
 
-# レビューの打ち切り時間（秒・既定: 240）。Bash ツール既定の 300 秒の内側に収める
-CODEX_REVIEW_TIMEOUT_SEC="240"
+# レビューの打ち切り時間（秒・既定: 240）。Bash ツールの上限（600 秒）の内側に収める
+# （手順2のとおり、Bash ツールの timeout を上限に指定して呼ぶ）
+CODEX_REVIEW_TIMEOUT_SEC="300"
 
 # 使用するモデル（既定: codex 側の設定に従う）
 CODEX_REVIEW_MODEL=""
 
 # 推論強度 none / minimal / low / medium / high / xhigh（既定: codex 側の設定に従う）
-CODEX_REVIEW_EFFORT=""
+CODEX_REVIEW_EFFORT="high"
 ```
 
 ## Claudeへの指示
@@ -65,7 +66,7 @@ pnpm exec tsx src/codex/review.ts "tmp/codex_review_input.md"
 ```
 
    - 出力先を変えたい場合のみ `--out tmp/{任意の名前}.md` を添えます。省略時は `tmp/codex_review_result.md` です。
-   - このコマンドは**数十秒〜数分かかります**。完了を待ってから次へ進んでください。
+   - このコマンドは**数十秒〜数分かかります**。Bash ツールの `timeout` に **`600000`（上限の10分）** を指定して実行し、完了を待ってから次へ進んでください。打ち切りは `CODEX_REVIEW_TIMEOUT_SEC` に従って本スクリプト自身が行うため、Bash 側を長くしても待ち時間は延びません。指定を省くと Bash ツール既定の300秒で打ち切られ、レビューが長引いた日は本スクリプトが `status` を返す前にコマンドがバックグラウンドへ回されます。
 
 3. **結果の確認**: 出力された JSON の `status` を見て分岐してください。
 

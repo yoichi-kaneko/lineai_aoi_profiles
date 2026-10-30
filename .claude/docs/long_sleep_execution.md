@@ -54,6 +54,7 @@ Bash ツールには実行時間の上限があり、超えたコマンドはバ
 | 処理 | 目安 |
 |---|---|
 | 画像生成（`generate_gpt_image`） | 5分 |
+| codex レビュー（`review_with_codex`） | 10分（上限。打ち切りはスクリプト自身が `CODEX_REVIEW_TIMEOUT_SEC` で行う） |
 | Firestore・各種API呼び出し | 既定のままで足りる |
 
 なお Firestore の CLI（`get_firestore_docs` / `put_firestore_doc`）は、詰まった場合に自前で打ち切って終了コード `124` と `[TIMEOUT]` 表示を返します。この場合はバックグラウンドへは回らないため、上の確認手順ではなく `aoi_constraints.md` の分岐に従ってください。

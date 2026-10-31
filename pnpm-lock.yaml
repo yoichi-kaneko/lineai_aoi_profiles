@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@doist/todoist-sdk':
-        specifier: 15.7.0
-        version: 15.7.0(type-fest@5.10.0)
+        specifier: 15.13.0
+        version: 15.13.0(type-fest@5.10.0)
       '@google/genai':
         specifier: 2.30.0
         version: 2.30.0
@@ -198,7 +198,7 @@ importers:
         version: 186.0.0
       openai:
         specifier: 7.43.0
-        version: 7.43.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(google-auth-library@11.3.1)(undici@7.29.1)(ws@8.21.3)(zod@4.3.6)
+        version: 7.43.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(google-auth-library@11.3.1)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6)
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -337,11 +337,11 @@ packages:
     resolution: {integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==}
     engines: {node: '>=6.9.0'}
 
-  '@doist/sdk-kmp@0.5.0':
-    resolution: {integrity: sha512-VrHre+tE6FwU3Q8qBHIUXi3ZFnBjD9OIC7JKbWxB5ZCpeCw7NH2bTZ9k5SJjznqZUEz3GKKOoV9P7Z6z2fWRcQ==}
+  '@doist/sdk-kmp@0.6.0':
+    resolution: {integrity: sha512-YgnsXxgrdaIvNC8iL9yDB3Vv/zNYTfVE8jB+PB1KXUunEeJHQORhE6IJfLj7X2RRuR83U47a8trVAc4IU7PoBw==}
 
-  '@doist/todoist-sdk@15.7.0':
-    resolution: {integrity: sha512-xsG7VoJAQXwep0KHo9rOfpW+sYjLZ8Dd0eSd6Qb7dyHD5UE44PwDcOzBBHR+7XWtUO1tANXRG5o1iPBk5N1x5A==}
+  '@doist/todoist-sdk@15.13.0':
+    resolution: {integrity: sha512-+OjhUJyM7Xmv2cwC7cILaMuRSDxu9KdboZct/bXCSi2oHoWAPI5f8qGvP5E4YauUrlOueCadaYefaXnyTrmtjw==}
     engines: {node: '>=24', npm: '>=11'}
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
@@ -2687,8 +2687,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@4.3.6:
-    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
 snapshots:
 
@@ -2845,18 +2845,18 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
-  '@doist/sdk-kmp@0.5.0': {}
+  '@doist/sdk-kmp@0.6.0': {}
 
-  '@doist/todoist-sdk@15.7.0(type-fest@5.10.0)':
+  '@doist/todoist-sdk@15.13.0(type-fest@5.10.0)':
     dependencies:
-      '@doist/sdk-kmp': 0.5.0
+      '@doist/sdk-kmp': 0.6.0
       camelcase: 6.3.0
       emoji-regex: 10.6.0
       ts-custom-error: 3.3.1
       type-fest: 5.10.0
       undici: 7.29.1
       uuid: 11.1.1
-      zod: 4.3.6
+      zod: 4.6.6
 
   '@emnapi/runtime@1.11.3':
     dependencies:
@@ -4531,14 +4531,14 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@7.43.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(google-auth-library@11.3.1)(undici@7.29.1)(ws@8.21.3)(zod@4.3.6):
+  openai@7.43.0(@aws-sdk/credential-provider-node@3.972.88)(@smithy/signature-v4@5.7.4)(google-auth-library@11.3.1)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6):
     optionalDependencies:
       '@aws-sdk/credential-provider-node': 3.972.88
       '@smithy/signature-v4': 5.7.4
       google-auth-library: 11.3.1
       undici: 7.29.1
       ws: 8.21.3
-      zod: 4.3.6
+      zod: 4.6.6
 
   p-limit@2.3.0:
     dependencies:
@@ -5188,4 +5188,4 @@ snapshots:
   yocto-queue@0.1.0:
     optional: true
 
-  zod@4.3.6: {}
+  zod@4.6.6: {}

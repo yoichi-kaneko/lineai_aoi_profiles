@@ -176,8 +176,8 @@ importers:
         specifier: 3.4.2
         version: 3.4.2(debug@4.4.3)
       '@line/bot-sdk':
-        specifier: 11.3.0
-        version: 11.3.0
+        specifier: 11.4.0
+        version: 11.4.0
       cheerio:
         specifier: 1.2.0
         version: 1.2.0
@@ -244,8 +244,8 @@ importers:
         specifier: 5.0.5
         version: 5.0.5
       '@line/bot-sdk':
-        specifier: 11.3.0
-        version: 11.3.0
+        specifier: 11.4.0
+        version: 11.4.0
       cloudinary:
         specifier: 2.11.0
         version: 2.11.0
@@ -780,8 +780,8 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@line/bot-sdk@11.3.0':
-    resolution: {integrity: sha512-AHCtmdgcVDElRLlrR8jxSracF4beWholl3Ywnl6TrPgEiSYH81fSovgWVO/LbyN0tlGidCzJMAsOLXNddF5FGg==}
+  '@line/bot-sdk@11.4.0':
+    resolution: {integrity: sha512-VPPNiCxhJnjjB3zb7q14toar6WnPdeBU9019uIq0ATozkc2LTDozx2Xrqw21uc5wgFz7g/E1MM/vcPI5VlsZPQ==}
     engines: {node: '>=22'}
 
   '@nodable/entities@3.0.0':
@@ -3213,7 +3213,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@line/bot-sdk@11.3.0':
+  '@line/bot-sdk@11.4.0':
     dependencies:
       '@types/node': 24.19.2
 

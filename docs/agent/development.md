@@ -102,6 +102,7 @@ pnpm exec tsc --noEmit
 - 必要な値と説明は `.env.example` を正本とする。
 - `.env`、サービスアカウント、API キー、アクセストークンをコミットしない。
 - ログと例外へ秘密情報や LINE メッセージ本文などの PII を含めない。
+- 碧衣の手順で環境変数の値（画像生成モデル名など）が必要な場合は、`.env` を直接読ませず `src/util/get_public_env.ts` で取得させる。取得できるのは同ファイルの `PUBLIC_ENV_KEYS` に載せた変数だけで、秘密情報に当たる変数は加えない。
 - Node.js のバージョンはリポジトリ直下の `.nvmrc` を正本とする。CI（`.github/workflows/test.yml`）は `actions/setup-node` の `node-version-file` で、Claude Code のクラウドセッションは `.claude/hooks/session-start.sh` が、Codex cloud のセットアップは `.codex/setup.sh` が、いずれもこのファイルを読むため、これらの環境向けには `.nvmrc` だけを書き換えれば足りる。
 - 唯一の例外が Cloud Functions の実行環境で、デプロイ先のランタイムは `.nvmrc` を読めないため `functions/deploy.sh` の `--runtime` に直接書く。バージョンを変えるときは、`.nvmrc` と `functions/deploy.sh` の2ファイルを必ず同じメジャーへ揃えて更新する。
 - Claude Code のクラウドセッションでは `.claude/hooks/session-start.sh` が、Codex cloud では `.codex/setup.sh` が、`.nvmrc` の Node.js を nvm で用意したうえで `pnpm install --frozen-lockfile` を実行する。どちらもセットアップスクリプト内の `PATH` 変更が後続処理へ残らないため、各環境で後続シェルの `PATH` に用意されるディレクトリへ Node.js コマンドの symlink を配置する。Codex のセットアップ実行中の `PATH` には `/opt/codex/codex-path` が含まれない場合もあるため、そのディレクトリの存在と書き込み権限を確認し、実行時の `PATH` 自体は必須としない。ローカルでは自動実行されないため、必要に応じて手動で Node.js と依存関係を導入する。

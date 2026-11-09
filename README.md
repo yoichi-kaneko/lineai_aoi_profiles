@@ -180,7 +180,7 @@ lineai_aoi_profiles/
 │   ├── openai/            # OpenAI GPT 画像生成
 │   ├── openweather/       # OpenWeatherMap 天気予報取得
 │   ├── todoist/           # Todoist タスク操作
-│   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード等）
+│   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード・秘密でない環境変数の読み取り等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
 ├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/

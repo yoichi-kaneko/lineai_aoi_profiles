@@ -38,6 +38,12 @@ export const NOTE_TYPE = {
    * 翌週の結星も、主役の星座や話題の重複を避けるために読む。
    */
   WEEKLY_HANDOVER: "weekly_handover",
+  /**
+   * 予定から推定した登山予定の予報地点（代表とした山、または切り替えた地点の座標）。同じ山行の予報をどのモードでも同じ地点で取得するため、
+   * 地点を迷って決めたモードが残し、後続のモードが再利用する。`date` はその山行の入山予定日を指定する。報告や画像生成の素材にはしない。
+   * 手順は `.claude/docs/mountain_forecast_point.md` を正とする。
+   */
+  FORECAST_POINT: "forecast_point",
 } as const;
 
 /** {@link NOTE_TYPE} の値の union。 */

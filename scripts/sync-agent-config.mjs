@@ -17,6 +17,7 @@ const skillNames = [
   "dev_apply_pr_review",
   "dev_apply_todoist_request",
   "dev_handle_renovate_pr",
+  "dev_bundle_renovate_prs",
 ];
 const generatedNotice =
   "<!-- このファイルは .agents/skills/ の共有正本から自動生成されます。直接編集せず pnpm agent-config:sync を実行してください。 -->";

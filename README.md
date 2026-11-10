@@ -207,7 +207,8 @@ lineai_aoi_profiles/
 │       ├── dev_ship_change/
 │       ├── dev_apply_pr_review/
 │       ├── dev_apply_todoist_request/
-│       └── dev_handle_renovate_pr/
+│       ├── dev_handle_renovate_pr/
+│       └── dev_bundle_renovate_prs/
 ├── .codex/
 │   └── setup.sh           # Codex cloud セッション用の Node.js・依存関係セットアップ
 ├── .cursor/

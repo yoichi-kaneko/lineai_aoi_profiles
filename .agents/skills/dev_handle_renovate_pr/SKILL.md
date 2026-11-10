@@ -1,6 +1,6 @@
 ---
 name: dev_handle_renovate_pr
-description: 開発者向け。Renovate が作成した依存関係の更新 PR を処理する。更新パッケージのリリースノートからデグレードリスクを調査し、minimumReleaseAge が未達なら中断する。functions 配下の依存更新なら functions/package-lock.json を再生成して検証・push し、調査結果を PR にコメントする。「Renovate の PR を確認して」のように Renovate PR の URL や番号を渡されたときに使う。碧衣のモード実行では使用しない。
+description: 開発者向け。Renovate が作成した依存関係の更新 PR を1件処理する。更新パッケージのリリースノートからデグレードリスクを調査し、minimumReleaseAge が未達なら中断する。functions 配下の依存更新なら functions/package-lock.json を再生成して検証・push し、調査結果を PR にコメントする。「Renovate の PR を確認して」のように Renovate PR の URL や番号を1つ渡されたときに使う。複数の Renovate PR を1本の PR にまとめるときは dev_bundle_renovate_prs を使う。碧衣のモード実行では使用しない。
 ---
 
 # dev_handle_renovate_pr
@@ -9,18 +9,25 @@ Renovate が作成した依存関係の更新 PR について、デグレード�
 
 ## 背景
 
-Renovate の PR がこのリポジトリの CI（`pnpm install --frozen-lockfile` と `pnpm test:all`）で失敗する要因は、主に次の2つです。
-
-- **公開からの経過時間が足りない**: pnpm は、公開から `minimumReleaseAge`（既定 1440 分）が経っていない版を拒否する。Renovate は公開直後の版で PR を作ることがあり、その場合は CI の `pnpm install --frozen-lockfile` が lockfile の検証で失敗する。時間が経てば解消するため、設定を緩めずに待つ。
-- **`functions/package-lock.json` のずれ**: Cloud Functions のデプロイ（Cloud Build）は `npm ci` を使うため、`functions/` は pnpm の lockfile とは別に `functions/package-lock.json` を持つ。Renovate が更新したこのロックは `functions/package.json` と一致せず（更新した依存の実体が抜け落ちる）、CI の `pnpm check:functions-lock` が失敗する。`scripts/regenerate-functions-lock.mjs` で再生成すれば一致する。
+Renovate の PR がこのリポジトリの CI で失敗する主な要因は、公開からの経過時間（`minimumReleaseAge`）の不足と、`functions/package-lock.json` のずれの2つです（詳しくは [shared/verification.md](shared/verification.md) の「背景」）。このスキルでは、Renovate の PR のブランチ上でこれらを確かめ、更新内容のリスク調査とあわせて処理します。
 
 `pnpm-lock.yaml` は Renovate の生成物のままで CI を通るため、再生成しません。
+
+`shared/` 以下のファイルは `dev_bundle_renovate_prs` と共有しています。手順を変えるときは、`dev_bundle_renovate_prs` から見ても成り立つかを確かめます。
+
+## dev_bundle_renovate_prs との使い分け
+
+- `dev_handle_renovate_pr`（このスキル）: Renovate の PR そのものを整え、調査結果をコメントする。破壊的変更への対応などの手作業の修正を Renovate の PR に積みたいときもこちら
+- `dev_bundle_renovate_prs`: 複数の Renovate PR の更新を、base から切った新しいブランチにまとめて1本の PR を作る。元の Renovate PR は Renovate が閉じる
 
 ## 参照する正本
 
 - Git の規約: [docs/agent/git-workflow.md](../../../docs/agent/git-workflow.md)
 - パッケージ管理と検査: [docs/agent/development.md](../../../docs/agent/development.md)
 - 常時指示: [AGENTS.md](../../../AGENTS.md)
+- 調査とリスクの判定: [shared/investigation.md](shared/investigation.md)
+- 公開からの経過時間・functions のロック・ローカル検証: [shared/verification.md](shared/verification.md)
+- GitHub に投稿する文章の記載ルール: [shared/writing-rules.md](shared/writing-rules.md)
 
 ## 前提
 
@@ -111,44 +118,12 @@ git show-ref --verify --quiet refs/heads/<head> && git log --oneline <head> --no
 pnpm install --frozen-lockfile
 ```
 
-- `minimumReleaseAge` を理由に失敗した場合（エラー文に `minimumReleaseAge` を含む、または `ERR_PNPM_NO_MATURE_MATCHING_VERSION`）は中断します。PR へのコメント、コミット、push は行いません。エラーに挙がった版（推移的な依存のこともある）ごとに、公開日時（`pnpm view <pkg> time --json` でも確認できる）と、そこから 1440 分（`pnpm-workspace.yaml` に `minimumReleaseAge` があればその値）が経つ日時を日本標準時で示し、その日時を過ぎてから再実行するようユーザーに伝えて、手順 10 へ進みます。
+- `minimumReleaseAge` を理由に失敗した場合は中断します（見分け方は [shared/verification.md](shared/verification.md) の「公開からの経過時間」）。PR へのコメント、コミット、push は行いません。エラーに挙がった版ごとに、公開日時と、取り込める日時を日本標準時で示し、その日時を過ぎてから再実行するようユーザーに伝えて、手順 10 へ進みます。
 - それ以外の理由で失敗した場合は、エラー内容を伝えて中断し、手順 10 へ進みます。
 
 ### 4. 更新内容を調査する
 
-パッケージごとに、旧版より後から新版までのすべての版を調べます（途中の版を飛ばさない）。調査の深さは更新の大きさに合わせます。patch 更新なら変更点の確認と使用箇所の照合で足り、major 更新なら移行ガイドまで読みます。結果は作業ファイルに書き溜め、リスクがあると判断しても処理は続けます。
-
-1. 変更内容
-   - リポジトリ: `pnpm view <pkg>@<新版> repository.url`、または PR 本文の source リンク
-   - リリースノート: `gh api "repos/<owner>/<repo>/releases?per_page=100"` から該当するタグを探して本文を読む。モノレポではタグの付け方がパッケージごとに違う（`v11.3.0`、`<pkg>@1.2.3` など）。
-   - リリースノートが空または見つからない場合は CHANGELOG を読む（`gh api repos/<owner>/<repo>/contents/<path>`）。それも無ければ `gh api repos/<owner>/<repo>/compare/<旧タグ>...<新タグ>` のコミット一覧から判断する。
-2. 互換性
-   - `pnpm view <pkg>@<新版> engines peerDependencies --json` で、`engines.node` が `.nvmrc` と `functions/deploy.sh` の `--runtime` の Node.js メジャーを満たすかと、peer の要求がこのリポジトリの版と合うかを確認する。
-   - 破壊的変更（BREAKING CHANGES、非推奨化、既定値の変更、API の削除）を拾う。
-3. このリポジトリでの使われ方
-   - `src/`、`functions/src/`、`test/`、`functions/test/`、`scripts/`、設定ファイル（`tsconfig.json`、`functions/tsconfig.json`、`vitest.config.ts` など）で該当パッケージを import・参照している箇所を検索し、変更点が当たるかを照合する。
-   - テストは外部 API に接続しない純関数が中心のため、外部 API クライアント（`openai`、`@google/genai`、`@line/bot-sdk`、`googleapis` など）の通信や応答形式の変更は手順 6 の検証では検出できない。リリースノートと使用箇所の照合で判断する。
-   - 次の「このリポジトリ固有の確認事項」に該当するものは必ず確認する。
-
-#### このリポジトリ固有の確認事項
-
-- ルートと `functions/` の両方で使う依存（`@line/bot-sdk`、`google-auth-library`、`@types/node`、`typescript`、`vitest` など）: `package.json` と `functions/package.json` の両方が同じ版へ更新されているか。片方だけならコメントで指摘する。
-- `functions/package.json` の `dependencies`: Cloud Functions の実行環境（`functions/deploy.sh` の `--runtime`）で動くか。PR をマージしただけでは LINE Webhook に反映されず、`functions/deploy.sh` での再デプロイが必要になる旨をコメントに書く。
-- `@types/node`: メジャーが `.nvmrc` と `functions/deploy.sh` の `--runtime` の Node.js メジャーと一致するか。
-- `typescript`: `tsconfig.json` と `functions/tsconfig.json` で使っているオプションに、非推奨や削除が無いか。
-- `dotenv`: `dotenv.config()` に渡している `quiet: true` が引き続き有効か（AGENTS.md の TypeScript Conventions、`test/env/dotenv_quiet.test.ts`）。実行時ログの既定が変わると、CLI の出力を読む Skill や `send_daily_line.sh` の判定が壊れる。
-- `pnpm`（`packageManager`）: CI の `pnpm/action-setup` はこの値を読む。`minimumReleaseAge` や `allowBuilds` など、`pnpm-workspace.yaml` の設定に関わる既定値の変更が無いか。
-- `tsx` / `esbuild` / `@esbuild/linux-x64`: `optionalDependencies` で明示している `@esbuild/linux-x64` が、更新後に `tsx` が使う `esbuild`（`pnpm-lock.yaml` で確認する）と同じ版か。ずれていればコメントで指摘する。
-
-#### リスクの判定
-
-| 判定 | 基準 |
-|---|---|
-| 高 | 破壊的変更がこのリポジトリの使用箇所に当たる / 移行作業が必要 / 手順 6 の検証が失敗した |
-| 中 | 破壊的変更や挙動の変更はあるが該当箇所は見当たらない / リリースノートが得られず判断しきれない / 実行時の依存（`dependencies`）の minor 以上の更新 |
-| 低 | バグ修正のみで該当する懸念が無い / 開発用の依存（`devDependencies`）で、検証が通った |
-
-PR 全体の判定は、各パッケージの判定のうち最も高いものとします。
+[shared/investigation.md](shared/investigation.md) に従い、パッケージごとに調べてリスクを判定し、結果を作業ファイルに書き溜めます。リスクがあると判断しても処理は続けます。
 
 ### 5. functions のロックを再生成する
 
@@ -182,28 +157,13 @@ git merge --no-edit -m "Merge branch '<base>' into <head>" origin/<base>
 
 #### ロックを再生成する
 
-```sh
-node scripts/regenerate-functions-lock.mjs
-git status --porcelain
-pnpm check:functions-lock
-```
-
-- `scripts/regenerate-functions-lock.mjs` は、pnpm 管理の `functions/node_modules` を npm に読ませないよう、一時ディレクトリで `npm install --package-lock-only` を実行してロックだけを更新する。`functions/` で `npm install` を直接実行しない。
-- 変更されたのが `functions/package-lock.json` だけであること。他のファイルが変わっていたら中断する。
-- `pnpm check:functions-lock` が通ること。
+[shared/verification.md](shared/verification.md) の「functions のロックを再生成する」に従います。
 
 ### 6. ローカルで検証する
 
-```sh
-pnpm install --frozen-lockfile
-pnpm test:all
-pnpm exec tsc --noEmit
-pnpm --filter aoi-functions exec tsc --noEmit
-```
+[shared/verification.md](shared/verification.md) の「ローカルで検証する」に従います。手順 5 で再生成した `functions/package-lock.json` は、意図して書き換えたファイルとして扱います。
 
-- `pnpm test:all` は CI と同じ検査（共有 Skill の同期、functions のロック、ルートと functions のテスト）。型検査は CI では実行しないが、依存の型定義の変更を拾うために行う。
-- 手順 5 の再生成以外で追跡対象のファイルが書き換わったら、その内容を調査結果に記録し、`git restore <file>` で戻す（コミットには含めない）。
-- どれかが失敗したら、コミット・push・CI の再実行をせずに中断する。失敗内容をユーザーに伝え、調査結果のコメントだけでも PR に投稿するかを尋ねる。投稿する場合は、コメントに失敗内容を含めて手順 9 だけを行う。
+どれかが失敗したら、コミット・push・CI の再実行をせずに中断します。失敗内容をユーザーに伝え、調査結果のコメントだけでも PR に投稿するかを尋ねます。投稿する場合は、コメントに失敗内容を含めて手順 9 だけを行います。
 
 ### 7. コミットして push する
 
@@ -231,13 +191,7 @@ gh run rerun <run-id> --failed
 
 ### 9. PR にコメントする
 
-[comment-template.md](comment-template.md) の形式で本文を作業ファイルに書き、投稿します。
-
-投稿する前に、外部リポジトリの PR・issue へのリンクや参照、およびユーザーメンション（comment-template.md の記載ルールで禁じている形）が紛れ込んでいないかを確かめます。このリポジトリは公開されているため、投稿すると参照先や該当ユーザーへ自動でメンションが飛びます。次のコマンドで何か出力されたら該当箇所を書き直し、出力が無くなってから投稿します。npm のスコープ付きパッケージ名（`@scope/name`）は検出しません。
-
-```sh
-grep -nE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/(pull|issues)/[0-9]|[[:alnum:]_.-]+/[[:alnum:]_.-]+#[0-9]|(^|[^[:alnum:]_&])#[0-9]|(^|[^[:alnum:]_/])@[A-Za-z0-9_-]+([^/A-Za-z0-9_-]|$)' <作業ファイル>
-```
+[comment-template.md](comment-template.md) の形式で本文を作業ファイルに書きます。投稿する前に、[shared/writing-rules.md](shared/writing-rules.md) の「投稿前の確認」を行い、外部への参照やメンションが残っていないことを確かめます。
 
 本文の1行目のマーカーで、このスキルが以前に投稿したコメントを見分けます。
 
@@ -248,8 +202,6 @@ gh api "repos/<owner>/<repo>/issues/<PR番号>/comments" --paginate \
 
 - 見つかれば、そのコメントを更新する: `gh api -X PATCH "repos/<owner>/<repo>/issues/comments/<id>" -F body=@<作業ファイル>`
 - 無ければ新規に投稿する: `gh pr comment <PR番号> --body-file <作業ファイル>`
-
-本文はシェルの引数に直接書かず、必ずファイル経由で渡します（改行や記号のエスケープの崩れを避けるため）。
 
 ### 10. 元のブランチへ戻す
 

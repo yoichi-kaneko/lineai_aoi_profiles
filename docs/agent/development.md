@@ -32,7 +32,8 @@ lineai_aoi_profiles/
 │       ├── dev_ship_change/
 │       ├── dev_apply_pr_review/
 │       ├── dev_apply_todoist_request/
-│       └── dev_handle_renovate_pr/
+│       ├── dev_handle_renovate_pr/
+│       └── dev_bundle_renovate_prs/
 ├── .claude/
 │   ├── hooks/                # Claude Code 専用フック
 │   ├── rules/                # 碧衣の常時ルール

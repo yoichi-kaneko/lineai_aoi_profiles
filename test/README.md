@@ -59,7 +59,7 @@ test/
 │   ├── get_comments.test.ts   # 引数解釈・対応方針コメントの除外
 │   └── get_task.test.ts       # 未完了取得と完了済みフォールバック
 ├── twitter/
-│   └── post.test.ts           # tmp/ 内画像パス検証
+│   └── post.test.ts           # tmp/ 内画像パス検証・画像形式（MIME）の判定
 ├── util/
 │   ├── credentials.test.ts    # 資格情報の取得元の決定（中身の環境変数 / パス）・JSON と base64 の解釈
 │   ├── download_image.test.ts # 保存ファイル名決定

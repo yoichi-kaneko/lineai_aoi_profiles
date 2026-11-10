@@ -95,7 +95,7 @@ git fetch origin \
   "+refs/heads/<head2>:refs/remotes/origin/<head2>"
 ```
 
-`git fetch` では base / head を remote-tracking ref（`origin/<base>`、`origin/<head>`）へ明示的に書き込みます。`FETCH_HEAD` だけに頼ると、実行環境の `remote.origin.fetch` 次第で後続が参照する `origin/<head>` が古いまま、または未作成のままになることがあります。各候補の `git rev-parse "origin/<head>"` が手順 1 の `headRefOid` と一致しない場合（その間に Renovate がブランチを更新した）は、その候補の `gh pr view` を取り直します。
+`git fetch` では base / head を remote-tracking ref（`origin/<base>`、`origin/<head>`）へ明示的に書き込みます。`FETCH_HEAD` だけに頼ると、実行環境の `remote.origin.fetch` 次第で後続が参照する `origin/<head>` が古いまま、または未作成のままになることがあります。各候補の `git rev-parse "origin/<head>"` が手順 1 の `headRefOid` と一致することを確かめます。一致しない場合（その間に Renovate がブランチを更新した）は、その候補の head を上と同じ形で fetch し直し、`gh pr view` も取り直して、`origin/<head>` と新しい `headRefOid` が一致してから手順 3 へ進みます。それでも一致しなければ（Renovate が更新を続けている）、その候補は理由を控えて外します。
 
 ### 3. 更新内容を取り出す
 
@@ -180,15 +180,19 @@ git diff origin/<base> -- . ':(exclude)pnpm-lock.yaml' ':(exclude)functions/pack
 pnpm --version
 ```
 
-`pnpm-lock.yaml` を生成します。base の lockfile から始めるので、変わるのは更新したパッケージとその依存だけになります。
+`pnpm-lock.yaml` を生成します。base の lockfile から始めるので、変わるのは更新したパッケージとその依存だけになる見込みです。ただし pnpm の解決のしかた次第で、ほかの依存の版も動くことがあるため、差分を確かめます。
 
 ```sh
 pnpm install --no-frozen-lockfile
 git status --porcelain
+git diff origin/<base> -- pnpm-lock.yaml
 pnpm install --frozen-lockfile
 ```
 
 - 書き換わったのが、手順 7 で書き換えたファイルと `pnpm-lock.yaml` だけであること。手順 7 で書き換えたファイルは、`git diff <file>` がその書き換えだけであることを確かめる。想定外のファイルや差分があれば中断する。
+- `pnpm-lock.yaml` の差分のうち、`importers:` の各 workspace（`.` と `functions`）で版が変わった直接依存が、取り込む PR で更新したパッケージだけであること。
+- `packages:` / `snapshots:` で追加・削除・版の変更があったパッケージが、更新したパッケージかその依存であること。判断がつかないものは、`pnpm why -r <pkg>` で更新したパッケージから引き込まれているかを確かめる。
+- 更新したパッケージと無関係な依存の版が変わっていたら、原因（どの更新の影響か、`packageManager` の書き換えによる pnpm の版の変更か、など）を調べ、変わった依存と原因を示して、そのまま取り込むか中断するかを尋ねる。取り込む場合は、PR 本文の「変更内容」に書く。
 - CI と同じ `pnpm install --frozen-lockfile` が通ること。
 
 失敗したときは、設定を独断で緩めず、原因ごとに次のとおり対応します。
@@ -249,12 +253,12 @@ git push -u origin <branch>
 
 [pr-template.md](pr-template.md) の形式で本文を作業ファイルに書きます。
 
-投稿する前に、外部への参照やメンションが紛れ込んでいないかを確かめます。この PR の本文は、取り込んだ PR と外した PR を表の先頭列に `#<番号>` と書くので、[shared/writing-rules.md](../dev_handle_renovate_pr/shared/writing-rules.md) の「投稿前の確認」の2つのうち、PR・issue への参照の確認にだけ、その表の行を除く絞り込みを加えます。メンションの確認は、表の行も含めてそのまま行います。
+投稿する前に、外部への参照やメンションが紛れ込んでいないかを確かめます。この PR の本文は、取り込んだ PR と外した PR を表の先頭列に `#<番号>` と書くので、[shared/writing-rules.md](../dev_handle_renovate_pr/shared/writing-rules.md) の「投稿前の確認」の2つのうち、PR・issue への参照の確認にだけ、表の先頭列の `#<番号>` を取り除いてから検査する前処理を加えます。同じ行の残りの列は検査の対象のままです。`sed` は行を増減させないので、`grep -n` の行番号は作業ファイルの行番号と一致します。メンションの確認は、表の行も含めてそのまま行います。
 
 ```sh
-# PR・issue への参照（先頭列が #<番号> の表の行を除く）
-grep -nE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/(pull|issues)/[0-9]|[[:alnum:]_.-]+/[[:alnum:]_.-]+#[0-9]|(^|[^[:alnum:]_&])#[0-9]' <作業ファイル> \
-  | grep -vE '^[0-9]+:\| *#[0-9]+ *\|[^#]*$'
+# PR・issue への参照（表の先頭列の #<番号> だけを取り除いて検査する）
+sed -E 's/^\| *#[0-9]+ *\|/| |/' <作業ファイル> \
+  | grep -nE 'github\.com/[^/[:space:]]+/[^/[:space:]]+/(pull|issues)/[0-9]|[[:alnum:]_.-]+/[[:alnum:]_.-]+#[0-9]|(^|[^[:alnum:]_&])#[0-9]'
 # ユーザーへのメンション
 grep -nE '(^|[^[:alnum:]_/])@[A-Za-z0-9_-]+([^/A-Za-z0-9_-]|$)' <作業ファイル>
 ```

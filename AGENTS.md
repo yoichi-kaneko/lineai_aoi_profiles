@@ -13,6 +13,7 @@ LINE AI アシスタント「碧衣（あおい）」のプロファイル、実
 - `deploy.sh`: EC2 のチェックアウト更新と pnpm 依存関係のインストール
 - `send_daily_line.sh` / `refresh_tmp.sh`: 碧衣のモードを起動する runner と、作業領域 `tmp/` の掃除
 - `functions/`: LINE Webhook を受ける Firebase Cloud Functions
+- `animation/`: Three.js の 3D アニメーションを Vite で表示する独立プロジェクト。専用の `pnpm-workspace.yaml` とロックファイルを持ち、ルートのワークスペース・CI・`deploy.sh` の対象外（コマンドは `animation/README.md`）
 - `docs/agent/`: 開発・Git 運用・レビューの詳細規則
 
 ## Basic Commands

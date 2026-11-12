@@ -199,6 +199,7 @@ lineai_aoi_profiles/
 │       ├── lib/                 # Cloud Functions 共通処理（署名検証・送信者の確認・受信画像の保存など）
 │       ├── receiveLineMessage/  # LINE Webhook 受信・Firestore 保存・受信画像の Cloudinary 保存・登山/下山/呼びかけトリガー
 │       └── receiveCheckinMessage/ # チェックイン用アカウント（地写）の Webhook 受信・checkin_logs への保存
+├── animation/             # Three.js の 3D アニメーション（独立した pnpm プロジェクト。animation/ で pnpm dev。詳細は animation/README.md）
 ├── .github/
 │   └── workflows/
 │       └── test.yml      # プッシュ時に pnpm test:all を実行する GitHub Actions（Node.js は .nvmrc に従う）

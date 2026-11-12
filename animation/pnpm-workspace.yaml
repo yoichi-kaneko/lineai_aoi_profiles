@@ -1,0 +1,5 @@
+# このファイルは animation/ をルートのワークスペースから切り離すために置いている。
+# pnpm は最も近い pnpm-workspace.yaml をワークスペースのルートとみなすため、
+# animation/ で実行した pnpm install / pnpm dev はリポジトリルートの依存関係やロックファイルに触れない。
+packages:
+  - '.'

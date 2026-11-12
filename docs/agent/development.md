@@ -18,6 +18,7 @@ lineai_aoi_profiles/
 ├── src/                      # Skill の TypeScript 実装
 ├── test/                     # ルート src とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
+├── animation/                # Three.js の 3D アニメーション（独立した pnpm プロジェクト）
 ├── scripts/
 │   ├── sync-agent-config.mjs    # 共有 Skill の同期・差分検査
 │   ├── check-functions-lock.mjs # functions/package-lock.json の健全性検査

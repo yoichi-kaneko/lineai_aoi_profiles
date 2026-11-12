@@ -170,8 +170,8 @@ importers:
         specifier: 15.13.1
         version: 15.13.1(type-fest@5.10.0)
       '@google/genai':
-        specifier: 2.32.0
-        version: 2.32.0
+        specifier: 3.3.0
+        version: 3.3.0
       '@googlemaps/google-maps-services-js':
         specifier: 3.4.2
         version: 3.4.2(debug@4.4.3)
@@ -343,6 +343,7 @@ packages:
   '@doist/todoist-sdk@15.13.1':
     resolution: {integrity: sha512-oJaz9f2KqqA1B4PJdUVkKmIo2UnLJuKnvQAA/pbLOnEvO3LrewJzRAMImMnnYFJBAgFjLPuEj7VVKYWUOfhnvQ==}
     engines: {node: '>=24', npm: '>=11'}
+    deprecated: Moved to @todoist/sdk. Replace @doist/todoist-sdk with @todoist/sdk in your dependencies and imports.
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
 
@@ -577,9 +578,9 @@ packages:
     resolution: {integrity: sha512-7ckgSjeEprV92VrlLjpYFA3PFerflvFtF7Ea86oQXGNCprGZq5rtpAVK0zgWnCy+44mLjms42M7MiWa433gz2A==}
     engines: {node: '>=22'}
 
-  '@google/genai@2.32.0':
-    resolution: {integrity: sha512-60c79uXpR0a47bmGqDxbXEBuQUalNmwo5mx5kqb91jIW4FoqpsLSt86DeVhRhtH5+s/16Wqxt3sXzFQn2U1OHQ==}
-    engines: {node: '>=20.0.0'}
+  '@google/genai@3.3.0':
+    resolution: {integrity: sha512-XLjXedj0X8UrULZz1GnlTMSQxBDFdr+NCKZkOBaSVVYqmK30C6FCnKW31Ppn0ItO9DpNspCHFui257kPNpumKQ==}
+    engines: {node: '>=22.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.25.2
     peerDependenciesMeta:
@@ -3049,7 +3050,7 @@ snapshots:
       - supports-color
     optional: true
 
-  '@google/genai@2.32.0':
+  '@google/genai@3.3.0':
     dependencies:
       google-auth-library: 10.9.1
       p-retry: 4.6.2

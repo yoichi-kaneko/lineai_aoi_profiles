@@ -166,6 +166,11 @@ export class CurveBeam {
     this.mesh.material.uniforms.uLength!.value = this.length;
   }
 
+  /** from から to へ、まっすぐな線を張る。 */
+  setLine(from: THREE.Vector2, to: THREE.Vector2): void {
+    this.setCurve(from, new THREE.Vector2().addVectors(from, to).multiplyScalar(0.5), to);
+  }
+
   update(state: BeamState): void {
     applyState(this.mesh.material, state);
     this.mesh.visible = state.opacity > 0.001 && (state.draw ?? 1) > 0.001;

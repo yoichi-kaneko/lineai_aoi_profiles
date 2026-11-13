@@ -6,8 +6,9 @@ import { Mountains } from "./objects/mountains";
 import { Stream } from "./objects/particles";
 import { promptTextAt, PromptPanel } from "./objects/promptPanel";
 import { Ripples } from "./objects/ripples";
+import { headScreenAt, headWorldAt, SCROLL_END, scrollAt } from "./motion";
 import { COLORS, createCardTexture, createMessageTexture, createPillTexture, type IconKind } from "./textures";
-import { ease, fadeWindow, keyframes, lerp, seg, type Keyframe } from "./timeline";
+import { ease, fadeWindow, lerp, seg } from "./timeline";
 
 /*
  * 碧衣の画像生成プロセスを、光の線が進む一本の旅として描く。
@@ -42,37 +43,17 @@ const CHAT_POS = P(5.45, 3.15);
 const CHAT_SIZE = { w: 2.1, h: 0.78 };
 const CHAT_ENTRY = P(CHAT_POS.x - CHAT_SIZE.w / 2, CHAT_POS.y);
 
-/** 光の線の先端（ワールド座標の x）。 */
-const HEAD_KEYS: readonly Keyframe[] = [
-  [0.5, -15],
-  [3.2, -RUN_NODE_WIDTH / 2, ease.outCubic],
-  [5.4, -RUN_NODE_WIDTH / 2],
-  [7.7, 10, ease.inOutSine],
-  [11.6, 10],
-  [12.7, 15],
-  [21.3, 15],
-  [22.2, 19],
-  [33.3, 19],
-  [34.2, 23],
-];
+/** 光の線が止まったあと、左から消していく時間帯。 */
+const ERASE_START = 38.1;
+const ERASE_END = 39.0;
+/** 全体のフェードアウト（背景の粒子は残す）。 */
+const FADE_OUT_START = 38.6;
+const FADE_OUT_END = 39.6;
 
-/** 画面（と山並み）が光の線を追いかける量。先端より少し遅れて動く。 */
-const SCROLL_KEYS: readonly Keyframe[] = [
-  [5.9, 0],
-  [8.4, 10, ease.inOutCubic],
-  [11.8, 10],
-  [13.0, 15],
-  [21.4, 15],
-  [22.5, 19],
-  [33.4, 19],
-  [34.5, 23],
-];
-
-/** 最後に光の線を左から消していく位置（ワールド座標の x）。 */
-const ERASE_KEYS: readonly Keyframe[] = [
-  [37.2, 14],
-  [38.3, 25, ease.inOutSine],
-];
+/** 役目を終えたノードの退場。光の線が途切れ、少し右へ流れながら消える。 */
+const AI_EXIT_START = 33.1;
+const CHAT_EXIT_START = 37.45;
+const EXIT_DRIFT = 1.0;
 
 /** ガイドラインからプロンプトのパネルへ伸びる導線（キーワードもこの上を運ばれる）。 */
 const GUIDE_CURVE = [P(PARK_LEFT.x + 1.3, PARK_LEFT.y), P(-3.4, 2.3), P(-2.4, 1.6)] as const;
@@ -100,12 +81,20 @@ const CHIP_START = 16.95;
 const CHIP_INTERVAL = 0.95;
 const CHIP_TRAVEL = 1.05;
 
-/** 光の線に残す、通過した工程の目印（ワールド座標の x と、現れる時刻）。 */
-const MARKERS: readonly { x: number; time: number }[] = [
-  { x: 10, time: 11.7 },
-  { x: 15, time: 21.0 },
-  { x: 19, time: 33.0 },
-];
+/** 光の線に残す、通過した工程の目印。工程を終えた時刻に先端の位置へ置かれ、そのまま後ろへ流れていく。 */
+const MARKERS: readonly { x: number; time: number }[] = [11.7, 21.0, 33.0].map((time) => ({
+  time,
+  x: headWorldAt(time),
+}));
+
+/** 役目を終えたノードの退場の進み具合（0〜1）。線が途切れてから、右へ流れつつ消える。 */
+function exitProgress(t: number, start: number): { cut: number; drift: number; fade: number } {
+  return {
+    cut: ease.inOutSine(seg(t, start - 0.05, start + 0.55)),
+    drift: ease.inOutSine(seg(t, start + 0.05, start + 1.05)),
+    fade: seg(t, start + 0.15, start + 1.0),
+  };
+}
 
 const RIPPLE_EVENTS = [
   { time: 3.2, x: -RUN_NODE_WIDTH / 2, y: LINE_Y, size: 1.4 },
@@ -222,17 +211,22 @@ export class Story {
     );
   }
 
+  /** 直近の update で求めた、画面（カメラ）の移動量。背景の粒子を流すのに使う。 */
+  scroll = 0;
+
   /** @param t ループ内の時刻（0〜LOOP_DURATION 秒）。 */
   update(t: number): void {
-    // 全体のフェードイン・フェードアウト（背景の星空は残す）
-    const master = Math.min(seg(t, 0, 1.4), 1 - seg(t, 37.9, 39.3));
+    // 全体のフェードイン・フェードアウト（背景の粒子は残す）
+    const master = Math.min(seg(t, 0, 1.4), 1 - seg(t, FADE_OUT_START, FADE_OUT_END));
 
-    const headX = keyframes(t, HEAD_KEYS);
-    const scroll = keyframes(t, SCROLL_KEYS);
-    const eraseX = t < 37.2 ? -1e4 : keyframes(t, ERASE_KEYS);
+    const scroll = scrollAt(t);
+    this.scroll = scroll;
+    const headX = scroll + headScreenAt(t);
+    const eraseX =
+      t < ERASE_START ? -1e4 : lerp(SCROLL_END - 9, SCROLL_END + 1, ease.inOutSine(seg(t, ERASE_START, ERASE_END)));
     const head = P(headX - scroll, LINE_Y);
-    /** 光の線の先端そのものが消えていく割合。 */
-    const headFade = 1 - seg(t, 37.85, 38.15);
+    /** 光の線の先端そのものが消えていく割合（消去が先端に届くころ）。 */
+    const headFade = 1 - seg(t, 38.7, 38.95);
 
     this.track.position.x = -scroll;
     this.mountains.update(scroll, master);
@@ -266,7 +260,7 @@ export class Story {
   /** 2〜4. /run_aoi_daily の起動、night の表示、左へ流れて消える。 */
   private updateRunNode(t: number, scroll: number): void {
     const appear = seg(t, 2.0, 2.8);
-    const opacity = ease.outCubic(appear) * (1 - seg(scroll, 6.5, 9.8));
+    const opacity = ease.outCubic(appear) * (1 - seg(scroll, 5.5, 9.0));
     this.runNode.set(0, LINE_Y, 0.6 + 0.4 * ease.outBack(appear), opacity);
 
     // 光の線がつながった瞬間に強く光り、その後も起動中の淡い光を残す
@@ -391,15 +385,19 @@ export class Story {
 
   /** 8. 画像生成 AI のノードが現れ、設定資料とプロンプトが運び込まれる。 */
   private updateAi(t: number, head: THREE.Vector2, master: number): void {
+    // 生成した画像を渡し終えたら役目を終え、線が途切れて右へ流れながら消える
+    const exit = exitProgress(t, AI_EXIT_START);
+    const dx = exit.drift * EXIT_DRIFT;
     const appear = seg(t, 22.0, 22.7);
-    this.aiNode.set(AI_POS.x, AI_POS.y, 0.6 + 0.4 * ease.outBack(appear), ease.outCubic(appear) * master);
+    const opacity = ease.outCubic(appear) * (1 - exit.fade) * master;
+    this.aiNode.set(AI_POS.x + dx, AI_POS.y, 0.6 + 0.4 * ease.outBack(appear), opacity);
 
-    this.aiBeam.setCurve(head, P(head.x + 2.6, LINE_Y), AI_ENTRY);
+    this.aiBeam.setLine(head, P(AI_ENTRY.x + dx, AI_ENTRY.y));
     this.aiBeam.update({
-      opacity: 1,
+      opacity: 1 - exit.fade,
       phase: aiBeamPhase(t),
       draw: ease.outCubic(seg(t, 22.5, 23.2)),
-      erase: t < 37.45 ? -1e4 : lerp(-1, this.aiBeam.curveLength + 1, ease.inOutSine(seg(t, 37.45, 38.3))),
+      erase: exit.cut > 0 ? lerp(-1, this.aiBeam.curveLength + 1, exit.cut) : -1e4,
     });
 
     // 生成中は、アイコンの周りでリングが回る
@@ -445,11 +443,15 @@ export class Story {
 
   /** 11. 画像にメッセージを添えて、チャットへ送る。 */
   private updateSend(t: number, head: THREE.Vector2, master: number): void {
+    // sent が付いたあと、画像生成 AI と同じく線が途切れて右へ流れながら消える
+    const exit = exitProgress(t, CHAT_EXIT_START);
+    const dx = exit.drift * EXIT_DRIFT;
     const chatAppear = seg(t, 34.2, 34.9);
-    this.chatNode.set(CHAT_POS.x, CHAT_POS.y, 0.6 + 0.4 * ease.outBack(chatAppear), ease.outCubic(chatAppear) * master);
+    const chatOpacity = ease.outCubic(chatAppear) * (1 - exit.fade) * master;
+    this.chatNode.set(CHAT_POS.x + dx, CHAT_POS.y, 0.6 + 0.4 * ease.outBack(chatAppear), chatOpacity);
 
-    const arrival = fadeWindow(t, 36.7, 37.7, 0.05, 0.8);
-    this.chatGlow.mesh.position.set(CHAT_POS.x, CHAT_POS.y, 0);
+    const arrival = fadeWindow(t, 36.7, 37.7, 0.05, 0.8) * (1 - exit.fade);
+    this.chatGlow.mesh.position.set(CHAT_POS.x + dx, CHAT_POS.y, 0);
     this.chatGlow.mesh.scale.set(4.0, 1.8, 1);
     this.chatGlow.mesh.material.opacity = 0.7 * arrival;
     this.chatGlow.mesh.visible = arrival > 0.001;
@@ -464,15 +466,20 @@ export class Story {
       ease.outCubic(msgAppear) * (1 - seg(t, 36.65, 36.85)),
     );
 
-    this.chatBeam.setCurve(head, P(head.x + 3.4, LINE_Y + 0.1), CHAT_ENTRY);
+    this.chatBeam.setLine(head, P(CHAT_ENTRY.x + dx, CHAT_ENTRY.y));
     this.chatBeam.update({
-      opacity: 1,
+      opacity: 1 - exit.fade,
       phase: t,
       draw: ease.outCubic(seg(t, 35.0, 35.6)),
-      erase: t < 37.5 ? -1e4 : lerp(-1, this.chatBeam.curveLength + 1, ease.inOutSine(seg(t, 37.5, 38.35))),
+      erase: exit.cut > 0 ? lerp(-1, this.chatBeam.curveLength + 1, exit.cut) : -1e4,
     });
 
     const pop = seg(t, 36.85, 37.25);
-    this.sentBadge.set(CHAT_POS.x + 0.75, CHAT_POS.y - 0.55, ease.outBack(pop), seg(t, 36.85, 37.0) * master);
+    this.sentBadge.set(
+      CHAT_POS.x + 0.75 + dx,
+      CHAT_POS.y - 0.55,
+      ease.outBack(pop),
+      seg(t, 36.85, 37.0) * (1 - exit.fade) * master,
+    );
   }
 }

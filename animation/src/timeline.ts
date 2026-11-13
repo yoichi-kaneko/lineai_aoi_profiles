@@ -58,7 +58,7 @@ export const PHASES: readonly { start: number; name: string }[] = [
   { start: 0, name: "1. 光の線が伸びる" },
   { start: 2.0, name: "2. /run_aoi_daily 起動" },
   { start: 4.0, name: "3. night モード" },
-  { start: 5.4, name: "4. 光の線が右へ" },
+  { start: 5.4, name: "4. 光の線が右へ（以後は進み続ける）" },
   { start: 8.4, name: "5. 情報収集" },
   { start: 12.6, name: "6. ガイドライン・設定資料の読み込み" },
   { start: 15.6, name: "7. プロンプト考案" },
@@ -66,7 +66,7 @@ export const PHASES: readonly { start: number; name: string }[] = [
   { start: 25.6, name: "9. 画像の生成" },
   { start: 31.6, name: "10. 画像の返却" },
   { start: 34.0, name: "11. チャットへ送信" },
-  { start: 37.2, name: "12. フェードアウト" },
+  { start: 38.1, name: "12. フェードアウト" },
 ];
 
 export function phaseNameAt(t: number): string {

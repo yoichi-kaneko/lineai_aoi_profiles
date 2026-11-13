@@ -1,33 +1,55 @@
 import * as THREE from "three";
+import { DESIGN_DISTANCE } from "../layout";
 import { mulberry32 } from "../textures";
 import { LAYER } from "./card";
 import { pixelRatio, pointScale } from "./particles";
 
-const starVertex = /* glsl */ `
+/**
+ * 漂う光の粒。粒ごとの速さでゆっくり流れつつ、光の線の進行（uTravel）ぶん後ろへ流れる。
+ * 奥にある粒ほど画面上の動きは小さくなる。見える範囲より広い箱の中で折り返すため、
+ * 粒が画面内で途切れて見えることはない。
+ */
+const dustVertex = /* glsl */ `
+attribute vec2 aVelocity;
 attribute float aSize;
 attribute float aPhase;
+attribute float aShape;
 attribute vec3 aColor;
 uniform float uTime;
+uniform float uTravel;
+uniform float uDepthOrigin;
 uniform float uScale;
 uniform float uPixelRatio;
 varying float vAlpha;
+varying float vShape;
 varying vec3 vColor;
 void main() {
   vColor = aColor;
-  vAlpha = 0.55 + 0.45 * sin(uTime * (0.6 + aPhase * 1.4) + aPhase * 40.0);
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vShape = aShape;
+  vAlpha = 0.55 + 0.45 * sin(uTime * (0.35 + aPhase * 0.6) + aPhase * 37.0);
+
+  float depth = uDepthOrigin - position.z;
+  vec2 span = vec2(2.8, 1.7) * depth;
+  vec2 p = position.xy + aVelocity * uTime - vec2(uTravel, 0.0);
+  p = mod(p + span * 0.5, span) - span * 0.5;
+
+  vec4 mv = modelViewMatrix * vec4(p, position.z, 1.0);
   gl_Position = projectionMatrix * mv;
   gl_PointSize = max(aSize * uScale * uPixelRatio / -mv.z, 1.0);
 }
 `;
 
-const starFragment = /* glsl */ `
+const dustFragment = /* glsl */ `
 varying float vAlpha;
+varying float vShape;
 varying vec3 vColor;
 void main() {
-  float d = length(gl_PointCoord - 0.5);
-  float a = smoothstep(0.5, 0.0, d);
-  gl_FragColor = vec4(vColor * a * a * vAlpha, 1.0);
+  vec2 c = gl_PointCoord - 0.5;
+  float soft = smoothstep(0.5, 0.0, length(c));
+  soft *= soft;
+  float pixel = smoothstep(0.5, 0.3, max(abs(c.x), abs(c.y)));
+  float a = mix(soft, pixel * 0.8, vShape);
+  gl_FragColor = vec4(vColor * a * vAlpha, 1.0);
 }
 `;
 
@@ -39,9 +61,10 @@ void main() {
 }
 `;
 
-/** 値ノイズを重ねた、ごく暗い星雲と、画面中央に寄せた淡い光。 */
+/** 値ノイズを重ねた、ごく暗い星雲と、画面中央に寄せた淡い光。光の線の進行に合わせて模様が流れる。 */
 const nebulaFragment = /* glsl */ `
 uniform float uTime;
+uniform float uTravel;
 varying vec2 vUv;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -62,7 +85,7 @@ float fbm(vec2 p) {
   return v;
 }
 void main() {
-  vec2 p = vUv * vec2(6.0, 3.4) + vec2(uTime * 0.004, 0.0);
+  vec2 p = vUv * vec2(6.0, 3.4) + vec2(uTime * 0.004 + uTravel * 0.02, 0.0);
   float n = fbm(p + fbm(p * 0.7) * 1.6);
   vec3 deep = vec3(0.0010, 0.0016, 0.0055);
   vec3 violet = vec3(0.012, 0.004, 0.026);
@@ -74,62 +97,82 @@ void main() {
 }
 `;
 
-/** 星空と星雲。ループの切れ目でも消さずに残す背景。 */
+/** 漂う光の粒と星雲。ループの切れ目でも消さずに残す背景。 */
 export class Background {
   readonly group = new THREE.Group();
-  private readonly starMaterial: THREE.ShaderMaterial;
+  private readonly dustMaterial: THREE.ShaderMaterial;
   private readonly nebulaMaterial: THREE.ShaderMaterial;
 
   constructor() {
     const rand = mulberry32(42);
-    const count = 2200;
+    const count = 320;
     const positions = new Float32Array(count * 3);
+    const velocities = new Float32Array(count * 2);
     const sizes = new Float32Array(count);
     const phases = new Float32Array(count);
+    const shapes = new Float32Array(count);
     const colors = new Float32Array(count * 3);
-    const palette = [new THREE.Color("#ffffff"), new THREE.Color("#a8e6ff"), new THREE.Color("#c9b8ff")];
+    const palette = [new THREE.Color("#7fe8ff"), new THREE.Color("#b9a8ff"), new THREE.Color("#dff6ff")];
     for (let i = 0; i < count; i++) {
-      const z = -20 - rand() * 50;
-      const spread = (12.4 - z) * 0.364;
-      positions.set([(rand() * 2 - 1) * spread * 3.2, (rand() * 2 - 1) * spread * 1.2, z], i * 3);
-      sizes[i] = rand() < 0.05 ? 0.42 : 0.12 + rand() * 0.16;
+      const z = -16 - rand() * 44;
+      const depth = DESIGN_DISTANCE - z;
+      // 画面上での大きさ・速さで決め、奥行きに応じてワールド座標へ換算する
+      const toWorld = depth / DESIGN_DISTANCE;
+      positions.set([(rand() - 0.5) * 2.8 * depth, (rand() - 0.5) * 1.7 * depth, z], i * 3);
+      velocities.set([-(0.04 + rand() * 0.12) * toWorld, (0.01 + rand() * 0.05) * toWorld], i * 2);
+      sizes[i] = (rand() < 0.08 ? 0.11 : 0.035 + rand() * 0.05) * toWorld;
       phases[i] = rand();
+      shapes[i] = rand() < 0.25 ? 1 : 0;
       const c = palette[Math.floor(rand() * palette.length)]!;
-      const k = 0.35 + rand() * 0.65;
+      const k = 0.35 + rand() * 0.6;
       colors.set([c.r * k, c.g * k, c.b * k], i * 3);
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("aVelocity", new THREE.BufferAttribute(velocities, 2));
     geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
     geometry.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+    geometry.setAttribute("aShape", new THREE.BufferAttribute(shapes, 1));
     geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
-    this.starMaterial = new THREE.ShaderMaterial({
-      vertexShader: starVertex,
-      fragmentShader: starFragment,
-      uniforms: { uTime: { value: 0 }, uScale: pointScale, uPixelRatio: pixelRatio },
+    this.dustMaterial = new THREE.ShaderMaterial({
+      vertexShader: dustVertex,
+      fragmentShader: dustFragment,
+      uniforms: {
+        uTime: { value: 0 },
+        uTravel: { value: 0 },
+        uDepthOrigin: { value: DESIGN_DISTANCE },
+        uScale: pointScale,
+        uPixelRatio: pixelRatio,
+      },
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
-    const stars = new THREE.Points(geometry, this.starMaterial);
-    stars.renderOrder = LAYER.background + 1;
-    stars.frustumCulled = false;
+    const dust = new THREE.Points(geometry, this.dustMaterial);
+    dust.renderOrder = LAYER.background + 1;
+    dust.frustumCulled = false;
 
     this.nebulaMaterial = new THREE.ShaderMaterial({
       vertexShader: nebulaVertex,
       fragmentShader: nebulaFragment,
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uTravel: { value: 0 } },
       depthWrite: false,
     });
     const nebula = new THREE.Mesh(new THREE.PlaneGeometry(300, 170), this.nebulaMaterial);
     nebula.position.z = -90;
     nebula.renderOrder = LAYER.background;
 
-    this.group.add(nebula, stars);
+    this.group.add(nebula, dust);
   }
 
-  update(time: number): void {
-    this.starMaterial.uniforms.uTime!.value = time;
+  /**
+   * @param time 経過時間（秒）。ループとは無関係に進み続ける。
+   * @param travel 光の線が進んだ量の累計。ループの切れ目でも巻き戻らない値を渡す。
+   */
+  update(time: number, travel: number): void {
+    this.dustMaterial.uniforms.uTime!.value = time;
+    this.dustMaterial.uniforms.uTravel!.value = travel;
     this.nebulaMaterial.uniforms.uTime!.value = time;
+    this.nebulaMaterial.uniforms.uTravel!.value = travel;
   }
 }

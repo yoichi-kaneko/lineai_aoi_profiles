@@ -96,6 +96,10 @@ async function main(): Promise<void> {
     loopTime = ((loopTime % LOOP_DURATION) + LOOP_DURATION) % LOOP_DURATION;
   });
 
+  // 背景を流す量。ループの切れ目やシークで移動量が巻き戻っても、背景は巻き戻さず進んだぶんだけ足していく
+  let travel = 0;
+  let lastScroll = 0;
+
   let last = performance.now();
   renderer.setAnimationLoop((now: number) => {
     const dt = Math.min((now - last) / 1000, 0.1);
@@ -107,8 +111,11 @@ async function main(): Promise<void> {
     camera.position.set(Math.sin(sway) * 0.12, Math.sin(sway * 2) * 0.06, cameraDistance);
     camera.lookAt(0, 0, 0);
 
-    background.update(now / 1000);
     story.update(loopTime);
+    const delta = story.scroll - lastScroll;
+    if (delta > 0 && delta < 1) travel += delta;
+    lastScroll = story.scroll;
+    background.update(now / 1000, travel);
     composer.render();
 
     if (!hud.hidden) {

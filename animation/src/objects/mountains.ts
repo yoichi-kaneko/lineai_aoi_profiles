@@ -24,7 +24,7 @@ const LAYERS: readonly LayerSpec[] = [
 
 /** ワールド座標での山並みの範囲（スクロール量と横長画面を見込んだ幅）。 */
 const X_MIN = -34;
-const X_MAX = 64;
+const X_MAX = 92;
 /** 山の裾（画面上の座標）。縦長画面でも下端が切れないよう深めに取る。 */
 const BOTTOM = -8;
 

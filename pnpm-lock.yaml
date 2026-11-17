@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@doist/todoist-sdk':
-        specifier: 15.13.1
-        version: 15.13.1(type-fest@5.10.0)
+        specifier: 17.0.1
+        version: 17.0.1(type-fest@5.10.0)
       '@google/genai':
         specifier: 2.32.0
         version: 2.32.0
@@ -340,9 +340,10 @@ packages:
   '@doist/sdk-kmp@0.6.0':
     resolution: {integrity: sha512-YgnsXxgrdaIvNC8iL9yDB3Vv/zNYTfVE8jB+PB1KXUunEeJHQORhE6IJfLj7X2RRuR83U47a8trVAc4IU7PoBw==}
 
-  '@doist/todoist-sdk@15.13.1':
-    resolution: {integrity: sha512-oJaz9f2KqqA1B4PJdUVkKmIo2UnLJuKnvQAA/pbLOnEvO3LrewJzRAMImMnnYFJBAgFjLPuEj7VVKYWUOfhnvQ==}
+  '@doist/todoist-sdk@17.0.1':
+    resolution: {integrity: sha512-TyGsKXBIHnWbIQqab/Jku/aeaEbhzFDb9NIPBK/pg9uX5y5g/Z0+c7xlHhxZ/TtfO1mb9Y2mk4MUBAcZHS9WOg==}
     engines: {node: '>=24', npm: '>=11'}
+    deprecated: Moved to @todoist/sdk. Replace @doist/todoist-sdk with @todoist/sdk in your dependencies and imports.
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
 
@@ -2847,7 +2848,7 @@ snapshots:
 
   '@doist/sdk-kmp@0.6.0': {}
 
-  '@doist/todoist-sdk@15.13.1(type-fest@5.10.0)':
+  '@doist/todoist-sdk@17.0.1(type-fest@5.10.0)':
     dependencies:
       '@doist/sdk-kmp': 0.6.0
       camelcase: 6.3.0

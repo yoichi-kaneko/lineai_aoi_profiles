@@ -63,13 +63,13 @@ sh deploy.sh
 
 ### Codex cloud のコンテナセットアップ
 
-Codex cloud では `.codex/setup.sh` が `.nvmrc` に従って Node.js を用意し、pnpm の依存関係をインストールします。外部パッケージレジストリへの接続に環境の HTTP(S) プロキシが必要な場合は、Node.js にプロキシ環境変数を使用させるため、次のように実行してください。
+Codex cloud では `.codex/setup.sh` が `.nvmrc` に従って Node.js を用意し、`package.json` の `packageManager` の版の pnpm を npm で導入したうえで、pnpm の依存関係をインストールします（Node.js 25 以降は Corepack を同梱しないため、Corepack は使いません）。外部パッケージレジストリへの接続に環境の HTTP(S) プロキシが必要な場合は、Node.js にプロキシ環境変数を使用させるため、次のように実行してください。
 
 ```bash
 NODE_USE_ENV_PROXY=1 bash .codex/setup.sh
 ```
 
-`NODE_USE_ENV_PROXY=1` を指定しない場合、そのような環境では Node.js がプロキシを経由せず、Corepack による pnpm の取得または `pnpm install` がネットワークエラーで失敗することがあります。`nvm install` は Node.js 起動前に curl 等で実行されるため `NODE_USE_ENV_PROXY` の対象外です。`nvm install` 自体がプロキシを必要とする場合は、シェル側の `HTTP_PROXY` / `HTTPS_PROXY` など、nvm のダウンロードクライアント向けの設定を別途用意してください。
+`NODE_USE_ENV_PROXY=1` を指定しない場合、そのような環境では Node.js がプロキシを経由せず、`pnpm install` がネットワークエラーで失敗することがあります（npm による pnpm の導入は、npm 自身が `HTTP_PROXY` / `HTTPS_PROXY` を読みます）。`nvm install` は Node.js 起動前に curl 等で実行されるため `NODE_USE_ENV_PROXY` の対象外です。`nvm install` 自体がプロキシを必要とする場合は、シェル側の `HTTP_PROXY` / `HTTPS_PROXY` など、nvm のダウンロードクライアント向けの設定を別途用意してください。
 
 ### クラウドセッションへの資格情報の受け渡し
 

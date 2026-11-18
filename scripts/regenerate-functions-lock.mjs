@@ -24,16 +24,17 @@ try {
     copyFileSync(lockPath, temporaryLockPath);
   }
 
-  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-  const result = spawnSync(
-    npmCommand,
-    ["install", "--package-lock-only"],
-    {
-      cwd: temporaryDirectory,
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    },
-  );
+  // Windows の npm は npm.cmd のため shell 経由でしか起動できない。shell と引数配列の
+  // 併用は Node.js が非推奨（DEP0190）としているため、Windows では引数を含めた固定の
+  // コマンド文字列として渡す。
+  const spawnOptions = { cwd: temporaryDirectory, stdio: "inherit" };
+  const result =
+    process.platform === "win32"
+      ? spawnSync("npm install --package-lock-only", {
+          ...spawnOptions,
+          shell: true,
+        })
+      : spawnSync("npm", ["install", "--package-lock-only"], spawnOptions);
 
   if (result.error) throw result.error;
   if (result.status !== 0) {

@@ -168,7 +168,7 @@ importers:
     dependencies:
       '@doist/todoist-sdk':
         specifier: 15.13.1
-        version: 15.13.1(type-fest@5.10.0)
+        version: 15.13.1(type-fest@6.0.3)
       '@google/genai':
         specifier: 2.32.0
         version: 2.32.0
@@ -209,8 +209,8 @@ importers:
         specifier: 1.31.0
         version: 1.31.0
       type-fest:
-        specifier: 5.10.0
-        version: 5.10.0
+        specifier: 6.0.3
+        version: 6.0.3
     devDependencies:
       '@types/node':
         specifier: 24.19.2
@@ -343,6 +343,7 @@ packages:
   '@doist/todoist-sdk@15.13.1':
     resolution: {integrity: sha512-oJaz9f2KqqA1B4PJdUVkKmIo2UnLJuKnvQAA/pbLOnEvO3LrewJzRAMImMnnYFJBAgFjLPuEj7VVKYWUOfhnvQ==}
     engines: {node: '>=24', npm: '>=11'}
+    deprecated: Moved to @todoist/sdk. Replace @doist/todoist-sdk with @todoist/sdk in your dependencies and imports.
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
 
@@ -2440,9 +2441,9 @@ packages:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
     engines: {node: '>=16'}
 
-  type-fest@5.10.0:
-    resolution: {integrity: sha512-NoSdpq/WEiAg5sjmBkmV/hfxv6HJH4NqPNrqjtSO5CwRmpsDfaf4begxW34KdJykH/l1yHtwBWQkCRdoXO8mPA==}
-    engines: {node: '>=20'}
+  type-fest@6.0.3:
+    resolution: {integrity: sha512-MOJXegkac3h+sWdVb6VY/ACclsa71z3BprNpedGV8ljIzYCo+LRWgyIkWhidKNoiNJOb6kUds1pNCyzQ2p6hJQ==}
+    engines: {node: '>=22'}
 
   type-is@2.1.0:
     resolution: {integrity: sha512-faYHw0anBbc/kWF3zFTEnxSFOAGUX9GFbOBthvDdLsIlEoWOFOtS0zgCiQYwIskL9iGXZL3kAXD8OoZ4GmMATA==}
@@ -2847,13 +2848,13 @@ snapshots:
 
   '@doist/sdk-kmp@0.6.0': {}
 
-  '@doist/todoist-sdk@15.13.1(type-fest@5.10.0)':
+  '@doist/todoist-sdk@15.13.1(type-fest@6.0.3)':
     dependencies:
       '@doist/sdk-kmp': 0.6.0
       camelcase: 6.3.0
       emoji-regex: 10.6.0
       ts-custom-error: 3.3.1
-      type-fest: 5.10.0
+      type-fest: 6.0.3
       undici: 7.29.1
       uuid: 11.1.1
       zod: 4.6.6
@@ -4975,7 +4976,7 @@ snapshots:
 
   type-fest@4.41.0: {}
 
-  type-fest@5.10.0:
+  type-fest@6.0.3:
     dependencies:
       tagged-tag: 1.0.0
 

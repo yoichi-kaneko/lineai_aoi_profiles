@@ -188,8 +188,8 @@ importers:
         specifier: 18.0.10
         version: 18.0.10
       firebase-admin:
-        specifier: 14.5.0
-        version: 14.5.0
+        specifier: 14.5.1
+        version: 14.5.1
       google-auth-library:
         specifier: 11.3.4
         version: 11.3.4
@@ -343,6 +343,7 @@ packages:
   '@doist/todoist-sdk@15.13.1':
     resolution: {integrity: sha512-oJaz9f2KqqA1B4PJdUVkKmIo2UnLJuKnvQAA/pbLOnEvO3LrewJzRAMImMnnYFJBAgFjLPuEj7VVKYWUOfhnvQ==}
     engines: {node: '>=24', npm: '>=11'}
+    deprecated: Moved to @todoist/sdk. Replace @doist/todoist-sdk with @todoist/sdk in your dependencies and imports.
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
 
@@ -981,9 +982,6 @@ packages:
   '@types/node@24.13.5':
     resolution: {integrity: sha512-TXyindR+lBr22aJIdMQzCFHPHR6cR4js838mRDCSz5hOKWZvZwsXSSiXDmjRj4iJmgl+sR9O+1mkoVBSMadNug==}
 
-  '@types/node@24.19.0':
-    resolution: {integrity: sha512-zY+5tKxXdhGh1PYI0ac+7juvEu4OI6vWtVVoj5i2m42jxAY1U+zHGt6QCyOFwykdP62sM3MJ9stoYYUw5aCWew==}
-
   '@types/node@24.19.2':
     resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
@@ -1534,8 +1532,8 @@ packages:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
     engines: {node: '>=8'}
 
-  firebase-admin@14.5.0:
-    resolution: {integrity: sha512-DElmgmaH9aPXu2dWXGQiDoan33UfTnbfAAKaue4fwEZxmpdaNrTk5DmuFn+vVDki2KZ6TiaC0IHRWcEzcDxB3Q==}
+  firebase-admin@14.5.1:
+    resolution: {integrity: sha512-3NSWRREeFCET2tyiOd0ENvRFdagi9voBRGCiNbGSIRbwuMJh2Eh/dcmItNWd82rcqd+fyW5/77/oZOZxC27/sA==}
     engines: {node: '>=22'}
 
   follow-redirects@1.16.0:
@@ -3363,17 +3361,13 @@ snapshots:
   '@types/jsonwebtoken@9.0.10':
     dependencies:
       '@types/ms': 2.1.0
-      '@types/node': 24.19.0
+      '@types/node': 24.19.2
 
   '@types/ms@2.1.0': {}
 
   '@types/node@24.13.5':
     dependencies:
       undici-types: 7.18.2
-
-  '@types/node@24.19.0':
-    dependencies:
-      undici-types: 7.24.6
 
   '@types/node@24.19.2':
     dependencies:
@@ -3918,7 +3912,7 @@ snapshots:
       locate-path: 5.0.0
       path-exists: 4.0.0
 
-  firebase-admin@14.5.0:
+  firebase-admin@14.5.1:
     dependencies:
       '@fastify/busboy': 3.2.2
       '@firebase/database-compat': 2.1.7

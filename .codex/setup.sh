@@ -26,7 +26,19 @@ nvm alias default "$NODE_VERSION" >/dev/null
 NODE_BIN_DIR="$(dirname "$(nvm which "$NODE_VERSION")")"
 export PATH="$NODE_BIN_DIR:$PATH"
 
-corepack enable
+# Node.js 25 以降は Corepack を同梱しないため、pnpm は npm で導入する。
+# 版は package.json の packageManager に合わせる（"pnpm@12.18.0+sha512..." の + 以降は除く）。
+PACKAGE_MANAGER="$(node -p "require('./package.json').packageManager || ''")"
+case "$PACKAGE_MANAGER" in
+  pnpm@?*) ;;
+  *)
+    echo "error: package.json の packageManager に pnpm の版がありません（${PACKAGE_MANAGER}）。" >&2
+    exit 1
+    ;;
+esac
+PNPM_VERSION="${PACKAGE_MANAGER#pnpm@}"
+PNPM_VERSION="${PNPM_VERSION%%+*}"
+npm install -g "pnpm@${PNPM_VERSION}"
 
 # setup.sh の PATH 変更は後続の Codex シェルへ引き継がれないため、Codex が PATH の
 # 先頭に用意するディレクトリへ実体の symlink を置く。
@@ -40,7 +52,7 @@ if [ ! -w "$CODEX_PATH_DIR" ]; then
   exit 1
 fi
 
-for command_name in node npm npx corepack pnpm pnpx; do
+for command_name in node npm npx pnpm pnpx; do
   if [ -x "$NODE_BIN_DIR/$command_name" ]; then
     ln -sfn "$NODE_BIN_DIR/$command_name" "$CODEX_PATH_DIR/$command_name"
   fi

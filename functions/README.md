@@ -190,6 +190,8 @@ npm --prefix functions run lock:regenerate
 
 このコマンドは、node_modules の無い一時ディレクトリへ `package.json` と既存のロックをコピーしてから `npm install --package-lock-only` を実行し、成功したロックだけを `functions/package-lock.json` へ反映します。これにより、pnpm が作った `functions/node_modules`（`.pnpm` へのシンボリックリンク）を npm が取り込んだ壊れたロックの生成を防ぎ、今回変えた依存以外の差分も抑えます。
 
+また、pnpm が公開直後の版を拒否する `minimumReleaseAge`（`pnpm-workspace.yaml`。記載が無ければ 1440 分）を日単位に換算（端数は切り上げ）し、npm の `min-release-age` として渡します。npm も同じだけ待つため、推移的な依存が `pnpm-lock.yaml` より新しい版へ解決されてずれるのを防ぎます。`minimumReleaseAgeExclude` は npm へ引き継ぎません（npm の `min-release-age-exclude` はパッケージ名単位の除外で、版を限った pnpm の除外を表せず、引き継ぐとそのパッケージの全版で待機が外れるため）。
+
 検証は [`scripts/check-functions-lock.mjs`](../scripts/check-functions-lock.mjs) が担い、次の3点を確認します。
 
 - `package-lock.json` が存在すること

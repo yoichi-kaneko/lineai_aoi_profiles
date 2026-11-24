@@ -28,6 +28,7 @@ pnpm check:functions-lock
 ```
 
 - `scripts/regenerate-functions-lock.mjs` は、pnpm 管理の `functions/node_modules` を npm に読ませないよう、一時ディレクトリで `npm install --package-lock-only` を実行してロックだけを更新する。`functions/` で `npm install` を直接実行しない。
+- このスクリプトは `pnpm-workspace.yaml` の `minimumReleaseAge` を日単位（端数は切り上げ）に換算して npm の `min-release-age` に自動で渡すため、`npm_config_min_release_age` などを手で付けなくても、公開から待つ時間に満たない版は npm でも選ばれない。
 - この再生成で変わったのが `functions/package-lock.json` だけであること。他のファイルが変わっていたら中断する。
 - `pnpm check:functions-lock` が通ること。
 

@@ -182,11 +182,12 @@ lineai_aoi_profiles/
 │   ├── todoist/           # Todoist タスク操作
 │   ├── util/              # 汎用ユーティリティ（資格情報の読み込み・画像ダウンロード・秘密でない環境変数の読み取り等）
 │   └── yamap/             # YAMAP 計画書・活動記録の取得（埋め込み JSON のパース）
-├── test/                  # ルート src/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
+├── test/                  # ルート src/・scripts/ とシェルスクリプトに対する vitest のテスト（詳細は test/README.md）
 ├── scripts/
 │   ├── sync-agent-config.mjs     # 共有開発 Skill の同期・差分検査
 │   ├── check-functions-lock.mjs  # functions/package-lock.json の健全性検査
-│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
+│   ├── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
+│   └── regenerate-functions-lock.d.mts # 上記が export する判断ロジックの型宣言（テスト用）
 ├── docs/
 │   └── agent/             # 開発・Git運用・レビューのツール非依存な詳細規則
 │       ├── development.md

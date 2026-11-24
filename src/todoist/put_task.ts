@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { readFileSync, realpathSync } from "fs";
 import { resolve, sep } from "path";
 import { fileURLToPath } from "url";
-import { TodoistApi } from "@doist/todoist-sdk";
+import { TodoistApi } from "@todoist/sdk";
 
 // プロジェクトルートの .env を読み込む
 // src/todoist/ -> src/ -> project root

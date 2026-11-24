@@ -1,6 +1,6 @@
 # テスト
 
-ルートの `src/` とリポジトリルートのシェルスクリプトに対するテストを置く。`functions/` は独立したワークスペースパッケージのため、そちらのテストは `functions/test/` に置く。
+ルートの `src/`・`scripts/` とリポジトリルートのシェルスクリプトに対するテストを置く。`functions/` は独立したワークスペースパッケージのため、そちらのテストは `functions/test/` に置く。
 
 ```bash
 pnpm test        # ルートのテストを実行する
@@ -50,6 +50,8 @@ test/
 │   └── download_image.test.ts # 受け取った画像の取得先の切り替え（Cloudinary → LINE）・チャネルの指定・public_id の組み立てと functions 側との一致・署名付き URL
 ├── openweather/
 │   └── forecast.test.ts       # API エラー判定・日時整形
+├── scripts/
+│   └── regenerate_functions_lock.test.ts # minimumReleaseAge の読み取り・npm の min-release-age（日）への換算・子プロセスの環境変数
 ├── shell/
 │   ├── deploy.test.ts         # 一時 Git リポジトリでの更新・依存インストール・失敗時の停止
 │   └── send_daily_line.test.ts # runner の起動情報の受け渡し（響の対象ID・投稿日の検証、従来モードの互換性、結星の実行時間帯と run_logs による実行済みスキップ）と作業領域 tmp/ の扱い
@@ -124,6 +126,7 @@ CLI スクリプトをテスト対象にする場合は、`main()` の実行を
 - `src/geo/evaluate_selection.ts`
 - `src/geo/select_locations.ts`
 - `src/codex/review.ts`
+- `scripts/regenerate-functions-lock.mjs`（換算ロジックのみ。npm の起動とロックの書き戻しは手動で確認する）
 - `send_daily_line.sh` / `refresh_tmp.sh`（`test/shell/send_daily_line.test.ts`）
 - `deploy.sh`（`test/shell/deploy.test.ts`）
 - `src/**/*.ts` の `dotenv.config()` 呼び出し（`test/env/dotenv_quiet.test.ts`）

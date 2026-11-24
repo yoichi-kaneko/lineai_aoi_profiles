@@ -16,12 +16,13 @@ lineai_aoi_profiles/
 ├── assets/                   # 画像・綴葉のガイドと素材
 ├── modes/                    # 暁・望・小夜・登山・綴葉・響・結星のモード定義
 ├── src/                      # Skill の TypeScript 実装
-├── test/                     # ルート src とシェルスクリプトに対するテスト
+├── test/                     # ルート src・scripts とシェルスクリプトに対するテスト
 ├── functions/                # LINE Webhook の Cloud Functions とテスト
 ├── scripts/
 │   ├── sync-agent-config.mjs    # 共有 Skill の同期・差分検査
 │   ├── check-functions-lock.mjs # functions/package-lock.json の健全性検査
-│   └── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
+│   ├── regenerate-functions-lock.mjs # functions/package-lock.json の安全な再生成
+│   └── regenerate-functions-lock.d.mts # 上記が export する判断ロジックの型宣言（テスト用）
 ├── docs/
 │   └── agent/
 │       ├── development.md    # 本文書

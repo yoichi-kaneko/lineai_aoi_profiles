@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
-import { TodoistApi, type Task } from "@doist/todoist-sdk";
+import { TodoistApi, type Task } from "@todoist/sdk";
 
 function getApiToken(): string {
   const token = process.env.TODOIST_API_TOKEN;

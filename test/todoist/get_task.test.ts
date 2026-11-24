@@ -1,16 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Task } from "@doist/todoist-sdk";
+import type { Task } from "@todoist/sdk";
 import {
   COMPLETED_MAX_PAGES,
   COMPLETED_PAGE_LIMIT,
   fetchTaskIncludingCompleted,
-  findTaskById,
+  findCompletedTask,
   isTaskNotFoundError,
+  type CompletedTaskRecord,
   type TaskLookupApi,
 } from "../../src/todoist/get_task.js";
 
 function task(id: string, content: string): Task {
   return { id, content } as Task;
+}
+
+/** 完了済み一覧の項目。記録自身の ID はタスク ID と別の値になる。 */
+function completed(taskId: string, content: string): CompletedTaskRecord & { id: string } {
+  return { id: `record-${taskId}`, taskId, itemObject: task(taskId, content) };
 }
 
 function notFound(): Error & { httpStatusCode: number } {
@@ -31,14 +37,24 @@ describe("isTaskNotFoundError", () => {
   });
 });
 
-describe("findTaskById", () => {
-  it("一致する ID のタスクを返す", () => {
-    const tasks = [task("aaa", "A"), task("bbb", "B")];
-    expect(findTaskById(tasks, "bbb")?.content).toBe("B");
+describe("findCompletedTask", () => {
+  it("taskId が一致する項目のタスク本体を返す", () => {
+    const items = [completed("aaa", "A"), completed("bbb", "B")];
+    expect(findCompletedTask(items, "bbb")).toMatchObject({ id: "bbb", content: "B" });
+  });
+
+  it("記録自身の ID とは照合しない", () => {
+    const items = [{ id: "abc", taskId: "other", itemObject: task("other", "別件") }];
+    expect(findCompletedTask(items, "abc")).toBeUndefined();
+  });
+
+  it("タスク本体が付いていない項目は飛ばす", () => {
+    const items: CompletedTaskRecord[] = [{ taskId: "abc", itemObject: null }];
+    expect(findCompletedTask(items, "abc")).toBeUndefined();
   });
 
   it("無ければ undefined", () => {
-    expect(findTaskById([task("aaa", "A")], "zzz")).toBeUndefined();
+    expect(findCompletedTask([completed("aaa", "A")], "zzz")).toBeUndefined();
   });
 });
 
@@ -62,7 +78,7 @@ describe("fetchTaskIncludingCompleted", () => {
         throw notFound();
       }),
       getAllCompletedTasks: vi.fn(async () => ({
-        items: [task("other", "別件"), task("abc", "完了済み")],
+        items: [completed("other", "別件"), completed("abc", "完了済み")],
       })),
     };
 
@@ -79,7 +95,7 @@ describe("fetchTaskIncludingCompleted", () => {
 
   it("1ページ目に無ければ次ページを辿る", async () => {
     const firstPage = Array.from({ length: COMPLETED_PAGE_LIMIT }, (_, i) =>
-      task(`p0-${i}`, "page0")
+      completed(`p0-${i}`, "page0")
     );
     const api: TaskLookupApi = {
       getTask: vi.fn(async () => {
@@ -89,7 +105,7 @@ describe("fetchTaskIncludingCompleted", () => {
         if (offset === 0) {
           return { items: firstPage };
         }
-        return { items: [task("abc", "2ページ目")] };
+        return { items: [completed("abc", "2ページ目")] };
       }),
     };
 
@@ -109,7 +125,7 @@ describe("fetchTaskIncludingCompleted", () => {
       getTask: vi.fn(async () => {
         throw notFound();
       }),
-      getAllCompletedTasks: vi.fn(async () => ({ items: [task("other", "別件")] })),
+      getAllCompletedTasks: vi.fn(async () => ({ items: [completed("other", "別件")] })),
     };
 
     await expect(fetchTaskIncludingCompleted("abc", api)).rejects.toThrow(/タスクが見つかりません: abc/);
@@ -118,7 +134,7 @@ describe("fetchTaskIncludingCompleted", () => {
 
   it("完了済みの走査は最大ページ数で打ち切る", async () => {
     const fullPage = Array.from({ length: COMPLETED_PAGE_LIMIT }, (_, i) =>
-      task(`x-${i}`, "full")
+      completed(`x-${i}`, "full")
     );
     const api: TaskLookupApi = {
       getTask: vi.fn(async () => {

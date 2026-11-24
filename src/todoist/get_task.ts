@@ -7,13 +7,16 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../../.env"), quiet: true });
 
-import { TodoistApi, type Task } from "@doist/todoist-sdk";
+import { TodoistApi, type CompletedTaskItem, type Task } from "@todoist/sdk";
 import { parseTaskId, TaskUrlError } from "./task_url.js";
 
 /** 完了済み検索の1ページ件数（API 上限 200）。 */
 export const COMPLETED_PAGE_LIMIT = 200;
 /** 完了済みを辿る最大ページ数。直近 1000 件までに限る。 */
 export const COMPLETED_MAX_PAGES = 5;
+
+/** 完了済み一覧の項目のうち、照合に使う面だけ。 */
+export type CompletedTaskRecord = Pick<CompletedTaskItem, "taskId" | "itemObject">;
 
 /** getTask / 完了済み一覧の、この CLI が使う面だけ。 */
 export type TaskLookupApi = {
@@ -22,7 +25,7 @@ export type TaskLookupApi = {
     limit: number;
     offset: number;
     annotateItems: boolean;
-  }) => Promise<{ items?: Task[] | null }>;
+  }) => Promise<{ items?: CompletedTaskRecord[] | null }>;
 };
 
 /** REST の 404（未完了としては存在しない）かどうか。 */
@@ -33,13 +36,20 @@ export function isTaskNotFoundError(error: unknown): boolean {
   return "httpStatusCode" in error && (error as { httpStatusCode?: unknown }).httpStatusCode === 404;
 }
 
-export function findTaskById<T extends { id: string }>(tasks: readonly T[], taskId: string): T | undefined {
-  return tasks.find((task) => task.id === taskId);
+/**
+ * 完了済み一覧の項目から、指定したタスクの本体を探す。
+ * 項目は完了の記録で、`id` は記録自身の ID。タスクの ID は `taskId`、
+ * タスクの本体は `itemObject`（`annotateItems: true` のときに付く）にある。
+ */
+export function findCompletedTask(
+  items: readonly CompletedTaskRecord[],
+  taskId: string
+): Task | undefined {
+  return items.find((item) => item.taskId === taskId && item.itemObject)?.itemObject ?? undefined;
 }
 
 /**
- * 未完了を getTask で取り、404 なら直近の完了済みから ID 照合する。
- * getTask はアクティブなタスク専用なので、完了済みは一覧側にフォールバックする。
+ * getTask で取り、404 なら直近の完了済み一覧からタスク ID で照合する。
  */
 export async function fetchTaskIncludingCompleted(
   taskId: string,
@@ -60,7 +70,7 @@ export async function fetchTaskIncludingCompleted(
       annotateItems: true,
     });
     const items = response.items ?? [];
-    const found = findTaskById(items, taskId);
+    const found = findCompletedTask(items, taskId);
     if (found) {
       return found;
     }

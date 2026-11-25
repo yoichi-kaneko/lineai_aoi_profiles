@@ -49,6 +49,7 @@
 | `time_of_day` | 時間帯 | `dawn`（暁） / `morning`（朝） / `day`（昼） / `evening`（夕） / `night`（夜） / `late_night`（深夜） |
 | `companions` | ルリ／デジタル上の友人（蛍・漆）の登場有無（配列。いなければ `[]`）。ガイドライン セクション6・7の `random_choice` 2本の結果を配列へ正規化して記録する | `[]` / `["ruri"]` / `["hotaru"]` / `["urushi"]` / `["ruri","hotaru"]` / `["ruri","urushi"]` |
 | `codex_review` | プロンプトの外部レビュー（[codexレビュー](codex_review.md)）の結果。値の対応は同ドキュメントのセクション7を正とする | `applied`（指摘を反映） / `not_applied`（指摘はあったが全て不採用） / `no_findings`（指摘なし） / `skipped`（レビューが行われなかった） |
+| `regenerated_reason` | （**任意**・生成画像の確認で再生成した場合のみ）再生成した理由を1文で書く。**破綻が起きた所作**と、**どの手・指にどんな破綻があったか**の両方を含める（例：「指先にルリを止まらせた左手で、指が関節と逆向きに曲がっていた」）。`cloudinary_url` などほかのキーは採用した画像の値を入れる。再生成しなかった場合は省略（空文字列は入れない） | 文字列 |
 | `user_specified` | （**任意**）ユーザーが依頼で明示的に指定した主題・素材または可変要素（響モードのみ。指定が無ければ省略） | `subject` / `shot_size` / `camera_direction` / `outfit` / `scene_category` / `time_of_day` / `companions` の配列（例：`["subject","scene_category","time_of_day"]`） |
 | `prompt_digest` | プロンプトの要約（全文は重いので要点1〜2文のみ） | 文字列 |
 
@@ -161,6 +162,7 @@
 | `shot_size` / `camera_direction` | 抽選した構図軸の正規化値（値を変えた場合は前節「構図軸の再抽選が発生した場合」に従う） | 同左 | 同左（依頼に指定があればその値） |
 | `user_specified` | 省略 | 省略 | 依頼で指定された主題・素材の `subject` と、可変要素のキー名の配列（指定が無ければ省略） |
 | `codex_review` | [画像生成ガイドライン](../../assets/image_guideline.md) セクション3の共通手順3（プロンプトのレビュー）の結果 | 同左 | 同左 |
+| `regenerated_reason` | [画像生成ガイドライン](../../assets/image_guideline.md) セクション3の共通手順5（生成画像の確認）で再生成した場合のみ、その理由 | 同左 | 同左 |
 | `time_of_day` / `prompt_digest` | 各モードの分析とプロンプトから判断 | 同左 | 依頼が求める情景から判断 |
 
 - `companions` は、抽選結果を選び直した場合は**実際にプロンプトへ入れた内容**を使い、`none` は保存しません。

@@ -195,8 +195,8 @@ importers:
         specifier: 11.4.0
         version: 11.4.0
       '@todoist/sdk':
-        specifier: 24.0.1
-        version: 24.0.1(type-fest@5.10.0)
+        specifier: 24.1.4
+        version: 24.1.4(type-fest@5.10.0)
       cheerio:
         specifier: 1.2.0
         version: 1.2.0
@@ -969,8 +969,8 @@ packages:
     resolution: {integrity: sha512-lCA6QG22dPk9ecHbv91jDQZsmtPUjdS1aE2Il6NNPqe7DrYc0dZQi6DhcESk2KYXH2sp5xbAcGdYMZDFnuzA2A==}
     engines: {node: '>=18.0.0'}
 
-  '@todoist/sdk@24.0.1':
-    resolution: {integrity: sha512-5aHDPio90jPurz5HfDXvjJUqzb8d29nhEm1n5wMXF5uAUwi/yjDDmP/WnbvrzQ37+uHgyl6Y785T1ULci4aMWg==}
+  '@todoist/sdk@24.1.4':
+    resolution: {integrity: sha512-YllTYEB3BkgEVYo4VPhAciL1felVTEcLptIX/C1yfMB9HZQnDXw2FJzBDI9bEWhL/bf8YA9fqdp/9sJY7ZmNOQ==}
     engines: {node: '>=24', npm: '>=11'}
     peerDependencies:
       type-fest: ^4.12.0 || ^5.5.0
@@ -3369,7 +3369,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@todoist/sdk@24.0.1(type-fest@5.10.0)':
+  '@todoist/sdk@24.1.4(type-fest@5.10.0)':
     dependencies:
       '@doist/sdk-kmp': 0.6.0
       camelcase: 6.3.0

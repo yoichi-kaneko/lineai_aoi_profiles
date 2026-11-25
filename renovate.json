@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "type-fest は @todoist/sdk の peer dependency（^4.12.0 || ^5.5.0）を満たすために置いている。@todoist/sdk が peer に type-fest 6 を含めたら、このルールを外す。",
+      "matchPackageNames": [
+        "type-fest"
+      ],
+      "allowedVersions": "<6"
+    }
   ]
 }

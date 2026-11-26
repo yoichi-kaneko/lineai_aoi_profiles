@@ -216,8 +216,8 @@ importers:
         specifier: 190.0.0
         version: 190.0.0
       openai:
-        specifier: 7.55.0
-        version: 7.55.0(@aws-sdk/credential-provider-node@3.972.95)(@smithy/signature-v4@5.7.5)(google-auth-library@11.3.4)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6)
+        specifier: 7.65.0
+        version: 7.65.0(@aws-sdk/credential-provider-node@3.972.95)(@smithy/signature-v4@5.7.5)(google-auth-library@11.3.4)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6)
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -2078,8 +2078,8 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  openai@7.55.0:
-    resolution: {integrity: sha512-0r4snVSRN46m4wL2vXCW5Xw6CKGPbdNI8t79KZOpe8GKKPmhL8peDXN8YOY/2ipsOVWSfsP/vgkLjTmWB+kMug==}
+  openai@7.65.0:
+    resolution: {integrity: sha512-n7tmWKiUptMIugQMGAEDsfeu8MsPLR4uHPFWRcUjy7Mn2w968TuAUMGOlvnh/AghLF1iz4zYop2RoxfHZFKaEw==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       '@aws-sdk/credential-provider-node': '>=3.972.0 <4'
@@ -4611,7 +4611,7 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  openai@7.55.0(@aws-sdk/credential-provider-node@3.972.95)(@smithy/signature-v4@5.7.5)(google-auth-library@11.3.4)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6):
+  openai@7.65.0(@aws-sdk/credential-provider-node@3.972.95)(@smithy/signature-v4@5.7.5)(google-auth-library@11.3.4)(undici@7.29.1)(ws@8.21.3)(zod@4.6.6):
     optionalDependencies:
       '@aws-sdk/credential-provider-node': 3.972.95
       '@smithy/signature-v4': 5.7.5

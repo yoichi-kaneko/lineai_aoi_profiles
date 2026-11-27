@@ -10,6 +10,13 @@ const PROJECT_ROOT = resolve(__dirname, "../../");
 
 /** QR コード本体の一辺（px）。既定値は 1536x1024 のレポート画像を前提に決めている */
 const DEFAULT_QR_SIZE = 190;
+/**
+ * top-left での QR コード本体の既定の一辺（px）。
+ * report_template.png の表題「登山レポート」の文字は x=217 付近、写真枠の上端は y=205 付近から始まる
+ * （1536x1024 換算）。端の余白 28px から貼るカード（QR 本体＋余白 28px）がどちらにもかからないよう、
+ * 既定の 190px より縮める。
+ */
+const TOP_LEFT_QR_SIZE = 140;
 /** QR 本体の指定として受け付ける範囲（px） */
 const MIN_QR_SIZE = 120;
 const MAX_QR_SIZE = 400;
@@ -26,6 +33,8 @@ const QR_DARK = "#123a5aff";
 const QR_LIGHT = "#ffffffff";
 /** 誤り訂正レベル。表示時の縮小・SNS 側の再圧縮に耐えるよう高めに取る */
 const QR_ERROR_CORRECTION_LEVEL = "Q" as const;
+/** QR PNG 内に含めるクワイエットゾーン（モジュール数）。規格どおり4モジュール */
+const QR_QUIET_ZONE_MODULES = 4;
 
 /** 画像の端からカードまでの余白（画像幅に対する比） */
 const OUTER_MARGIN_RATIO = 28 / 1536;
@@ -39,11 +48,17 @@ const PHOTO_FRAME_INSET_RATIO = 18 / 1536;
 
 export const ANCHORS = [
   "bottom-right",
+  "top-left",
   "bottom-left",
   "photo-bottom-right",
 ] as const;
 export type Anchor = (typeof ANCHORS)[number];
 const DEFAULT_ANCHOR: Anchor = "bottom-right";
+
+/** `--size` を省略したときの QR コード本体の一辺（px）を、アンカーごとに返す */
+export function defaultQrSizeFor(anchor: Anchor): number {
+  return anchor === "top-left" ? TOP_LEFT_QR_SIZE : DEFAULT_QR_SIZE;
+}
 
 export interface BaseImageSize {
   width: number;
@@ -89,6 +104,9 @@ export function resolveAnchorPosition(
         left: base.width - margin - cardSize,
         top: base.height - margin - cardSize,
       };
+    case "top-left":
+      // レポート画像では、表題「登山レポート」の左にあるザックへ被さる位置
+      return { left: margin, top: margin };
     case "bottom-left":
       return {
         left: margin,
@@ -143,11 +161,14 @@ export interface ParsedArgs {
   qrSize: number;
 }
 
-/** コマンドライン引数を解釈する（位置引数2つ＋任意のオプション） */
+/**
+ * コマンドライン引数を解釈する（位置引数2つ＋任意のオプション）。
+ * `--size` を省略した場合は、アンカーごとの既定値（`defaultQrSizeFor`）を使う。
+ */
 export function parseArgs(argv: string[]): ParsedArgs {
   const positional: string[] = [];
   let anchor: Anchor = DEFAULT_ANCHOR;
-  let qrSize = DEFAULT_QR_SIZE;
+  let qrSize: number | undefined;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -189,7 +210,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     basePath: positional[0],
     url: assertEmbeddableUrl(positional[1]),
     anchor,
-    qrSize,
+    qrSize: qrSize ?? defaultQrSizeFor(anchor),
   };
 }
 
@@ -217,13 +238,29 @@ export function resolveBaseImagePath(basePath: string): string {
   return realPath;
 }
 
+/**
+ * URL の QR コードが、指定した一辺（px）に収まるかを確認する。
+ * qrcode は `width` がモジュール数（クワイエットゾーン込み）を下回ると `width` を無視して
+ * 大きな PNG を作り、カードへの合成が失敗するため、合成前に必要な `--size` を案内して止める。
+ */
+export function assertQrFitsSize(url: string, qrSize: number): void {
+  const { modules } = QRCode.create(url, {
+    errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
+  });
+  const requiredSize = modules.size + QR_QUIET_ZONE_MODULES * 2;
+  if (requiredSize > qrSize) {
+    throw new Error(
+      `URL が長く、QR コードを ${qrSize}px に収められません。--size ${requiredSize} 以上を指定してください`,
+    );
+  }
+}
+
 /** QR コードを白い角丸カードに載せた PNG を作る */
 async function renderQrCard(url: string, qrSize: number): Promise<Buffer> {
   const qrPng = await QRCode.toBuffer(url, {
     type: "png",
     errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
-    // 規格どおり4モジュール分のクワイエットゾーンを QR PNG 内に含める
-    margin: 4,
+    margin: QR_QUIET_ZONE_MODULES,
     width: qrSize,
     color: { dark: QR_DARK, light: QR_LIGHT },
   });
@@ -260,6 +297,7 @@ export async function embedQrCode(options: EmbedQrOptions): Promise<EmbedQrResul
   const cardSize = cardSizeFor(options.qrSize);
   const position = resolveAnchorPosition(options.anchor, cardSize, base);
   assertPositionInsideBase(position, cardSize, base);
+  assertQrFitsSize(options.url, options.qrSize);
 
   const card = await renderQrCard(options.url, options.qrSize);
 
@@ -284,7 +322,7 @@ async function main() {
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     console.error(
-      "使用方法: pnpm exec tsx src/image/embed_qr.ts <ベース画像パス> <URL> [--anchor bottom-right|bottom-left|photo-bottom-right] [--size 190]",
+      "使用方法: pnpm exec tsx src/image/embed_qr.ts <ベース画像パス> <URL> [--anchor bottom-right|top-left|bottom-left|photo-bottom-right] [--size 190]",
     );
     console.error(
       '例: pnpm exec tsx src/image/embed_qr.ts "tmp/gpt_image_123.png" "https://yamap.com/activities/45591468"',

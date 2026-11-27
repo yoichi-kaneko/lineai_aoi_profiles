@@ -33,6 +33,8 @@ const QR_DARK = "#123a5aff";
 const QR_LIGHT = "#ffffffff";
 /** 誤り訂正レベル。表示時の縮小・SNS 側の再圧縮に耐えるよう高めに取る */
 const QR_ERROR_CORRECTION_LEVEL = "Q" as const;
+/** QR PNG 内に含めるクワイエットゾーン（モジュール数）。規格どおり4モジュール */
+const QR_QUIET_ZONE_MODULES = 4;
 
 /** 画像の端からカードまでの余白（画像幅に対する比） */
 const OUTER_MARGIN_RATIO = 28 / 1536;
@@ -236,13 +238,29 @@ export function resolveBaseImagePath(basePath: string): string {
   return realPath;
 }
 
+/**
+ * URL の QR コードが、指定した一辺（px）に収まるかを確認する。
+ * qrcode は `width` がモジュール数（クワイエットゾーン込み）を下回ると `width` を無視して
+ * 大きな PNG を作り、カードへの合成が失敗するため、合成前に必要な `--size` を案内して止める。
+ */
+export function assertQrFitsSize(url: string, qrSize: number): void {
+  const { modules } = QRCode.create(url, {
+    errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
+  });
+  const requiredSize = modules.size + QR_QUIET_ZONE_MODULES * 2;
+  if (requiredSize > qrSize) {
+    throw new Error(
+      `URL が長く、QR コードを ${qrSize}px に収められません。--size ${requiredSize} 以上を指定してください`,
+    );
+  }
+}
+
 /** QR コードを白い角丸カードに載せた PNG を作る */
 async function renderQrCard(url: string, qrSize: number): Promise<Buffer> {
   const qrPng = await QRCode.toBuffer(url, {
     type: "png",
     errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
-    // 規格どおり4モジュール分のクワイエットゾーンを QR PNG 内に含める
-    margin: 4,
+    margin: QR_QUIET_ZONE_MODULES,
     width: qrSize,
     color: { dark: QR_DARK, light: QR_LIGHT },
   });
@@ -279,6 +297,7 @@ export async function embedQrCode(options: EmbedQrOptions): Promise<EmbedQrResul
   const cardSize = cardSizeFor(options.qrSize);
   const position = resolveAnchorPosition(options.anchor, cardSize, base);
   assertPositionInsideBase(position, cardSize, base);
+  assertQrFitsSize(options.url, options.qrSize);
 
   const card = await renderQrCard(options.url, options.qrSize);
 

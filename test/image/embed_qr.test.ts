@@ -6,6 +6,7 @@ import {
   ANCHORS,
   assertEmbeddableUrl,
   assertPositionInsideBase,
+  assertQrFitsSize,
   cardSizeFor,
   defaultQrSizeFor,
   parseArgs,
@@ -188,6 +189,27 @@ describe("assertPositionInsideBase", () => {
     expect(() => assertPositionInsideBase(position, cardSize, small)).toThrow(
       /はみ出します/,
     );
+  });
+});
+
+describe("assertQrFitsSize", () => {
+  // 誤り訂正レベル Q で version 39（173 モジュール）になり、クワイエットゾーン込みで 181px 必要
+  const longUrl = `https://example.com/${"a".repeat(1500)}`;
+
+  it("YAMAP のレポート URL は top-left の既定サイズに収まる", () => {
+    expect(() =>
+      assertQrFitsSize(
+        "https://yamap.com/activities/45591468",
+        defaultQrSizeFor("top-left"),
+      ),
+    ).not.toThrow();
+  });
+
+  it("収まらない長さの URL では、必要な --size を案内して止める", () => {
+    expect(() => assertQrFitsSize(longUrl, defaultQrSizeFor("top-left"))).toThrow(
+      /--size 181 以上/,
+    );
+    expect(() => assertQrFitsSize(longUrl, 181)).not.toThrow();
   });
 });
 

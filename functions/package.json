@@ -10,7 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-ssm": "3.1165.0",
+    "@aws-sdk/client-ssm": "3.1178.0",
     "@google-cloud/firestore": "9.4.1",
     "@google-cloud/functions-framework": "5.0.5",
     "@line/bot-sdk": "11.4.0",
@@ -18,8 +18,8 @@
     "google-auth-library": "11.3.4"
   },
   "devDependencies": {
-    "@types/node": "26.6.6",
+    "@types/node": "26.6.11",
     "typescript": "7.0.2",
-    "vitest": "5.1.1"
+    "vitest": "5.1.2"
   }
 }

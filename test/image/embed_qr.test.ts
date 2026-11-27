@@ -3,9 +3,11 @@ import { realpathSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  ANCHORS,
   assertEmbeddableUrl,
   assertPositionInsideBase,
   cardSizeFor,
+  defaultQrSizeFor,
   parseArgs,
   resolveAnchorPosition,
   resolveBaseImagePath,
@@ -53,6 +55,29 @@ describe("parseArgs", () => {
     ]);
     expect(parsed.anchor).toBe("bottom-left");
     expect(parsed.basePath).toBe("tmp/gpt_image_1.png");
+  });
+
+  it("top-left は --size を省略すると既定より小さい QR にする", () => {
+    const parsed = parseArgs([
+      "tmp/gpt_image_1.png",
+      "https://yamap.com/activities/1",
+      "--anchor",
+      "top-left",
+    ]);
+    expect(parsed.anchor).toBe("top-left");
+    expect(parsed.qrSize).toBe(140);
+  });
+
+  it("top-left でも --size を指定すればその値を使う", () => {
+    const parsed = parseArgs([
+      "tmp/gpt_image_1.png",
+      "https://yamap.com/activities/1",
+      "--size",
+      "160",
+      "--anchor",
+      "top-left",
+    ]);
+    expect(parsed.qrSize).toBe(160);
   });
 
   it("未定義のアンカーを拒否する", () => {
@@ -115,6 +140,15 @@ describe("resolveAnchorPosition", () => {
     );
   });
 
+  it("top-left は左上隅に置き、既定の大きさなら表題の文字と写真枠にかからない", () => {
+    const topLeftCard = cardSizeFor(defaultQrSizeFor("top-left"));
+    const position = resolveAnchorPosition("top-left", topLeftCard, REPORT_BASE);
+    expect(position).toEqual({ left: 28, top: 28 });
+    // report_template.png の表題「登山レポート」の文字の左端（x=217 付近）と写真枠の上端（y=205 付近）
+    expect(position.left + topLeftCard).toBeLessThan(217);
+    expect(position.top + topLeftCard).toBeLessThan(205);
+  });
+
   it("bottom-left は左下隅に置く", () => {
     const position = resolveAnchorPosition("bottom-left", cardSize, REPORT_BASE);
     expect(position).toEqual({ left: 28, top: 778 });
@@ -129,11 +163,12 @@ describe("resolveAnchorPosition", () => {
     expect(position).toEqual({ left: 574, top: 454 });
   });
 
-  it("いずれのアンカーもベース画像の内側に収まる", () => {
-    for (const anchor of ["bottom-right", "bottom-left", "photo-bottom-right"] as const) {
-      const position = resolveAnchorPosition(anchor, cardSize, REPORT_BASE);
+  it("いずれのアンカーも既定の大きさでベース画像の内側に収まる", () => {
+    for (const anchor of ANCHORS) {
+      const anchorCard = cardSizeFor(defaultQrSizeFor(anchor));
+      const position = resolveAnchorPosition(anchor, anchorCard, REPORT_BASE);
       expect(() =>
-        assertPositionInsideBase(position, cardSize, REPORT_BASE),
+        assertPositionInsideBase(position, anchorCard, REPORT_BASE),
       ).not.toThrow();
     }
   });

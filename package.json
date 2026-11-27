@@ -17,25 +17,25 @@
         "@google/genai": "3.6.1",
         "@googlemaps/google-maps-services-js": "3.4.2",
         "@line/bot-sdk": "11.4.0",
-        "@todoist/sdk": "24.0.1",
+        "@todoist/sdk": "24.1.4",
         "cheerio": "1.2.0",
         "cloudinary": "2.11.0",
         "dotenv": "18.0.10",
         "firebase-admin": "14.5.1",
         "google-auth-library": "11.3.4",
         "googleapis": "190.0.0",
-        "openai": "7.55.0",
+        "openai": "7.65.0",
         "qrcode": "1.5.4",
         "sharp": "0.35.5",
         "twitter-api-v2": "1.31.0",
         "type-fest": "5.10.0"
     },
     "devDependencies": {
-        "@types/node": "26.6.6",
+        "@types/node": "26.6.11",
         "@types/qrcode": "1.5.6",
         "tsx": "4.23.15",
         "typescript": "7.0.2",
-        "vitest": "5.1.1"
+        "vitest": "5.1.2"
     },
     "optionalDependencies": {
         "@esbuild/linux-x64": "0.28.2"

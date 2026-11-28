@@ -254,8 +254,8 @@ importers:
   functions:
     dependencies:
       '@aws-sdk/client-ssm':
-        specifier: 3.1178.0
-        version: 3.1178.0
+        specifier: 3.1179.0
+        version: 3.1179.0
       '@google-cloud/firestore':
         specifier: 9.4.1
         version: 9.4.1
@@ -284,8 +284,8 @@ importers:
 
 packages:
 
-  '@aws-sdk/client-ssm@3.1178.0':
-    resolution: {integrity: sha512-7/beunBtNvMZ0+11mVOWA6ek/4GBaQBBVx705yhMM4EVZeBnDC69z8jWrZt0cRP4Ymm47VyurgqRZjPpEuTtig==}
+  '@aws-sdk/client-ssm@3.1179.0':
+    resolution: {integrity: sha512-nLMB4cmUcgCRhvO/mhskf3Ai24ko3+F+CKlCYW4805C0BVjPXlcHhf90t5eTh8jZFHPZ9wmg01BuzUYPzxV9eA==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/core@3.981.2':
@@ -2724,7 +2724,7 @@ packages:
 
 snapshots:
 
-  '@aws-sdk/client-ssm@3.1178.0':
+  '@aws-sdk/client-ssm@3.1179.0':
     dependencies:
       '@aws-sdk/core': 3.981.2
       '@aws-sdk/credential-provider-node': 3.972.99
